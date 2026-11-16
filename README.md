@@ -300,7 +300,7 @@ composer install --no-dev --optimize-autoloader
 
 **পদ্ধতি B, public_html ব্যবহার করে (Document Root বদলানো না গেলে):**
 1. পুরো প্রজেক্ট রাখুন `/home/USER/loon` এ, `public_html` এর **বাইরে**।
-2. `loon/public/` এর **ভেতরের সব ফাইল** `public_html/` এ কপি করুন: `index.php`, `.htaccess`, `build/`, `brand/`, `uploads/`, `robots.txt`। Hidden ফাইল দেখতে File Manager → Settings → *Show Hidden Files* চালু করুন।
+2. `loon/public/` এর **ভেতরের সব ফাইল** `public_html/` এ কপি করুন: `index.php`, `.htaccess`, `build/`, `brand/`, `uploads/`। (`robots.txt` ফাইল রাখবেন না, এটা এখন নিজে তৈরি হয়।) Hidden ফাইল দেখতে File Manager → Settings → *Show Hidden Files* চালু করুন।
 3. `public_html/index.php` খুলে এই লাইনটা বদলান:
    ```php
    $basePath = __DIR__.'/../loon';
