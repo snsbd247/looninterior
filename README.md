@@ -151,6 +151,30 @@ labib/
 - **স্ট্যাটাস:** Draft → Sent → Approved / Rejected। Sent হলে লিড "Quotation Sent", Approved হলে লিড "Won" হয়ে যায়।
 - **Revise:** পাঠানো কোটেশন বদলাতে হলে নতুন সংস্করণ (…-R1) তৈরি হয়। পুরনোটা থেকে যায়।
 - **PDF (English / বাংলা)**, ডাউনলোড, **ইমেইল** (PDF সংযুক্ত), আর **WhatsApp** এ ৩০ দিন মেয়াদি PDF লিংক শেয়ার।
+### Business প্যানেল: ধাপ ৪ (প্রজেক্ট ও বিলিং) আর ধাপ ৫ (অ্যাকাউন্টস) ✅
+
+- **Projects:**
+  - অনুমোদিত কোটেশন থেকে "Create Project" দিলে প্রজেক্ট তৈরি হয়, সাথে ৫টা milestone আর 50/30/20 কিস্তি।
+  - ট্যাবগুলো: Overview (লাভ-ক্ষতি), Milestones & Tasks, Files & Photos, Billing (কিস্তি → ইনভয়েস), Costs।
+  - কাজ শেষ হলে "Publish to website" দিয়ে ছবিগুলো পোর্টফোলিওতে যায়।
+- **Invoices:**
+  - Draft → Issue → **Receive Payment** (Cash/Bank/bKash/Nagad/Cheque…, আংশিক পেমেন্ট নেওয়া যায়) → Paid।
+  - ক্রেডিট নোট, বাতিল, EN/বাংলা PDF আর ইমেইল।
+  - প্রতিটা পেমেন্টের মানি রিসিট।
+- **Receivables (Dues):** কার কাছে কত বাকি আর কতদিন ধরে। Excel এ ডাউনলোড করা যায়।
+- **Cash & Bank:**
+  - প্রতিটা অ্যাকাউন্টের ব্যালেন্স আর লেজার।
+  - এক অ্যাকাউন্ট থেকে আরেক অ্যাকাউন্টে ট্রান্সফার, অন্য শাখাতেও।
+- **Income & Expenses:**
+  - ক্লায়েন্টের পেমেন্ট নিজে থেকেই আয় হিসেবে ওঠে।
+  - খরচ খাত অনুযায়ী লেখা যায়, প্রজেক্টের সাথে যুক্ত করা যায়, রসিদের ছবিও দেওয়া যায়।
+  - খাতের তালিকা: Income/Expense Heads।
+- **Reports:** Cash Book, আয়-ব্যয়, বছরের লাভ-ক্ষতি, প্রজেক্টের লাভ, শাখার তুলনা। Print আর Excel (CSV)।
+- **নিয়ম:** টাকার কোনো এন্ট্রি মোছা যায় না, শুধু কারণসহ বাতিল করা যায়। হিসাব সবসময় মিলে থাকে।
+- **দৈনিক ইমেইল (সকাল ৯টা):**
+  - প্রতিটা স্টাফ পায় তার আজকের ফলো-আপের তালিকা।
+  - Admin পায় মেয়াদোত্তীর্ণ ইনভয়েসের তালিকা।
+  - এর জন্য cPanel Cron দরকার ([ধাপ ৭ক](#ধাপ-৭ক-cron-job)।)
 
 ---
 
@@ -417,6 +441,14 @@ php artisan config:cache && php artisan route:cache
 
 কাজ শেষ। `https://yourdomain.com` এ সাইট আর `https://yourdomain.com/admin` এ অ্যাডমিন প্যানেল।
 
+### ধাপ ৭ক: Cron Job
+
+দৈনিক রিমাইন্ডার ইমেইলের জন্য দরকার। cPanel → **Cron Jobs** → "Once Per Minute" বেছে নিয়ে এই কমান্ডটা দিন (`USER` এর জায়গায় আপনার cPanel ইউজারনেম):
+```
+cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
+```
+এরপর প্রতিদিন সকাল ৯টায় `business:reminders` নিজে থেকে চলবে। হাতে টেস্ট করতে: `php artisan business:reminders --dry`
+
 ### ধাপ ৮: Google এ জমা দেওয়া
 - [Google Search Console](https://search.google.com/search-console) এ ডোমেইন যোগ করে `https://yourdomain.com/sitemap.xml` জমা দিন।
 - sitemap, canonical আর ইমেইলের লিংক `APP_URL` থেকে তৈরি হয়। তাই `APP_URL` অবশ্যই আসল ডোমেইন (https সহ) হতে হবে।
@@ -547,6 +579,11 @@ php artisan config:cache && php artisan route:cache
 | `GET /api/business/leads[?view=board]`, `GET leads/{id}`, `GET follow-ups` | crm.view | লিড, পাইপলাইন, ফলো-আপ |
 | `POST leads`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle` | crm.manage | লিড তৈরি/এডিট, ধাপ বদল, টাইমলাইন, ক্লায়েন্ট বানানো |
 | `GET/POST /api/business/customers[/{id}]` | crm.view / crm.manage | ক্লায়েন্ট |
+| `GET projects[/{id}]`, `POST projects`, `projects/{id}`, `…/milestones`, `…/tasks`, `…/files`, `…/schedule`, `…/publish` | projects.view / projects.manage | প্রজেক্ট |
+| `GET invoices[/{id}]`, `invoices/prefill`, `invoices/{id}/pdf`, `payments[/{id}]`, `payments/{id}/pdf`, `receivables` | billing.view | ইনভয়েস, পেমেন্ট, বকেয়া |
+| `POST invoices`, `invoices/{id}`, `…/issue`, `…/receive`, `…/credit-note`, `…/cancel`, `…/email`, `payments/{id}/cancel` | billing.manage | ইনভয়েস তৈরি, পেমেন্ট নেওয়া, বাতিল |
+| `GET accounts[/{id}]`, `transactions`, `reports/{cashbook,summary,profit-loss,projects,branches}` (`?format=csv`) | accounts.view | অ্যাকাউন্ট, লেজার, রিপোর্ট |
+| `POST accounts[/{id}]`, `transactions`, `transactions/transfer`, `transactions/{id}/cancel` | accounts.manage | আয়/ব্যয়, ট্রান্সফার |
 | `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
 | `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
 | `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |

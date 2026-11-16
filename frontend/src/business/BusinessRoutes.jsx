@@ -16,6 +16,18 @@ import CustomerDetail from './pages/crm/CustomerDetail'
 import Quotations from './pages/quotations/Quotations'
 import QuotationForm from './pages/quotations/QuotationForm'
 import QuotationDetail from './pages/quotations/QuotationDetail'
+import Projects from './pages/projects/Projects'
+import ProjectForm from './pages/projects/ProjectForm'
+import ProjectDetail from './pages/projects/ProjectDetail'
+import Invoices from './pages/billing/Invoices'
+import InvoiceForm from './pages/billing/InvoiceForm'
+import InvoiceDetail from './pages/billing/InvoiceDetail'
+import Payments from './pages/billing/Payments'
+import Receivables from './pages/billing/Receivables'
+import Accounts from './pages/accounts/Accounts'
+import AccountLedger from './pages/accounts/AccountLedger'
+import Transactions from './pages/accounts/Transactions'
+import Reports from './pages/accounts/Reports'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -50,6 +62,22 @@ const ROUTES = [
   ['quotations/new', 'quotations.manage', <QuotationForm />],
   ['quotations/:id', 'quotations.view', <QuotationDetail />],
   ['quotations/:id/edit', 'quotations.manage', <QuotationForm />],
+  // Step 4: Projects & billing
+  ['projects', 'projects.view', <Projects />],
+  ['projects/new', 'projects.manage', <ProjectForm />],
+  ['projects/:id', 'projects.view', <ProjectDetail />],
+  ['projects/:id/edit', 'projects.manage', <ProjectForm />],
+  ['invoices', 'billing.view', <Invoices />],
+  ['invoices/new', 'billing.manage', <InvoiceForm />],
+  ['invoices/:id', 'billing.view', <InvoiceDetail />],
+  ['invoices/:id/edit', 'billing.manage', <InvoiceForm />],
+  ['payments', 'billing.view', <Payments />],
+  ['receivables', 'billing.view', <Receivables />],
+  // Step 5: Accounts
+  ['accounts', 'accounts.view', <Accounts />],
+  ['accounts/:id', 'accounts.view', <AccountLedger />],
+  ['transactions', 'accounts.view', <Transactions />],
+  ['reports', 'accounts.view', <Reports />],
 ]
 
 export default function BusinessRoutes() {

@@ -144,7 +144,11 @@ if (-not $Email -or -not $Password) {
     # Step 2: CRM
     foreach ($p in '/api/business/leads', '/api/business/leads?view=board', '/api/business/follow-ups', '/api/business/customers',
                    '/api/business/lookup/staff', '/api/business/lookup/tax-rates', '/api/business/lookup/branches',
-                   '/api/business/quotations') {
+                   '/api/business/quotations',
+                   '/api/business/projects', '/api/business/invoices', '/api/business/payments', '/api/business/receivables',
+                   '/api/business/accounts', '/api/business/transactions', '/api/business/lookup/accounts', '/api/business/lookup/categories',
+                   '/api/business/reports/cashbook', '/api/business/reports/summary', '/api/business/reports/profit-loss',
+                   '/api/business/reports/projects', '/api/business/reports/branches') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 

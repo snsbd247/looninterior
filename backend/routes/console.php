@@ -2,6 +2,13 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+/*
+| Scheduled jobs. On cPanel add ONE cron job (every minute):
+|   * * * * * cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
+*/
+Schedule::command('business:reminders')->dailyAt('09:00')->withoutOverlapping();
 
 /*
 | Reset an admin password from the terminal (when e-mail is not set up):

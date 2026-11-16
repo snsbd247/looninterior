@@ -228,3 +228,5 @@
   .a-branch { margin-left: 0; min-width: 0; flex: 1; }
   .a-branch select { max-width: 100%; width: 100%; }
 }
+
+.admin h4 { font-family: inherit; }

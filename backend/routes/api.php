@@ -12,6 +12,12 @@ use App\Http\Controllers\Business\CustomerController;
 use App\Http\Controllers\Business\LeadController;
 use App\Http\Controllers\Business\LookupController;
 use App\Http\Controllers\Business\QuotationController;
+use App\Http\Controllers\Business\AccountController;
+use App\Http\Controllers\Business\InvoiceController;
+use App\Http\Controllers\Business\PaymentController;
+use App\Http\Controllers\Business\ReportController;
+use App\Http\Controllers\Business\TransactionController;
+use App\Http\Controllers\Business\WorkProjectController;
 use App\Http\Controllers\Business\RoleController;
 use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
@@ -148,6 +154,70 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::post('quotations/{quotation}/status', 'status')->whereNumber('quotation');
         Route::post('quotations/{quotation}/revise', 'revise')->whereNumber('quotation');
         Route::post('quotations/{quotation}/email', 'email')->whereNumber('quotation')->middleware('throttle:test-mail');
+    });
+
+    // Step 4: Projects
+    Route::middleware('perm:projects.view')->controller(WorkProjectController::class)->group(function () {
+        Route::get('projects', 'index');
+        Route::get('projects/{project}', 'show')->whereNumber('project');
+        Route::get('projects/{project}/files/{file}', 'downloadFile')->whereNumber(['project', 'file']);
+    });
+    Route::middleware('perm:projects.manage')->controller(WorkProjectController::class)->group(function () {
+        Route::post('projects', 'store');
+        Route::post('projects/{project}', 'update')->whereNumber('project');
+        Route::post('projects/{project}/milestones', 'saveMilestones')->whereNumber('project');
+        Route::post('projects/{project}/tasks', 'saveTask')->whereNumber('project');
+        Route::post('projects/{project}/tasks/{task}', 'saveTask')->whereNumber(['project', 'task']);
+        Route::delete('projects/{project}/tasks/{task}', 'deleteTask')->whereNumber(['project', 'task']);
+        Route::post('projects/{project}/files', 'uploadFiles')->whereNumber('project');
+        Route::delete('projects/{project}/files/{file}', 'deleteFile')->whereNumber(['project', 'file']);
+        Route::post('projects/{project}/schedule', 'saveSchedule')->whereNumber('project');
+        Route::post('projects/{project}/publish', 'publish')->whereNumber('project')->middleware('perm:website.manage');
+    });
+
+    // Step 4: Billing (invoices, payments, credit notes)
+    Route::middleware('perm:billing.view')->group(function () {
+        Route::get('invoices', [InvoiceController::class, 'index']);
+        Route::get('invoices/prefill', [InvoiceController::class, 'prefill']);
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->whereNumber('invoice');
+        Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->whereNumber('invoice');
+        Route::get('receivables', [InvoiceController::class, 'receivables']);
+        Route::get('payments', [PaymentController::class, 'index']);
+        Route::get('payments/{payment}', [PaymentController::class, 'show'])->whereNumber('payment');
+        Route::get('payments/{payment}/pdf', [PaymentController::class, 'pdf'])->whereNumber('payment');
+    });
+    Route::middleware('perm:billing.manage')->group(function () {
+        Route::post('invoices', [InvoiceController::class, 'store']);
+        Route::post('invoices/{invoice}', [InvoiceController::class, 'update'])->whereNumber('invoice');
+        Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->whereNumber('invoice');
+        Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->whereNumber('invoice');
+        Route::post('invoices/{invoice}/receive', [InvoiceController::class, 'receive'])->whereNumber('invoice');
+        Route::post('invoices/{invoice}/credit-note', [InvoiceController::class, 'creditNote'])->whereNumber('invoice');
+        Route::post('invoices/{invoice}/email', [InvoiceController::class, 'email'])->whereNumber('invoice')->middleware('throttle:test-mail');
+        Route::post('payments/{payment}/cancel', [PaymentController::class, 'cancel'])->whereNumber('payment');
+        Route::post('payments/{payment}/email', [PaymentController::class, 'email'])->whereNumber('payment')->middleware('throttle:test-mail');
+    });
+
+    // Step 5: Accounts
+    Route::get('lookup/accounts', [AccountController::class, 'index'])->middleware('perm:accounts.view|billing.manage|suppliers.pay');
+    Route::get('lookup/categories', [TransactionController::class, 'categories'])->middleware('perm:accounts.view|projects.view');
+    Route::middleware('perm:accounts.view')->group(function () {
+        Route::get('accounts', [AccountController::class, 'index']);
+        Route::get('accounts/{account}', [AccountController::class, 'show'])->whereNumber('account');
+        Route::get('transactions', [TransactionController::class, 'index']);
+        Route::get('transactions/{transaction}/attachment', [TransactionController::class, 'attachment'])->whereNumber('transaction');
+        Route::get('reports/cashbook', [ReportController::class, 'cashbook']);
+        Route::get('reports/summary', [ReportController::class, 'summary']);
+        Route::get('reports/profit-loss', [ReportController::class, 'profitLoss']);
+        Route::get('reports/projects', [ReportController::class, 'projects']);
+        Route::get('reports/branches', [ReportController::class, 'branches']);
+    });
+    Route::middleware('perm:accounts.manage')->group(function () {
+        Route::post('accounts', [AccountController::class, 'store']);
+        Route::post('accounts/{account}', [AccountController::class, 'update'])->whereNumber('account');
+        Route::post('transactions', [TransactionController::class, 'store']);
+        Route::post('transactions/transfer', [TransactionController::class, 'transfer']);
+        Route::post('transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->whereNumber('transaction');
     });
 });
 

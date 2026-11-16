@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৩ সম্পূর্ণ)
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৫ সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -69,14 +69,19 @@ labib/
 │   │   │   ├── Admin/                Auth, Dashboard, Resource (জেনেরিক CRUD), Setting
 │   │   │   └── Business/             ✅ UserController, RoleController, BusinessSettingController,
 │   │   │                             ActivityLogController
-│   │   │                             🔜 Lead, Customer, Quotation, WorkProject, Invoice, Payment,
+│   │   │                             ✅ Lookup, Lead, Customer, Quotation, WorkProject, Invoice, Payment,
+│   │   │                             Account, Transaction, Report
 │   │   │                             Account, Transaction, Store, Item, Purchase, Stock, Ticket, Report …
 │   │   ├── Models/                   ওয়েবসাইটের মডেল (BaseModel → active()/ordered() + LogsActivity)
-│   │   │   ├── Business/             ✅ Branch, Role, TaxRate, ActivityLog (🔜 বাকি মডেল)
+│   │   │   ├── Business/             ✅ Branch, Role, TaxRate, ActivityLog, Customer, Lead, LeadActivity,
+│   │   │   │                         Quotation(+Item), WorkProject, ProjectMilestone/Task/File, PaymentSchedule,
+│   │   │   │                         Invoice(+Item), Payment, CreditNote, Account, TransactionCategory, Transaction
 │   │   │   └── Concerns/             ✅ LogsActivity, BelongsToBranch (trait)
 │   │   ├── Services/                 ✅ DocumentNumber, Pdf, CompanyProfile, AmountInWords, Money,
-│   │   │                             LeadIntake, DocumentTotals (সার্ভারে মোট হিসাব), Documents ($doc বানানো + ইমেইল)
-│   │   │                             🔜 Ledger, Stock
+│   │   │                             LeadIntake, DocumentTotals (সার্ভারে মোট হিসাব), Documents ($doc বানানো + ইমেইল),
+│   │   │                             Ledger (post/transfer/cancel/cancelFor), Billing (receive/cancelPayment/creditNote/cancelInvoice)
+│   │   ├── Console/Commands/         ✅ BusinessReminders (business:reminders, প্রতিদিন ০৯:০০, routes/console.php)
+│   │   │                             🔜 Stock
 │   │   ├── Support/                  ResourceRegistry, Uploader, SpamGuard, Notifier, Seo,
 │   │   │                             ✅ BranchContext, ActivityLogger, BusinessFoundation
 │   │   ├── Http/Middleware/          ✅ EnsureUserIsActive (active), RequirePermission (perm),
@@ -115,13 +120,14 @@ labib/
             ├── lib.js                ✅ money() (BD কমা), label(), dateTime(), useList(), useLookup(), phoneHref(), waHref()
             ├── components/           ✅ Pagination, ui.jsx (Status, Money, Modal, Field, BranchPicker, InfoGrid, Stat, Empty),
             │                         LineItems (+TotalsBox, calcTotals), CustomerSelect, DocActions (PDF/ইমেইল/WhatsApp)
-            │                         🔜 DataTable, LineItems, MoneyInput, StatusBadge, Kanban …
             └── pages/                ✅ users/ (Users, UserForm, Roles, RoleForm), crm/ (Leads+Board, LeadForm,
                                       LeadDetail, FollowUps, Customers, CustomerForm, CustomerDetail),
                                       quotations/ (Quotations, QuotationForm, QuotationDetail+ItemsTable+TotalsView),
+                                      projects/ (Projects+Progress, ProjectForm, ProjectDetail: tabs overview/work/files/billing/costs + publish),
+                                      billing/ (Invoices, InvoiceForm, InvoiceDetail+Receive/Credit/Cancel modals, Payments, Receivables),
+                                      accounts/ (Accounts, AccountLedger, Transactions+EntryModal+TransferModal, Reports+Bars),
                                       settings/BusinessSettings, activity/ActivityLog
-                                      🔜 projects/, billing/, accounts/,
-                                      inventory/, tickets/, reports/
+                                      🔜 inventory/, tickets/, dashboard/
 ```
 
 ---
@@ -141,6 +147,9 @@ labib/
 | `/api/business/*` ✅ | `auth:sanctum` + `active` + `branch` + `perm:*` |
 | ↳ ধাপ ১ | `permissions`, `roles[/{id}]`, `users[/{id}]`, `settings`, `pdf/sample?lang=`, `activity-logs` |
 | ↳ lookup | `lookup/staff`, `lookup/tax-rates`, `lookup/branches` (যেকোনো স্টাফ) |
+| ↳ ধাপ ৪ প্রজেক্ট | `projects[?all=1]`, `projects/{id}` (+finance, invoices, expenses), `…/milestones`, `…/tasks[/{t}]`, `…/files[/{f}]`, `…/schedule`, `…/publish` (projects.view/.manage; publish এ website.manage ও লাগবে) |
+| ↳ ধাপ ৪ বিলিং | `invoices[?status=unpaid|overdue|…]`, `invoices/prefill?schedule_id|quotation_id|project_id`, `invoices/{id}`, `…/issue`, `…/receive`, `…/credit-note`, `…/cancel`, `…/pdf`, `…/email`, `payments[/{id}]`, `payments/{id}/cancel|pdf|email`, `receivables[?format=csv]` (billing.view/.manage) |
+| ↳ ধাপ ৫ অ্যাকাউন্টস | `accounts[/{id}?from&to]` (লেজার), `transactions`, `transactions/transfer`, `transactions/{id}/cancel|attachment`, `reports/{cashbook,summary,profit-loss,projects,branches}` (সব রিপোর্টে `?format=csv`), `lookup/accounts`, `lookup/categories` (accounts.view/.manage) |
 | ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
@@ -237,7 +246,7 @@ Request
   → Controller (পাতলা)         ভ্যালিডেশন → Service কল → JSON
   → Service (ব্যবসার নিয়ম)      DB::transaction এর ভেতরে:
         DocumentNumber::next('INV', $branch)     ✅ atomic upsert দিয়ে নম্বর (ডুপ্লিকেট/ফাঁক নেই)
-        Ledger::post(...)                        🔜 আয়/ব্যয়/ট্রান্সফার এন্ট্রি
+        Ledger::post(...)                        ✅ আয়/ব্যয়/ট্রান্সফার এন্ট্রি (Billing::receive এর ভেতরে)
         Stock::move(...)                         🔜 স্টকের চলাচল + গড় মূল্য
         (LogsActivity trait নিজে থেকে লেখে)       ✅ আগের/পরের মান
   → Model (BelongsToBranch trait ✅: শাখা অনুযায়ী global scope; নতুন রেকর্ডে শাখা বসায়,
@@ -292,7 +301,7 @@ Request
 | `careers` → `job_applications` | জব পোস্ট, আবেদন (cv_path, status, admin_note) |
 | `inquiries` | কোট/কন্টাক্ট রিকোয়েস্ট (type, status, admin_note, ip) |
 
-### ৫.২ Business (পরিকল্পিত) 🔜
+### ৫.২ Business (✅ তৈরি / 🔜 পরিকল্পিত)
 
 > **নামের সংঘাত এড়াতে:**
 > - ওয়েবসাইটের `clients` (লোগো) আর `projects` (পোর্টফোলিও) টেবিল আগের মতোই থাকবে।
@@ -313,15 +322,15 @@ Request
 | | `customers` (শাখাভিত্তিক) | name, phone, email, address, company, notes, created_by (লিড → customer_id দিয়ে যুক্ত) |
 | **কোটেশন ✅** | `quotations` (শাখাভিত্তিক) | number (unique), base_number, revision, parent_id, customer_id, lead_id, title, status (draft/sent/approved/rejected/revised/cancelled), date, valid_until, discount_type (amount/percent), discount_value, subtotal, discount, tax_rate_id, tax_name, tax_rate (snapshot), tax, total, terms, notes, created_by, sent_at, approved_at |
 | | `quotation_items` | section (ঘরের নাম, আলাদা টেবিল নেই), description, unit, qty (12,3), rate, amount, sort_order |
-| **প্রজেক্ট** | `work_projects` (শাখাভিত্তিক) | code, customer, quotation, title, site_address, contract_value, start/end, manager_id, status, progress, portfolio_project_id |
-| | `project_milestones`, `project_tasks`, `project_files` | ধাপ, টাস্ক (assignee, due, status), ছবি/ডকুমেন্ট |
-| **বিলিং** | `invoices` (শাখাভিত্তিক) | number, customer, work_project, quotation, status (draft/issued/partial/paid/cancelled), subtotal, discount, tax, total, paid, due_date |
-| | `invoice_items`, `payment_schedules` | আইটেম, কিস্তি (%/টাকা, due_date) |
-| | `payments` (শাখাভিত্তিক) | number (RCV), invoice, customer, account, method, amount, reference, date, status |
-| | `credit_notes` | invoice, amount, reason |
-| **অ্যাকাউন্টস** | `accounts` (শাখাভিত্তিক) | name, type (cash/bank/mobile), number, opening_balance |
-| | `transaction_categories` | type (income/expense), name |
-| | `transactions` (শাখাভিত্তিক) | date, type (income/expense/transfer_in/transfer_out), account, category, amount, work_project, party (polymorphic: customer/supplier), source (polymorphic: payment/purchase …), attachment, transfer_group |
+| **প্রজেক্ট ✅** | `work_projects` (শাখাভিত্তিক) | code, customer_id, quotation_id, title, site_address, contract_value, start_date, end_date, handover_date, warranty_until, manager_id, status (planning/running/on_hold/completed/cancelled), progress (milestone গড়), description, portfolio_project_id (ওয়েবসাইটের projects), created_by |
+| | `project_milestones`, `project_tasks`, `project_files`, `payment_schedules` | milestone (name, progress, due_date, sort); task (title, notes, milestone_id, assigned_to, due_date, status todo/doing/done); file (kind image→public uploads / doc→storage/app/project-files, path, original_name, size); schedule (label, percent, amount, due_date, invoice_id) |
+| **বিলিং ✅** | `invoices` (শাখাভিত্তিক) | number, customer_id, work_project_id, quotation_id, title, date, due_date, status (draft/issued/partial/paid/cancelled), discount_type/value, subtotal, discount, tax_rate_id, tax_name, tax_rate, tax, total, **paid, credited** (due = total − paid − credited, হিসাব করা মান), terms, notes, issued_at, cancelled_at, cancel_reason |
+| | `invoice_items` | কোটেশনের আইটেমের মতো একই কলাম |
+| | `payments` (শাখাভিত্তিক) | number (RCV), invoice_id, customer_id, account_id, method, amount, reference, date, notes, status (received/cancelled), cancel_reason |
+| | `credit_notes` (শাখাভিত্তিক) | number (CN), invoice_id, amount, reason, date |
+| **অ্যাকাউন্টস ✅** | `accounts` (শাখাভিত্তিক) | name, type (cash/bank/mobile), bank_name, account_number, opening_balance, is_active। ব্যালেন্স = opening + Σ(income+transfer_in) − Σ(expense+transfer_out), শুধু active এন্ট্রি |
+| | `transaction_categories` | type, name, slug (system: customer_payment, supplier_payment, other_income, other_expense), is_system, is_active। জেনেরিক CRUD এ সম্পাদনা করা যায় |
+| | `transactions` (শাখাভিত্তিক) | date, type (income/expense/transfer_in/transfer_out), account_id, category_id, amount (সবসময় ধনাত্মক), work_project_id, party_* (morph), source_* (morph: Payment/SupplierPayment…), description, reference, attachment (storage/app/receipts), transfer_group (uuid), status (active/cancelled), cancel_reason, created_by |
 | **ইনভেন্টরি** | `stores` (শাখাভিত্তিক) | name, address |
 | | `item_categories`, `units`, `items` | মালামাল (sku, unit, min_stock, avg_cost) |
 | | `suppliers` | name, phone, address, opening_due |
@@ -383,7 +392,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
   - **পারমিশন চেক:** `useAdmin().can('perm')` (`'a|b'` = যেকোনো একটা), `<Can perm>`, `<NoAccess/>`।
   - **কোথায় চেক হয়:** সাইডবার, ResourceList/Form আর Business রাউট সব জায়গায় পারমিশন চেক হয়। জেনেরিক রিসোর্সের পারমিশন আসে `resourcePerm(cfg)` থেকে।
   - **Dashboard:** `website.manage` না থাকলে স্বাগত কার্ড দেখায়। রোলভিত্তিক Dashboard আসবে ধাপ ৮ এ।
-  - 🔜 `useList(endpoint, filters)`: পেজিনেশন, সার্চ আর ফিল্টারসহ তালিকা।
+  - ✅ `useList(endpoint, filters)`: পেজিনেশন, সার্চ আর ফিল্টারসহ তালিকা। `useLookup(name)` dropdown এর জন্য, মেমরিতে cache রাখে। `downloadCsv()` আর `openPdf()` লগইন টোকেনসহ ফাইল খোলে।
 
 ### ৬.৩ ডিজাইন সিস্টেম: পাবলিক সাইট ✅ (`styles/site.css`)
 
@@ -433,12 +442,12 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 
 ```
 ┌──────────┬───────────────────────────────────────────────┐
-│ সাইডবার   │ টপবার:  [☰] [শাখা ▾]🔜   View Site · নাম · Logout │
+│ সাইডবার   │ টপবার:  [☰] [শাখা ▾]     View Site · নাম · Logout │
 │ (ডার্ক)    ├───────────────────────────────────────────────┤
 │ Dashboard│ .a-page-head   শিরোনাম + প্রধান অ্যাকশন বাটন     │
 │ Website  │ .a-panel       ফিল্টার / টেবিল / ফর্ম            │
 │  …       │   .a-table-wrap  (মোবাইলে আনুভূমিক স্ক্রল)        │
-│ Business🔜│   .a-form-grid   (half/full ফিল্ড)               │
+│ CRM…      │   .a-form-grid   (half/full ফিল্ড)               │
 │  CRM     │ .a-form-actions                               │
 │  …       │                                   টোস্ট (নিচে) │
 │ System   │                                               │
@@ -457,7 +466,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
   - সাইডবার লুকানো থাকে, হ্যামবার্গারে খোলে, backdrop সহ।
   - কার্ড 2 কলাম, টেবিলের প্যাডিং কম।
 
-### ৬.৫ Business UI প্যাটার্ন 🔜
+### ৬.৫ Business UI প্যাটার্ন
 
 | প্যাটার্ন | কোথায় | আচরণ |
 |---|---|---|
@@ -497,7 +506,7 @@ DocumentView → [Print/PDF EN] [Print/PDF বাংলা]
 - **টাকা:** `Money::format()` বাংলাদেশি কমা-ফরম্যাট দেয় (১২,৩৪,৫৬৭.৫০)। কথায় অঙ্কের জন্য `AmountInWords::en()` আর `bn()`, লাখ/কোটি পদ্ধতিতে, পয়সাসহ।
 - **ছবি:** লোগো, স্বাক্ষর আর সিল লোকাল ফাইল পাথ হিসেবে দিতে হয় (`Pdf::imagePath`)। বাইরের URL নেওয়া হয় না।
 - **অস্থায়ী ফাইল:** mPDF এর temp ফোল্ডার `storage/app/mpdf-tmp`।
-- 🔜 **ইমেইল:** একই PDF ইমেইলের সংযুক্তি হিসেবেও যাবে।
+- ✅ **ইমেইল:** একই PDF ইমেইলের সংযুক্তি হিসেবে যায় (`Documents::email`, `emails/document.blade.php`)।
 
 ---
 
@@ -521,7 +530,7 @@ VITE_BASE_PATH (frontend/.env.local)
 - `.env`, `vendor/`, `node_modules/`, `build/` আর `uploads/` গিটে যায় না।
 - ডেপ্লয়ে কী কী লাগে আর ধাপগুলো README তে আছে।
 
-**নতুন মডিউল ডেপ্লয় 🔜:**
+**নতুন মডিউল ডেপ্লয়:**
 1. `php artisan migrate --force` চালানো। Terminal না থাকলে `/install/{key}`, এতে migrate হয়, আর ইউজার না থাকলে seed।
 2. Business এর রোল, পারমিশন আর "Head Office" শাখা আলাদা seeder চালিয়ে তৈরি হবে। seeder টা idempotent: আগে থেকে থাকা ডেটা নষ্ট না করে, বারবার চালালেও সমস্যা হয় না।
-3. cPanel Cron এ একবার `schedule:run` যোগ করা।
+3. cPanel Cron এ একবার যোগ করা: `* * * * * cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1`। এতে `business:reminders` প্রতিদিন ০৯:০০ এ চলে।

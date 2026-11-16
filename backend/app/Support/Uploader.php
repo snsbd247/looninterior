@@ -22,6 +22,20 @@ class Uploader
         return $dir.'/'.$name;
     }
 
+    /** Copy an existing upload into another folder (e.g. a project photo into the website portfolio). */
+    public static function copy(string $path, string $folder): string
+    {
+        abort_if(! str_starts_with($path, 'uploads/') || str_contains($path, '..') || ! is_file(public_path($path)), 422, 'Image not found.');
+        $dir = 'uploads/'.trim($folder, '/');
+        if (! is_dir(public_path($dir))) {
+            @mkdir(public_path($dir), 0775, true);
+        }
+        $name = date('Ymd').'-'.Str::random(16).'.'.strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        copy(public_path($path), public_path($dir.'/'.$name));
+
+        return $dir.'/'.$name;
+    }
+
     public static function delete(?string $path): void
     {
         if (! $path || ! str_starts_with($path, 'uploads/') || str_contains($path, '..')) {

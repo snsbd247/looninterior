@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use App\Models\Business\Account;
 use App\Models\Business\Branch;
+use App\Models\Business\TransactionCategory;
 use App\Models\Business\Role;
 use App\Models\Business\TaxRate;
 use App\Models\User;
@@ -47,6 +49,40 @@ class BusinessFoundation
 
         if (TaxRate::count() === 0) {
             TaxRate::create(['name' => 'VAT', 'rate' => 15, 'is_default' => true, 'is_active' => true]);
+        }
+
+        self::ensureAccounts();
+    }
+
+    /** System income/expense categories (used by automatic postings) + a Cash account per branch. */
+    public static function ensureAccounts(): void
+    {
+        if (! Schema::hasTable('transaction_categories') || ! Schema::hasTable('accounts')) {
+            return;
+        }
+
+        $system = [
+            ['income', 'Customer Payment', 'customer_payment'],
+            ['income', 'Other Income', 'other_income'],
+            ['expense', 'Supplier Payment', 'supplier_payment'],
+            ['expense', 'Other Expense', 'other_expense'],
+        ];
+        foreach ($system as [$type, $name, $slug]) {
+            TransactionCategory::firstOrCreate(['slug' => $slug], ['type' => $type, 'name' => $name, 'is_system' => true]);
+        }
+        if (TransactionCategory::where('is_system', false)->count() === 0) {
+            foreach (['Material Purchase', 'Labour / Contractor', 'Transport', 'Office Rent', 'Salary', 'Utility Bills', 'Marketing', 'Office Expense'] as $name) {
+                TransactionCategory::create(['type' => 'expense', 'name' => $name]);
+            }
+        }
+
+        Branch::all()->each(fn (Branch $b) => self::ensureCashAccount($b));
+    }
+
+    public static function ensureCashAccount(Branch $branch): void
+    {
+        if (Schema::hasTable('accounts') && ! Account::withoutGlobalScopes()->where('branch_id', $branch->id)->exists()) {
+            Account::withoutGlobalScopes()->create(['branch_id' => $branch->id, 'name' => 'Cash', 'type' => 'cash', 'opening_balance' => 0]);
         }
     }
 }

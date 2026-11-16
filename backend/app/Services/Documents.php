@@ -65,12 +65,78 @@ class Documents
         ];
     }
 
+    public static function invoice(\App\Models\Business\Invoice $inv, string $lang): array
+    {
+        $inv->loadMissing(['items', 'customer', 'project:id,code,title']);
+        $meta = [];
+        if ($inv->due_date) {
+            $meta[__('doc.due_date', [], $lang)] = self::d($inv->due_date);
+        }
+        if ($inv->project) {
+            $meta[__('doc.project', [], $lang)] = $inv->project->code;
+        }
+        $doc = [
+            'title' => __('doc.invoice', [], $lang),
+            'number' => $inv->number,
+            'date' => self::d($inv->date),
+            'meta' => $meta,
+            'party_label' => __('doc.bill_to', [], $lang),
+            'party' => self::party($inv->customer, $lang),
+            'sections' => DocumentTotals::sections($inv->items),
+            'subtotal' => $inv->subtotal,
+            'discount' => $inv->discount,
+            'tax_label' => DocumentTotals::taxLabel($inv->tax_name, $inv->tax_rate),
+            'tax' => $inv->tax,
+            'total' => $inv->total,
+            'notes' => $inv->notes,
+            'terms' => $inv->terms,
+            'watermark' => match ($inv->status) { 'cancelled' => 'CANCELLED', 'draft' => 'DRAFT', 'paid' => 'PAID', default => null },
+        ];
+        if ($inv->status !== 'draft') {
+            $doc['paid'] = (float) $inv->paid + (float) $inv->credited;
+            $doc['due'] = $inv->due;
+        }
+
+        return $doc;
+    }
+
+    public static function receipt(\App\Models\Business\Payment $p, string $lang): array
+    {
+        $p->loadMissing(['invoice', 'customer', 'account:id,name']);
+        $method = strtoupper($p->method).($p->reference ? ' · '.$p->reference : '');
+        $line = $lang === 'bn'
+            ? "ইনভয়েস {$p->invoice->number} এর বিপরীতে পরিশোধ ({$method})"
+            : "Payment received against invoice {$p->invoice->number} ({$method})";
+
+        return [
+            'title' => __('doc.receipt', [], $lang),
+            'number' => $p->number,
+            'date' => self::d($p->date),
+            'meta' => [__('doc.invoice', [], $lang) => $p->invoice->number],
+            'party_label' => $lang === 'bn' ? 'গ্রহণ করা হয়েছে' : 'Received from',
+            'party' => self::party($p->customer, $lang),
+            'sections' => [['name' => null, 'items' => [['description' => $line, 'unit' => '', 'qty' => 1, 'rate' => $p->amount, 'amount' => $p->amount]]]],
+            'subtotal' => $p->amount,
+            'discount' => 0,
+            'tax_label' => '',
+            'tax' => 0,
+            'total' => $p->amount,
+            'notes' => trim(($lang === 'bn' ? 'ইনভয়েসের বকেয়া: ' : 'Invoice balance due: ').Money::format($p->invoice->due, $lang).($p->notes ? "\n".$p->notes : '')),
+            'watermark' => $p->status === 'cancelled' ? 'CANCELLED' : null,
+            'hide_terms' => true,
+        ];
+    }
+
     /** Render a document PDF. $doc['terms'] (document-specific) overrides company terms. */
     public static function pdf(array $doc, string $lang): string
     {
         $company = CompanyProfile::get($lang);
         if (! empty($doc['terms'])) {
             $company['terms'] = $doc['terms'];
+        }
+        if (! empty($doc['hide_terms'])) {
+            $company['terms'] = null;
+            $company['bank'] = null;
         }
 
         return Pdf::render('pdf.document', ['company' => $company, 'doc' => $doc], $lang, $doc['title'].' '.$doc['number']);

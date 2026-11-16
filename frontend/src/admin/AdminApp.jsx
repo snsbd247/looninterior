@@ -2,7 +2,7 @@ import { createContext, lazy, Suspense, useContext, useEffect, useState, useCall
 import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
-  FiTarget, FiClock, FiUserCheck, FiFileText,
+  FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart,
 } from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -31,6 +31,17 @@ const EXTRA_LINKS = {
   ],
   'Sales & Projects': [
     { to: '/admin/biz/quotations', label: 'Quotations', icon: FiFileText, perm: 'quotations.view' },
+    { to: '/admin/biz/projects', label: 'Projects', icon: FiTool, perm: 'projects.view' },
+  ],
+  Billing: [
+    { to: '/admin/biz/invoices', label: 'Invoices', icon: FiFile, perm: 'billing.view' },
+    { to: '/admin/biz/payments', label: 'Payments', icon: FiDollarSign, perm: 'billing.view' },
+    { to: '/admin/biz/receivables', label: 'Receivables (Dues)', icon: FiAlertCircle, perm: 'billing.view' },
+  ],
+  Accounts: [
+    { to: '/admin/biz/accounts', label: 'Cash & Bank', icon: FiCreditCard, perm: 'accounts.view' },
+    { to: '/admin/biz/transactions', label: 'Income & Expenses', icon: FiRepeat, perm: 'accounts.view' },
+    { to: '/admin/biz/reports', label: 'Reports', icon: FiPieChart, perm: 'accounts.view' },
   ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },

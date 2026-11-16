@@ -324,6 +324,21 @@ class ResourceRegistry
                 ],
             ],
 
+            'transaction_categories' => [
+                'model' => \App\Models\Business\TransactionCategory::class,
+                'permission' => 'accounts.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name'],
+                'filters' => ['type'],
+                'order' => ['type', 'asc'],
+                'rules' => [
+                    'type' => 'required|in:income,expense',
+                    'name' => 'required|string|max:100',
+                    'is_active' => 'boolean',
+                ],
+            ],
+
             'tax_rates' => [
                 'model' => TaxRate::class,
                 'permission' => 'settings.business',

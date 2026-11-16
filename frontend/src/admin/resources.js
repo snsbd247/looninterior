@@ -243,6 +243,17 @@ export const RESOURCES = {
     ],
   },
 
+  transaction_categories: {
+    label: 'Income/Expense Heads', singular: 'Category', icon: FiList, group: 'Accounts', perm: 'accounts.manage', noDelete: true,
+    filter: { name: 'type', label: 'All types', options: ['income', 'expense'] },
+    columns: [{ key: 'name', label: 'Name' }, { key: 'type', label: 'Type', type: 'badge' }, { key: 'is_system', label: 'System', type: 'bool' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'type', label: 'Type', type: 'select', options: ['income', 'expense'], required: true, half: true },
+      { name: 'name', label: 'Name', required: true, half: true },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+    ],
+  },
+
   tax_rates: {
     label: 'Tax Rates', singular: 'Tax Rate', icon: FiPercent, group: 'Administration', perm: 'settings.business', noDelete: true,
     columns: [{ key: 'name', label: 'Name' }, { key: 'rate', label: 'Rate %' }, { key: 'is_default', label: 'Default', type: 'bool' }, { key: 'is_active', label: 'Active', type: 'bool' }],

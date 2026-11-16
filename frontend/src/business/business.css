@@ -239,3 +239,79 @@
   .b-line .c-act { grid-column: 3; }
   .b-totals.is-view { max-width: none; }
 }
+
+/* ===================== Projects, billing, accounts (steps 4-5) ===================== */
+.b-row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.b-tabs { margin-top: 4px; }
+.b-tabs + .a-panel, .b-tabs + .b-detail > .b-detail-main > .a-panel:first-child { border-top-left-radius: 0; }
+.b-btn-sm { padding: 5px 10px !important; font-size: 12.5px !important; min-height: 0 !important; }
+.b-inline-select { border: 1px solid var(--a-border); border-radius: 6px; padding: 5px 8px; font-family: inherit; font-size: 13px; background: #fff; }
+.b-done-row td { color: var(--a-muted); }
+.b-done-row td b { text-decoration: line-through; }
+.b-in { color: #15803d; }
+.b-out { color: #b45309; }
+.b-two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+
+.b-progress { position: relative; height: 18px; background: #f0eee9; border-radius: 9px; overflow: hidden; min-width: 80px; }
+.b-progress span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, color-mix(in srgb, var(--a-accent) 70%, white), var(--a-accent)); border-radius: 9px; }
+.b-progress em { position: relative; display: block; text-align: center; font-style: normal; font-size: 11px; line-height: 18px; font-weight: 600; color: var(--a-head); }
+.b-ms-summary { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.b-ms-summary li { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: center; font-size: 14px; }
+
+.b-milestones { display: flex; flex-direction: column; gap: 8px; }
+.b-milestone { display: grid; grid-template-columns: minmax(0, 1fr) 220px 150px 34px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--a-border); }
+.b-milestone input[type=text], .b-milestone input:not([type]), .b-milestone input[type=date] { border: 1px solid var(--a-border); border-radius: 6px; padding: 7px 9px; font-family: inherit; font-size: 14px; width: 100%; }
+.b-ms-progress { display: flex; gap: 8px; align-items: center; }
+.b-ms-progress input { flex: 1; accent-color: var(--a-accent); }
+.b-ms-progress span { width: 40px; text-align: right; font-weight: 600; font-size: 13px; }
+
+.b-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.b-photos figure { margin: 0; position: relative; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; background: #f3f4f6; }
+.b-photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.b-photos .a-icon-btn { position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,.9); }
+.b-docs { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.b-docs li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--a-border); border-radius: 8px; font-size: 14px; }
+.b-docs li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.b-sched-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 150px 120px 34px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.b-sched-row input { border: 1px solid var(--a-border); border-radius: 6px; padding: 7px 9px; font-family: inherit; font-size: 14px; width: 100%; }
+.b-sched-row label { display: flex; align-items: center; gap: 4px; }
+.b-sched-row .b-money { text-align: right; }
+
+.b-account-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.b-account { padding: 16px 18px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.b-account.is-inactive { opacity: .55; }
+.b-account-head { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.b-account-head a { color: var(--a-head); }
+.b-account-icon { font-size: 22px; line-height: 1.2; }
+.b-account-balance { font-size: 1.4rem; font-weight: 600; color: #15803d; font-variant-numeric: tabular-nums; }
+.b-account-balance.is-neg { color: #b91c1c; }
+
+.b-bars { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; }
+.b-bars-row { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; }
+.b-bars-label { font-size: 12.5px; color: var(--a-muted); }
+.b-bars-track { display: flex; flex-direction: column; gap: 2px; }
+.b-bar { height: 8px; border-radius: 4px; min-width: 2px; }
+.b-bar.is-in { background: #22c55e; }
+.b-bar.is-out { background: #f59e0b; }
+.b-bars-legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--a-muted); margin-top: 6px; }
+.b-bars-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.b-bars-legend i { display: inline-block; width: 14px; }
+
+@media (max-width: 760px) {
+  .b-milestone { grid-template-columns: 1fr 34px; }
+  .b-milestone .b-ms-progress { grid-column: 1 / -1; }
+  .b-sched-row { grid-template-columns: 1fr 80px; }
+  .b-ms-summary li { grid-template-columns: 1fr; gap: 4px; }
+}
+
+@media print {
+  .a-sidebar, .a-topbar, .a-backdrop, .b-head-actions, .a-toolbar, .a-tabs, .toasts, .a-page-head .a-btn { display: none !important; }
+  .admin { display: block; }
+  .a-main { margin: 0 !important; }
+  .a-content { padding: 0 !important; }
+  .a-panel { border: 0; box-shadow: none; }
+  .a-table-wrap { overflow: visible !important; }
+}
+
+.a-table th.r, .a-table td.r { text-align: right; }
