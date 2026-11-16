@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { FiMapPin, FiBriefcase, FiCalendar, FiUsers, FiDollarSign } from 'react-icons/fi'
 import { useFetch } from '../lib/useFetch'
-import { useTitle } from '../context/SiteContext'
+import { useSite, useTitle } from '../context/SiteContext'
+import { Honeypot, hasFieldErrors } from '../components/QuoteForm'
 import { api, errorMessage, fieldErrors, formatDate } from '../lib/api'
 import PageHeader from '../components/PageHeader'
 import Loader from '../components/Loader'
@@ -10,6 +11,8 @@ import Rich from '../components/Rich'
 import NotFound from './NotFound'
 
 function ApplyForm({ slug }) {
+  const { form_token } = useSite()
+  const [hp, setHp] = useState('')
   const [form, setForm] = useState({ name: '', email: '', phone: '', cover_letter: '' })
   const [cv, setCv] = useState(null)
   const [errors, setErrors] = useState({})
@@ -23,6 +26,8 @@ function ApplyForm({ slug }) {
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
     if (cv) fd.append('cv', cv)
+    fd.append('website', hp)
+    fd.append('form_token', form_token || '')
     try {
       const res = await api.post(`/careers/${slug}/apply`, fd)
       setForm({ name: '', email: '', phone: '', cover_letter: '' })
@@ -39,6 +44,7 @@ function ApplyForm({ slug }) {
 
   return (
     <form className="quote-form" onSubmit={submit} noValidate>
+      <Honeypot value={hp} onChange={setHp} />
       <div className="form-grid one">
         <label><span>Full Name *</span><input value={form.name} onChange={set('name')} />{err('name')}</label>
         <label><span>Email *</span><input type="email" value={form.email} onChange={set('email')} />{err('email')}</label>
@@ -47,7 +53,7 @@ function ApplyForm({ slug }) {
         <label><span>Cover Letter</span><textarea rows={4} value={form.cover_letter} onChange={set('cover_letter')} /></label>
       </div>
       {status.ok && <div className="alert alert-success">{status.ok}</div>}
-      {status.error && !Object.keys(errors).length && <div className="alert alert-error">{status.error}</div>}
+      {status.error && !hasFieldErrors(errors) && <div className="alert alert-error">{status.error}</div>}
       <button className="btn btn-primary btn-block" disabled={status.loading}>{status.loading ? 'Submitting…' : 'Submit Application'}</button>
     </form>
   )

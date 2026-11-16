@@ -5,6 +5,8 @@ import { adminApi, getToken, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
 import { RESOURCES, GROUPS } from './resources'
 import Login from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import ResourceList from './pages/ResourceList'
 import ResourceForm from './pages/ResourceForm'
@@ -125,6 +127,8 @@ export default function AdminApp() {
   return (
     <Routes>
       <Route path="login" element={<Login />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="reset-password" element={<ResetPassword />} />
       <Route path="*" element={<RequireAuth><Layout /></RequireAuth>} />
     </Routes>
   )

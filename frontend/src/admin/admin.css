@@ -196,3 +196,10 @@
   .a-table th, .a-table td { padding: 10px 14px; }
   .a-panel-head { padding: 14px 16px; }
 }
+
+.a-alert-success { background: #ecfdf5; color: #047857; }
+.login-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.login-links a { color: var(--a-muted); }
+.login-links a:hover { color: var(--a-head); }
+.login-forgot { justify-self: end; margin-top: -8px; font-size: 13px; color: var(--a-muted); }
+.login-forgot:hover { color: var(--a-head); }

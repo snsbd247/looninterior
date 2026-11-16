@@ -18,6 +18,7 @@ use App\Models\Slider;
 use App\Models\Stat;
 use App\Models\TeamMember;
 use App\Models\Testimonial;
+use App\Support\SpamGuard;
 use Illuminate\Http\Request;
 
 class PublicController extends Controller
@@ -26,7 +27,8 @@ class PublicController extends Controller
     public function site()
     {
         return response()->json([
-            'settings' => Setting::allAsArray(),
+            'settings' => Setting::publicArray(),
+            'form_token' => SpamGuard::token(),
             'services' => Service::active()->ordered()->get(['id', 'title', 'slug']),
             'categories' => ProjectCategory::active()->ordered()->get(['id', 'name', 'slug']),
             'pages' => Page::active()->where('show_in_footer', true)->orderBy('title')->get(['id', 'title', 'slug']),

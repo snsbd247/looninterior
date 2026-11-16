@@ -525,3 +525,7 @@ a.contact-card:hover h4 { color: #fff; }
   .floating { right: 14px; bottom: 14px; gap: 10px; }
   .fl-btn { width: 48px; height: 48px; font-size: 21px; }
 }
+
+/* Spam honeypot: kept off-screen (not display:none, which some bots skip) */
+.hp-field { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.quote-form { position: relative; }

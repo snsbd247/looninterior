@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FiSave } from 'react-icons/fi'
+import { FiSave, FiSend } from 'react-icons/fi'
 import { adminApi, errorMessage } from '../../lib/api'
 import Loader from '../../components/Loader'
 import { SETTINGS_TABS } from '../settingsSchema'
@@ -16,6 +16,7 @@ export default function Settings() {
   const [files, setFiles] = useState({})
   const [removed, setRemoved] = useState({})
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
 
   useEffect(() => {
     adminApi.get('/settings').then((r) => {
@@ -52,6 +53,18 @@ export default function Settings() {
     }
   }
 
+  const testMail = async () => {
+    setTesting(true)
+    try {
+      const res = await adminApi.post('/settings/test-mail')
+      toast(res.data.message)
+    } catch (err) {
+      toast(errorMessage(err), 'error')
+    } finally {
+      setTesting(false)
+    }
+  }
+
   const current = SETTINGS_TABS.find((t) => t.key === tab)
 
   return (
@@ -85,7 +98,12 @@ export default function Settings() {
         </div>
         <div className="a-form-actions">
           <button className="a-btn a-btn-primary" disabled={saving}><FiSave /> {saving ? 'Saving…' : 'Save Settings'}</button>
-          <span className="a-muted">Saves all tabs at once</span>
+          {current.testMail && (
+            <button type="button" className="a-btn a-btn-light" onClick={testMail} disabled={testing}>
+              <FiSend /> {testing ? 'Sending…' : 'Send Test E-mail'}
+            </button>
+          )}
+          <span className="a-muted">{current.testMail ? 'Save first, then send a test e-mail' : 'Saves all tabs at once'}</span>
         </div>
       </form>
     </>

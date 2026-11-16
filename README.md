@@ -69,6 +69,9 @@ labib/
 এছাড়া:
 - ভাসমান WhatsApp / Call / Messenger বাটন।
 - মোবাইল রেসপন্সিভ (390px মোবাইল থেকে বড় ডেস্কটপ পর্যন্ত টেস্ট করা)।
+- **ফর্মে স্প্যাম সুরক্ষা:** লুকানো honeypot ফিল্ড আর সময়-স্বাক্ষরিত টোকেন। কোনো API key লাগে না।
+- **প্রতিটা পেজের আলাদা SEO:** প্রজেক্ট/সার্ভিস/ব্লগ/জব/পেজের নিজস্ব title, description, OG image আর canonical। ফেসবুক/WhatsApp এ লিংক শেয়ার করলে সঠিক ছবি আর টাইটেল দেখায়। ভুল লিংকে আসল 404 স্ট্যাটাস দেয়।
+- **`/sitemap.xml` আর `/robots.txt`:** ডাটাবেজ থেকে নিজে তৈরি হয়। Google Search Console এ sitemap জমা দিন।
 
 ### অ্যাডমিন প্যানেল (`/admin`)
 
@@ -78,6 +81,8 @@ labib/
 - **Job Applications:** স্ট্যাটাস বদলানো, CV ডাউনলোড।
 - **Site Settings:** লোগো, ফেভিকন, ব্র্যান্ড কালার, কন্টাক্ট, সোশ্যাল লিংক, হোমপেজের সব লেখা, About পেজ, SEO।
 - **My Profile:** নাম, ইমেইল, পাসওয়ার্ড পরিবর্তন।
+- **ইমেইল নোটিফিকেশন:** নতুন কোট/কন্টাক্ট রিকোয়েস্ট এলে আর জব আবেদন এলে (CV সংযুক্ত) ইমেইল যায়। ঠিকানা দেওয়া হয় Settings → Notifications থেকে। সেখানে "Send Test E-mail" বাটনও আছে।
+- **Forgot password:** লগইন পেজ থেকে ইমেইলে রিসেট লিংক যায়। লিংক ৬০ মিনিট চলে আর একবারই ব্যবহার করা যায়।
 
 **কনটেন্ট সেকশন:** প্রতিটায় যোগ, এডিট, ডিলিট, সার্চ আর ছবি আপলোড করা যায়।
 - Hero Sliders
@@ -123,6 +128,17 @@ labib/
 | `Admin/DashboardController` | Dashboard আর CV ডাউনলোড |
 | `Admin/SettingController` | সাইট সেটিংস |
 | `Admin/ResourceController` | জেনেরিক CRUD |
+
+### সাহায্যকারী ক্লাস (`backend/app/Support/`)
+
+| ফাইল | কাজ |
+|---|---|
+| `SpamGuard.php` | honeypot আর ফর্ম টোকেন যাচাই |
+| `Notifier.php` | অ্যাডমিনকে ইমেইল নোটিফিকেশন (ইমেইল ব্যর্থ হলেও ফর্ম জমা হয়, শুধু লগে এরর থাকে) |
+| `Seo.php` | পেজভিত্তিক meta ট্যাগ আর sitemap |
+| `Uploader.php` | ছবি আপলোড/ডিলিট |
+
+ইমেইলের ডিজাইন: `backend/resources/views/emails/`
 
 ### গুরুত্বপূর্ণ ফোল্ডার
 
@@ -188,6 +204,19 @@ npm run build
 ```
 
 Build শেষ হলে ব্রাউজারে Ctrl+F5 চাপুন।
+
+### লোকালে ইমেইল
+
+লোকালে `MAIL_MAILER=log`, তাই ইমেইল আসলে পাঠানো হয় না, `backend/storage/logs/mail.log` ফাইলে লেখা হয়। আসল ইমেইল পাঠাতে `.env` এ SMTP দিন ([ইমেইল সেটআপ](#ধাপ-৫-ইমেইল-smtp) দেখুন)।
+
+### অ্যাডমিন পাসওয়ার্ড টার্মিনাল থেকে বদলানো
+
+ইমেইল সেটআপ না থাকলে বা অ্যাডমিন ইমেইলও ভুলে গেলে:
+```powershell
+cd f:\Lovable\labib\backend
+C:\xampp\php\php.exe artisan admin:password admin@looninterior.com NewPassword123
+```
+ভুল ইমেইল দিলে কমান্ডটা বিদ্যমান অ্যাডমিন ইমেইলগুলো দেখিয়ে দেয়।
 
 ### ডাটাবেজ রিসেট (সব ডেটা মুছে ডেমো কনটেন্ট আবার বসাবে)
 
@@ -296,7 +325,28 @@ ADMIN_EMAIL=admin@looninterior.com
 ADMIN_PASSWORD=শক্ত_নতুন_পাসওয়ার্ড
 ```
 
-### ধাপ ৫: মাইগ্রেশন ও ডেমো ডাটা
+### ধাপ ৫: ইমেইল (SMTP)
+
+নোটিফিকেশন আর পাসওয়ার্ড রিসেটের জন্য দরকার।
+1. cPanel → **Email Accounts** এ একটা অ্যাকাউন্ট বানান, যেমন `noreply@yourdomain.com`।
+2. **Connect Devices** থেকে Outgoing Server আর Port দেখে নিন।
+3. `.env` এ বসান:
+   ```
+   MAIL_MAILER=smtp
+   MAIL_HOST=mail.yourdomain.com
+   MAIL_PORT=465
+   MAIL_SCHEME=smtps            # পোর্ট 587 হলে এই লাইন মুছে দিন
+   MAIL_USERNAME=noreply@yourdomain.com
+   MAIL_PASSWORD=ইমেইল_অ্যাকাউন্টের_পাসওয়ার্ড
+   MAIL_FROM_ADDRESS=noreply@yourdomain.com
+   MAIL_FROM_NAME="Loon Interior"
+   ```
+4. Terminal থাকলে `php artisan config:cache` চালান।
+5. অ্যাডমিন → Settings → **Notifications** এ যে ঠিকানায় নোটিফিকেশন চান সেটা দিয়ে Save করুন, তারপর **Send Test E-mail** চাপুন।
+
+> Gmail এ ইমেইল Spam এ গেলে cPanel → **Email Deliverability** থেকে SPF আর DKIM ঠিক করুন।
+
+### ধাপ ৬: মাইগ্রেশন ও ডেমো ডাটা
 
 **cPanel এ Terminal থাকলে:**
 ```bash
@@ -310,17 +360,30 @@ php artisan config:cache && php artisan route:cache
 2. ব্রাউজারে একবার যান: `https://yourdomain.com/install/myS3cretKey2026`।
 3. কাজ শেষ হলে `.env` থেকে `INSTALL_KEY` এর মান **অবশ্যই মুছে দিন**।
 
-### ধাপ ৬: পারমিশন
+### ধাপ ৭: পারমিশন
 - `storage/` আর `bootstrap/cache/` writable রাখুন (সাধারণত 755)।
 - `public/uploads` (বা `public_html/uploads`) writable রাখুন।
 
 কাজ শেষ। `https://yourdomain.com` এ সাইট আর `https://yourdomain.com/admin` এ অ্যাডমিন প্যানেল।
 
+### ধাপ ৮: Google এ জমা দেওয়া
+- [Google Search Console](https://search.google.com/search-console) এ ডোমেইন যোগ করে `https://yourdomain.com/sitemap.xml` জমা দিন।
+- sitemap, canonical আর ইমেইলের লিংক `APP_URL` থেকে তৈরি হয়। তাই `APP_URL` অবশ্যই আসল ডোমেইন (https সহ) হতে হবে।
+
 ---
 
 ## নিরাপত্তা
 
-- **লগইন আর ফর্ম:** প্রতি মিনিটে সর্বোচ্চ ১০ বার চেষ্টা বা জমা দেওয়া যায়।
+- **লগইন আর ফর্ম:** প্রতি মিনিটে সর্বোচ্চ ১০ বার চেষ্টা বা জমা দেওয়া যায়। লগইন আর ফর্মের কাউন্টার আলাদা।
+- **স্প্যাম:**
+  - honeypot ফিল্ড পূরণ করা বটকে "সফল" দেখানো হয়, কিন্তু কিছু সেভ হয় না।
+  - টোকেন ছাড়া, জাল টোকেন দিয়ে বা ৩ সেকেন্ডের কম সময়ে জমা দিলে বাতিল হয়।
+- **পাসওয়ার্ড রিসেট:**
+  - প্রতি ১০ মিনিটে সর্বোচ্চ ৩টা রিসেট ইমেইল যায়।
+  - কোন ইমেইলটা অ্যাডমিনের, উত্তর দেখে তা বোঝা যায় না।
+  - রিসেটের পর সব ডিভাইস থেকে লগআউট হয়ে যায়।
+  - রিসেট লিংক `APP_URL` থেকে তৈরি হয়, ব্রাউজারের Host হেডার থেকে না।
+- **গোপন সেটিং:** নোটিফিকেশন ইমেইল পাবলিক API তে পাঠানো হয় না।
 - **অ্যাডমিন API:** Sanctum Bearer টোকেন ছাড়া কাজ করে না। লগআউট করলে টোকেন মুছে যায়।
 - **আপলোড:** `uploads` ফোল্ডারে PHP ফাইল চালানো বন্ধ।
 - **CV ফাইল:** পাবলিক ফোল্ডারে থাকে না। শুধু লগইন করা অ্যাডমিন ডাউনলোড করতে পারে।
@@ -369,8 +432,11 @@ php artisan config:cache && php artisan route:cache
 | `GET /api/pages/{slug}` | ডাইনামিক পেজ |
 | `GET /api/faqs` | FAQ |
 | `GET /api/testimonials` | Testimonials |
-| `POST /api/inquiries` | কোট/কন্টাক্ট ফর্ম |
-| `POST /api/careers/{slug}/apply` | জব আবেদন (multipart, `cv`) |
+| `POST /api/inquiries` | কোট/কন্টাক্ট ফর্ম (`form_token` + খালি `website` লাগবে) |
+| `POST /api/careers/{slug}/apply` | জব আবেদন (multipart, `cv`, `form_token`, `website`) |
+| `GET /sitemap.xml`, `GET /robots.txt` | SEO |
+
+`form_token` আসে `GET /api/site` এর রেসপন্স থেকে।
 
 ### Admin API (Bearer token)
 
@@ -380,6 +446,9 @@ php artisan config:cache && php artisan route:cache
 | `POST /api/admin/logout` | লগআউট |
 | `GET /api/admin/me` | লগইন করা ইউজারের তথ্য |
 | `POST /api/admin/profile` | প্রোফাইল আপডেট |
+| `POST /api/admin/forgot-password` | রিসেট লিংক ইমেইল (টোকেন লাগে না) |
+| `POST /api/admin/reset-password` | নতুন পাসওয়ার্ড সেট (টোকেন লাগে না) |
+| `POST /api/admin/settings/test-mail` | টেস্ট ইমেইল |
 | `GET /api/admin/dashboard` | Dashboard |
 | `GET/POST /api/admin/settings` | সাইট সেটিংস |
 | `GET/POST /api/admin/{resource}` | জেনেরিক CRUD (তালিকা / নতুন যোগ) |
@@ -417,5 +486,8 @@ php artisan config:cache && php artisan route:cache
 | অ্যাডমিনে লগইন করলেই আবার লগইন পেজে ফেরত যায় | সার্ভার Authorization হেডার পাস করছে না। `.htaccess` / `loon.conf` চেক করুন |
 | ছবি আপলোড হয় না | `uploads` ফোল্ডার writable কিনা আর `upload_max_filesize` কত দেখুন |
 | 500 এরর | `backend/storage/logs/laravel.log` দেখুন |
+| নোটিফিকেশন ইমেইল আসে না | Settings → Notifications → Send Test E-mail চাপুন, এরর মেসেজ দেখাবে। `MAIL_MAILER=log` থাকলে ইমেইল শুধু `mail.log` এ লেখা হয় |
+| ফর্মে "session has expired" দেখায় | পেজ রিফ্রেশ করে আবার জমা দিন (টোকেন ১২ ঘণ্টা চলে) |
+| অ্যাডমিন পাসওয়ার্ড ভুলে গেছি | লগইন পেজে "Forgot password?" চাপুন, অথবা `php artisan admin:password <email>` চালান |
 | অন্য ডিভাইস থেকে খোলে না | Firewall রুল চালান ([উপরে দেখুন](#অন্য-ডিভাইস-থেকে-খোলা)) |
 | XAMPP চালু হয়নি | `services.msc` এ Apache2.4 আর mysql সার্ভিস Start করুন |

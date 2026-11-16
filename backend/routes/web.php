@@ -2,6 +2,8 @@
 
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\Seo;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -25,39 +27,48 @@ Route::get('/install/{key}', function (string $key) {
 });
 
 /*
-| Serve the React single page app (built into public/build) for every
-| non-API URL. Basic SEO meta tags are injected from the settings table.
+| SEO: sitemap.xml and robots.txt (built from APP_URL and the database).
 */
-$spa = function () {
+Route::get('/sitemap.xml', function () {
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+    foreach (Seo::sitemapUrls() as [$loc, $lastmod]) {
+        $xml .= '  <url><loc>'.e($loc).'</loc>'.($lastmod ? '<lastmod>'.e($lastmod).'</lastmod>' : '')."</url>\n";
+    }
+    $xml .= '</urlset>';
+
+    return response($xml)->header('Content-Type', 'application/xml; charset=UTF-8');
+});
+
+Route::get('/robots.txt', function () {
+    $body = "User-agent: *\nDisallow: /admin\nDisallow: /api\n\nSitemap: ".Seo::base()."/sitemap.xml\n";
+
+    return response($body)->header('Content-Type', 'text/plain; charset=UTF-8');
+});
+
+/*
+| Serve the React single page app (built into public/build) for every
+| non-API URL, with per-page SEO tags injected into <head>.
+*/
+$spa = function (Request $request) {
     $file = public_path('build/index.html');
     if (! is_file($file)) {
         return response('Frontend build not found. Run "npm run build" inside the frontend folder.', 503);
     }
 
     $html = file_get_contents($file);
+    $status = 200;
 
     try {
-        $s = Setting::allAsArray();
-        $title = e($s['meta_title'] ?? $s['site_name'] ?? config('app.name'));
-        $desc = e($s['meta_description'] ?? '');
-        $keywords = e($s['meta_keywords'] ?? '');
-        $meta = "<title>{$title}</title>\n"
-            ."    <meta name=\"description\" content=\"{$desc}\">\n"
-            ."    <meta name=\"keywords\" content=\"{$keywords}\">\n"
-            ."    <meta property=\"og:title\" content=\"{$title}\">\n"
-            ."    <meta property=\"og:description\" content=\"{$desc}\">";
-        if (! empty($s['og_image'])) {
-            $meta .= "\n    <meta property=\"og:image\" content=\"".e(url($s['og_image'])).'">';
-        }
-        if (! empty($s['favicon'])) {
-            $meta .= "\n    <link rel=\"icon\" href=\"".e(url($s['favicon'])).'">';
-        }
-        $html = preg_replace_callback('#<title>.*?</title>#s', fn () => $meta, $html, 1);
+        $s = Setting::publicArray();
+        [$meta, $status] = Seo::forPath($request->path(), $s);
+        $tags = Seo::tags($meta, $request->path(), $s);
+        $html = preg_replace_callback('#<title>.*?</title>#s', fn () => $tags, $html, 1);
     } catch (\Throwable $e) {
         // Database not ready yet - serve the plain build.
     }
 
-    return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
+    return response($html, $status)->header('Content-Type', 'text/html; charset=UTF-8');
 };
 
 Route::get('/admin/login', $spa)->name('login');

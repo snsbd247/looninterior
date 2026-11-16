@@ -78,6 +78,12 @@ export const SETTINGS_TABS = [
     ],
   },
   {
+    key: 'notifications', label: 'Notifications', testMail: true,
+    fields: [
+      { name: 'notify_email', label: 'Notification E-mail(s)', help: 'New quote requests and job applications are e-mailed here. Separate several addresses with commas. Empty = the contact e-mail is used. SMTP details are set in the .env file (MAIL_*).' },
+    ],
+  },
+  {
     key: 'seo', label: 'SEO',
     fields: [
       { name: 'meta_title', label: 'Meta Title' },

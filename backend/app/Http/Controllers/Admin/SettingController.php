@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Support\Notifier;
 use App\Support\Uploader;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Message;
+use Illuminate\Support\Facades\Mail;
 
 class SettingController extends Controller
 {
@@ -60,5 +63,28 @@ class SettingController extends Controller
         }
 
         return response()->json(['message' => 'Settings saved', 'data' => Setting::allAsArray()]);
+    }
+
+    /** Send a test e-mail to the notification recipients. */
+    public function testMail()
+    {
+        $to = Notifier::recipients();
+        if (! $to) {
+            return response()->json(['message' => 'Add a Notification E-mail (or a contact e-mail) and save first.'], 422);
+        }
+
+        try {
+            Mail::send('emails.test', ['site' => Notifier::siteName()], function (Message $m) use ($to) {
+                $m->to($to)->subject('Test e-mail | '.Notifier::siteName());
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Sending failed: '.$e->getMessage()], 422);
+        }
+
+        $note = config('mail.default') === 'log'
+            ? ' (MAIL_MAILER is "log": the e-mail was written to storage/logs/mail.log, not delivered. Set SMTP in .env.)'
+            : '';
+
+        return response()->json(['message' => 'Test e-mail sent to '.implode(', ', $to).$note]);
     }
 }

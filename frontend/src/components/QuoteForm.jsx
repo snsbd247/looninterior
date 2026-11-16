@@ -5,11 +5,24 @@ import { useSite } from '../context/SiteContext'
 const PROPERTY_TYPES = ['Apartment', 'Duplex / Villa', 'Office', 'Restaurant / Cafe', 'Showroom / Retail', 'Hotel / Resort', 'Other']
 const BUDGETS = ['Below 5 Lakh', '5 – 10 Lakh', '10 – 20 Lakh', '20 – 50 Lakh', '50 Lakh+']
 
-const EMPTY = { name: '', phone: '', email: '', service: '', property_type: '', area_size: '', budget: '', location: '', message: '' }
+/** Hidden spam trap: real visitors never see or fill this field. */
+export function Honeypot({ value, onChange }) {
+  return (
+    <div className="hp-field" aria-hidden="true">
+      <label>Website<input name="website" tabIndex={-1} autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} /></label>
+    </div>
+  )
+}
+
+/** True when the error bag has errors tied to visible fields (not the general "form" error). */
+export const hasFieldErrors = (errors) => Object.keys(errors).some((k) => k !== 'form')
+
+const EMPTY ={ name: '', phone: '', email: '', service: '', property_type: '', area_size: '', budget: '', location: '', message: '' }
 
 export default function QuoteForm({ type = 'quote', compact = false }) {
-  const { services } = useSite()
+  const { services, form_token } = useSite()
   const [form, setForm] = useState(EMPTY)
+  const [hp, setHp] = useState('')
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ loading: false, ok: '', error: '' })
 
@@ -20,7 +33,7 @@ export default function QuoteForm({ type = 'quote', compact = false }) {
     setStatus({ loading: true, ok: '', error: '' })
     setErrors({})
     try {
-      const res = await api.post('/inquiries', { ...form, type })
+      const res = await api.post('/inquiries', { ...form, type, website: hp, form_token })
       setForm(EMPTY)
       setStatus({ loading: false, ok: res.data.message, error: '' })
     } catch (err) {
@@ -33,6 +46,7 @@ export default function QuoteForm({ type = 'quote', compact = false }) {
 
   return (
     <form className="quote-form" onSubmit={submit} noValidate>
+      <Honeypot value={hp} onChange={setHp} />
       <div className="form-grid">
         <label>
           <span>Your Name *</span>
@@ -94,7 +108,7 @@ export default function QuoteForm({ type = 'quote', compact = false }) {
       </div>
 
       {status.ok && <div className="alert alert-success">{status.ok}</div>}
-      {status.error && !Object.keys(errors).length && <div className="alert alert-error">{status.error}</div>}
+      {status.error && !hasFieldErrors(errors) && <div className="alert alert-error">{status.error}</div>}
 
       <button className="btn btn-primary btn-block" disabled={status.loading}>
         {status.loading ? 'Sending…' : type === 'quote' ? 'Request Free Quote' : 'Send Message'}

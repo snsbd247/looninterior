@@ -31,7 +31,7 @@ Route::controller(PublicController::class)->group(function () {
     Route::get('pages/{slug}', 'page');
 });
 
-Route::middleware('throttle:10,1')->group(function () {
+Route::middleware('throttle:forms')->group(function () {
     Route::post('inquiries', [FormController::class, 'inquiry']);
     Route::post('careers/{slug}/apply', [FormController::class, 'apply']);
 });
@@ -42,7 +42,9 @@ Route::middleware('throttle:10,1')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
-    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
+    Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset-submit');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
@@ -54,6 +56,7 @@ Route::prefix('admin')->group(function () {
 
         Route::get('settings', [SettingController::class, 'index']);
         Route::post('settings', [SettingController::class, 'update']);
+        Route::post('settings/test-mail', [SettingController::class, 'testMail'])->middleware('throttle:test-mail');
 
         // Generic CRUD for every registered resource
         $resources = implode('|', ResourceRegistry::keys());

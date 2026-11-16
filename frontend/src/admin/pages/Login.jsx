@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { adminApi, errorMessage, getToken, setToken, sitePath } from '../../lib/api'
 
 export default function Login() {
@@ -38,6 +38,7 @@ export default function Login() {
           <span>Password</span>
           <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
         </label>
+        <Link to="/admin/forgot-password" className="login-forgot">Forgot password?</Link>
         <button className="a-btn a-btn-primary a-btn-block" disabled={loading}>{loading ? 'Signing in…' : 'Sign In'}</button>
         <a href={sitePath('/')} className="login-back">← Back to website</a>
       </form>
