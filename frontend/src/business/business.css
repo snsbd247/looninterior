@@ -375,3 +375,64 @@ a.b-kpi:hover { border-color: var(--a-accent); }
 .b-trend-bars .is-out { background: #f59e0b; }
 .b-trend-col small { color: var(--a-muted); font-size: 11.5px; }
 .b-trend .b-bars-legend { width: 100%; }
+
+/* ===================== Calendar (phase F) ===================== */
+.b-cal-bar { justify-content: space-between; align-items: center; }
+.b-cal-nav { display: flex; align-items: center; gap: 10px; }
+.b-cal-nav b { min-width: 150px; text-align: center; font-size: 15px; color: var(--a-head); }
+.b-cal-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.b-cal-legend button { border: 1px solid var(--a-border); background: #fff; border-radius: 20px; padding: 4px 10px; font-family: inherit; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.b-cal-legend button i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.b-cal-legend button.is-off { opacity: .4; text-decoration: line-through; }
+.b-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--a-border); }
+.b-cal-dow { padding: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--a-muted); border-bottom: 1px solid var(--a-border); text-align: center; }
+.b-cal-day { min-height: 112px; border-right: 1px solid var(--a-border); border-bottom: 1px solid var(--a-border); padding: 6px; display: flex; flex-direction: column; gap: 3px; }
+.b-cal-day:nth-child(7n) { border-right: 0; }
+.b-cal-day.is-out { background: #fafafa; }
+.b-cal-day.is-out .b-cal-num { color: #c4c7cc; }
+.b-cal-day.is-today { background: color-mix(in srgb, var(--a-accent) 7%, white); }
+.b-cal-day.is-today .b-cal-num { background: var(--a-accent); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; }
+.b-cal-num { font-size: 13px; font-weight: 600; color: var(--a-head); align-self: flex-end; }
+.b-cal-ev { display: block; font-size: 11.5px; line-height: 1.3; padding: 3px 6px; border-left: 3px solid; background: #f6f7f9; border-radius: 4px; color: var(--a-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-cal-ev:hover { background: #eef0f3; color: var(--a-head); }
+.b-cal-more { font-size: 11.5px; color: var(--a-muted); }
+.b-agenda { display: none; list-style: none; margin: 0; padding: 12px 14px; flex-direction: column; gap: 8px; }
+.b-agenda li { border-left: 3px solid var(--a-border); padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; background: #fafafa; border-radius: 4px; }
+.b-agenda-date { font-size: 12px; color: var(--a-muted); }
+@media (max-width: 760px) {
+  .b-cal { display: none; }
+  .b-agenda { display: flex; }
+  .b-cal-nav b { min-width: 0; }
+}
+
+/* ---------- HR: attendance & payroll ---------- */
+.b-att-pick { display: flex; flex-wrap: wrap; gap: 4px; }
+.b-att-pick button { border: 1px solid var(--a-border); background: #fff; border-radius: 6px; padding: 5px 9px; font: inherit; font-size: 12px; cursor: pointer; color: var(--a-muted); }
+.b-att-pick button:disabled { cursor: default; }
+.b-att-pick button.is-on { color: #fff; border-color: transparent; }
+.b-att-pick button.is-on.b-att-present { background: #16a34a; }
+.b-att-pick button.is-on.b-att-absent { background: #dc2626; }
+.b-att-pick button.is-on.b-att-half_day { background: #d97706; }
+.b-att-pick button.is-on.b-att-leave { background: #2563eb; }
+.b-att-pick button.is-on.b-att-holiday { background: #6b7280; }
+.a-status.b-att-absent, .b-att-grid td.b-att-absent { background: #fee2e2; color: #991b1b; }
+.a-status.b-att-half_day, .b-att-grid td.b-att-half_day { background: #fef3c7; color: #92400e; }
+.a-status.b-att-leave, .b-att-grid td.b-att-leave { background: #dbeafe; color: #1e40af; }
+.a-status.b-att-holiday, .b-att-grid td.b-att-holiday { background: #f3f4f6; color: #374151; }
+.a-status.b-att-present { background: #dcfce7; color: #166534; }
+.b-stage-chips .a-status { margin: 0 6px 6px 0; }
+.b-att-grid th, .b-att-grid td { padding: 6px 4px; text-align: center; font-size: 12px; min-width: 24px; }
+.b-att-grid th:first-child, .b-att-grid td:first-child { text-align: left; padding-left: 12px; position: sticky; left: 0; background: #fff; z-index: 1; }
+.b-num-input { width: 90px; border: 1px solid var(--a-border); border-radius: 6px; padding: 5px 7px; font: inherit; font-size: 13px; text-align: right; }
+.b-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.b-wrap-head { flex-wrap: wrap; gap: 10px; }
+.b-att-pick button { white-space: nowrap; }
+@media (max-width: 600px) { .b-wrap-head .b-head-actions .a-btn { flex: 1 1 45%; } }
+
+/* ---------- Client portal (staff side) ---------- */
+.b-timeline li.t-client::before { border-color: #16a34a; background: #16a34a; }
+.b-public { font-weight: 400; font-size: 12px; color: #16a34a; }
+.b-portal-pw { display: flex; flex-direction: column; gap: 8px; }
+.b-portal-pw input { border: 1px solid var(--a-border); border-radius: 8px; padding: 9px 11px; font: inherit; }
+.b-sms-test { display: flex; gap: 8px; flex-wrap: wrap; }
+.b-sms-test input { flex: 1 1 180px; min-width: 0; }

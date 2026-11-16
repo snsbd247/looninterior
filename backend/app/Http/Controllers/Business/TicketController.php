@@ -164,9 +164,11 @@ class TicketController extends Controller
         $data = $request->validate([
             'body' => 'required_without:photo|nullable|string|max:5000',
             'photo' => 'nullable|file|image|max:8192',
+            'is_public' => 'nullable|boolean',
         ]);
         $c = TicketComment::create([
             'ticket_id' => $ticket->id, 'user_id' => $request->user()->id, 'kind' => 'comment',
+            'is_public' => (bool) ($data['is_public'] ?? false), // shown to the customer in the client portal
             'body' => $data['body'] ?? 'Photo',
             'attachment' => $request->hasFile('photo') ? Uploader::store($request->file('photo'), 'tickets') : null,
         ]);

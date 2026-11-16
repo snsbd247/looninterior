@@ -3,9 +3,9 @@ import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
   FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck, FiLifeBuoy,
-  FiChevronDown, FiFolder, FiInbox, FiLayout, FiEdit3,
+  FiChevronDown, FiFolder, FiInbox, FiLayout, FiEdit3, FiCalendar, FiUserX, FiCheckSquare, FiHardDrive,
 } from 'react-icons/fi'
-import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
+import { api, adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
 import { RESOURCES, GROUPS, resourcePerm } from './resources'
 import Login from './pages/Login'
@@ -28,11 +28,14 @@ const EXTRA_LINKS = {
   CRM: [
     { to: '/admin/biz/leads', label: 'Leads', icon: FiTarget, perm: 'crm.view' },
     { to: '/admin/biz/follow-ups', label: 'Follow-ups', icon: FiClock, perm: 'crm.view' },
+    { to: '/admin/biz/calendar', label: 'Calendar', icon: FiCalendar, perm: 'crm.view|projects.view|tickets.view|billing.view|inventory.view' },
     { to: '/admin/biz/customers', label: 'Customers', icon: FiUserCheck, perm: 'crm.view' },
   ],
   'Sales & Projects': [
     { to: '/admin/biz/quotations', label: 'Quotations', icon: FiFileText, perm: 'quotations.view' },
     { to: '/admin/biz/projects', label: 'Projects', icon: FiTool, perm: 'projects.view' },
+    { to: '/admin/biz/labour', label: 'Labour Work', icon: FiHardDrive, perm: 'labour.view' },
+    { to: '/admin/biz/contractors', label: 'Contractors', icon: FiUsers, perm: 'labour.view' },
   ],
   Billing: [
     { to: '/admin/biz/invoices', label: 'Invoices', icon: FiFile, perm: 'billing.view' },
@@ -54,6 +57,12 @@ const EXTRA_LINKS = {
   ],
   Service: [
     { to: '/admin/biz/tickets', label: 'Service Tickets', icon: FiLifeBuoy, perm: 'tickets.view' },
+  ],
+  HR: [
+    { to: '/admin/biz/employees', label: 'Employees', icon: FiUsers, perm: 'hr.view' },
+    { to: '/admin/biz/attendance', label: 'Attendance', icon: FiCheckSquare, perm: 'hr.view' },
+    { to: '/admin/biz/leaves', label: 'Leave', icon: FiUserX, perm: 'hr.view' },
+    { to: '/admin/biz/payrolls', label: 'Salary Sheets', icon: FiDollarSign, perm: 'hr.view' },
   ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },
@@ -95,7 +104,7 @@ export function NoAccess() {
 /* Icon of each top-level menu (submenu parents). */
 const GROUP_ICONS = {
   CRM: FiTarget, 'Sales & Projects': FiTool, Billing: FiFile, Accounts: FiCreditCard, Inventory: FiBox,
-  Service: FiLifeBuoy, Reports: FiPieChart, 'Website Inbox': FiInbox, 'Home Page': FiLayout, Content: FiEdit3,
+  Service: FiLifeBuoy, HR: FiUsers, Reports: FiPieChart, 'Website Inbox': FiInbox, 'Home Page': FiLayout, Content: FiEdit3,
   Careers: FiBriefcase, Administration: FiShield, System: FiSettings,
 }
 const OPEN_KEY = 'admin_menu_open'
@@ -268,11 +277,19 @@ function Layout() {
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           </div>
+          <AdminFooter />
         </div>
         <Toasts items={toasts} />
       </div>
     </AdminContext.Provider>
   )
+}
+
+/** Copyright line at the bottom of every admin page (same text as the website footer setting). */
+function AdminFooter() {
+  const [s, setS] = useState({})
+  useEffect(() => { api.get('/site').then((r) => setS(r.data.settings || {})).catch(() => {}) }, [])
+  return <footer className="a-footer">{s.copyright || `© ${new Date().getFullYear()} ${s.site_name || 'Loon Interior'}. All rights reserved.`}</footer>
 }
 
 function RequireAuth({ children }) {

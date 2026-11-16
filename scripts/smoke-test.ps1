@@ -151,7 +151,9 @@ if (-not $Email -or -not $Password) {
                    '/api/business/reports/projects', '/api/business/reports/branches',
                    '/api/business/stock', '/api/business/stock-entries', '/api/business/purchase-orders', '/api/business/purchases',
                    '/api/business/suppliers', '/api/business/lookup/stores', '/api/business/lookup/items',
-                   '/api/business/tickets', '/api/business/tickets/report', '/api/business/dashboard') {
+                   '/api/business/tickets', '/api/business/tickets/report', '/api/business/dashboard',
+                   '/api/business/calendar', '/api/business/employees', '/api/business/attendance', '/api/business/attendance/month',
+                   '/api/business/leaves', '/api/business/payrolls', '/api/business/labour', '/api/business/contractors') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 
@@ -159,6 +161,11 @@ if (-not $Email -or -not $Password) {
       $pdf = Invoke-WebRequest -UseBasicParsing -Uri "$Base/api/business/pdf/sample?lang=bn" -Headers $auth
       Report ($pdf.Headers['Content-Type'] -eq 'application/pdf') 'sample PDF (bn) renders'
     } catch { Report $false 'sample PDF (bn) renders' $_.Exception.Message }
+
+    # Client portal: staff token must be refused; customer token is refused on staff APIs (scripts/tests/test-portal.ps1)
+    Expect 'portal rejects staff token' GET '/api/portal/me' 401 $null $auth | Out-Null
+    Expect 'portal login validates' POST '/api/portal/login' 422 @{ login = 'nobody@example.com'; password = 'x' } | Out-Null
+    Expect 'GET /portal page' GET '/portal' 200 | Out-Null
 
     Expect 'admin logout' POST '/api/admin/logout' 200 $null $auth | Out-Null
   }

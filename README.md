@@ -215,6 +215,22 @@ labib/
 - **সেন্ট্রাল ভিউ:** Admin উপরের মেনু থেকে "All branches (central)" বাছলে সব শাখার এই মাসের তুলনা দেখে।
 - **ট্যাব:** ওয়েবসাইটের পুরনো Dashboard আছে "Website" ট্যাবে।
 
+### পর্যায় F: ক্যালেন্ডার, HR, শ্রমিক, ক্লায়েন্ট পোর্টাল, SMS ✅
+
+- **Calendar (CRM → Calendar):** ফলো-আপ, টাস্ক, মাইলস্টোন, সাইট ভিজিট, ইনভয়েস due আর PO ডেলিভারি এক ক্যালেন্ডারে। মোবাইলে লিস্ট আকারে।
+- **HR (সাইডবার → HR):**
+  - **Employees:** বেসিক বেতন, ভাতা, যোগদানের তারিখ।
+  - **Attendance:** দিনে শুধু অনুপস্থিত/অর্ধদিবস/ছুটি মার্ক করলেই হয়, বাকিরা উপস্থিত। মাসের গ্রিডও আছে।
+  - **Leave:** আবেদন আর অনুমোদন; অনুমোদন দিলে হাজিরায় বসে যায়। Unpaid ছুটি বেতন থেকে কাটে।
+  - **Salary Sheets:** মাস বেছে "Prepare salary sheet" → বোনাস/অগ্রিম → Finalize → Pay salaries (একটা অ্যাকাউন্ট থেকে, অ্যাকাউন্টসে "Salary" খরচ)। পে-স্লিপ PDF আর CSV।
+- **শ্রমিক (Sales & Projects → Labour Work / Contractors):** কতজন × কত দিন × রেট লিখলে প্রজেক্টের খরচে যোগ হয়। ঠিকাদারের বকেয়া, স্টেটমেন্ট আর পেমেন্ট।
+- **ক্লায়েন্ট পোর্টাল (`/portal`, ফুটারে "Client Portal"):**
+  - স্টাফ কাস্টমারের পেজে "Client portal" → **Enable portal** → পাসওয়ার্ড দিয়ে সেভ। ক্লায়েন্ট ফোন নম্বর বা ইমেইল আর ওই পাসওয়ার্ড দিয়ে লগইন করবে।
+  - ক্লায়েন্ট দেখে: প্রজেক্টের অগ্রগতি, স্টেজ, সাইটের ছবি, ইনভয়েস ও মানি রিসিট PDF, সার্ভিস রিকোয়েস্ট (খোলা আর মেসেজ)।
+  - টিকেটে স্টাফের কমেন্ট শুধু **Visible to customer** টিক দিলেই ক্লায়েন্ট দেখে।
+- **SMS (Business Settings → SMS):** SMS কোম্পানির URL বসান (`{to}` আর `{message}` সহ), চালু করুন, "Send test SMS" দিয়ে যাচাই করুন। পেমেন্ট পেলে আর টিকেট খুললে ক্লায়েন্ট SMS পায়। URL খালি থাকলে SMS শুধু `backend/storage/logs/sms.log` এ লেখা হয় (টেস্ট মোড)।
+- **ছোট উন্নতি:** ছবি আপলোডে নিজে থেকে ছোট হয় (১৯২০px); Site Settings → SEO তে Google Analytics (GA4) আর Facebook Pixel ID; Inquiries আর Job Applications এ "Excel (CSV)" বাটন; অ্যাডমিন প্যানেলের নিচে কপিরাইট লাইন।
+
 ### অ্যাডমিন প্যানেলের মেনু আর ভাষা
 
 - **সাইডবার:** submenu স্টাইলে। CRM, Billing, Inventory… তে ক্লিক করলে নিচের মেনু খোলে। যে পেজ খোলা, তার মেনু নিজে থেকে খোলা থাকে।
@@ -495,6 +511,8 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 ```
 এরপর প্রতিদিন সকাল ৯টায় `business:reminders` নিজে থেকে চলবে। হাতে টেস্ট করতে: `php artisan business:reminders --dry`
 
+**অটো টেস্ট (শুধু লোকালে):** `scripts\tests\` এ প্রতিটা মডিউলের API টেস্ট আছে (যেমন `test-portal.ps1`, `test-hr-labour.ps1`, `test-sms.ps1`)। সব একসাথে: `powershell -File scripts\tests\run-all.ps1 -ConfirmWipe`। এটা Business ডেটা মুছে দেয়, তাই localhost ছাড়া চলে না।
+
 ### ধাপ ৮: Google এ জমা দেওয়া
 - [Google Search Console](https://search.google.com/search-console) এ ডোমেইন যোগ করে `https://yourdomain.com/sitemap.xml` জমা দিন।
 - sitemap, canonical আর ইমেইলের লিংক `APP_URL` থেকে তৈরি হয়। তাই `APP_URL` অবশ্যই আসল ডোমেইন (https সহ) হতে হবে।
@@ -640,6 +658,21 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
 | `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
 | `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |
+| `GET calendar?from&to&mine` | যেকোনো view পারমিশন | ক্যালেন্ডার |
+| `employees`, `attendance`, `leaves`, `payrolls` (+ generate, finalize, pay, unpay, csv, payslip) | hr.view / hr.manage / hr.pay | HR ও বেতন |
+| `labour`, `contractors`, `contractors/{id}/pay` | labour.view / labour.manage / labour.pay | শ্রমিক ও ঠিকাদার |
+| `POST customers/{id}/portal` | portal.manage | ক্লায়েন্ট পোর্টাল চালু/বন্ধ, পাসওয়ার্ড |
+| `POST sms/test` | settings.business | টেস্ট SMS |
+
+### Client Portal API (`/api/portal`, কাস্টমারের টোকেন)
+
+| Endpoint | কাজ |
+|---|---|
+| `POST login` {login, password} | ফোন/ইমেইল দিয়ে লগইন (10/মিনিট) |
+| `GET me`, `POST logout`, `POST password` | প্রোফাইল ও সারাংশ, লগআউট, পাসওয়ার্ড বদল |
+| `GET projects[/{id}]` | নিজের প্রজেক্ট, স্টেজ, ছবি |
+| `GET invoices`, `invoices/{id}/pdf`, `payments`, `payments/{id}/pdf` | ইনভয়েস আর রিসিট (ড্রাফট/বাতিল দেখায় না) |
+| `GET/POST tickets`, `GET tickets/{id}`, `POST tickets/{id}/comments` | সার্ভিস রিকোয়েস্ট |
 
 ---
 

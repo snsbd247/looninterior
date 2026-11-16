@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'perm' => \App\Http\Middleware\RequirePermission::class,
             'branch' => \App\Http\Middleware\ResolveBranch::class,
+            'portal' => \App\Http\Middleware\EnsurePortalCustomer::class,
         ]);
 
         // Security: the branch context must be resolved right after authentication and BEFORE

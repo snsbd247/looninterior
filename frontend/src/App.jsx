@@ -4,6 +4,7 @@ import { SiteProvider } from './context/SiteContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingContact from './components/FloatingContact'
+import Analytics from './components/Analytics'
 import Loader from './components/Loader'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -23,6 +24,7 @@ import CmsPage from './pages/CmsPage'
 import NotFound from './pages/NotFound'
 
 const AdminApp = lazy(() => import('./admin/AdminApp'))
+const Portal = lazy(() => import('./portal/Portal'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -34,6 +36,7 @@ function PublicSite() {
   return (
     <SiteProvider>
       <ScrollToTop />
+      <Analytics />
       <Header />
       <main>
         <Routes>
@@ -50,6 +53,7 @@ function PublicSite() {
           <Route path="contact" element={<Contact />} />
           <Route path="get-quote" element={<GetQuote />} />
           <Route path="service-request" element={<ServiceRequest />} />
+          <Route path="portal/*" element={<Suspense fallback={<Loader full />}><Portal /></Suspense>} />
           <Route path="faq" element={<Faq />} />
           <Route path="page/:slug" element={<CmsPage />} />
           <Route path="*" element={<NotFound />} />

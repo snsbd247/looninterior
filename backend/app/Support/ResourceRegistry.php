@@ -280,6 +280,7 @@ class ResourceRegistry
             ],
 
             'inquiries' => [
+                'csv' => ['created_at' => 'Date', 'type' => 'Form', 'name' => 'Name', 'phone' => 'Phone', 'email' => 'Email', 'service' => 'Service', 'property_type' => 'Property', 'area_size' => 'Area', 'budget' => 'Budget', 'location' => 'Location', 'message' => 'Message', 'status' => 'Status', 'admin_note' => 'Note'],
                 'model' => Inquiry::class,
                 'readonly' => true,
                 'search' => ['name', 'phone', 'email', 'location'],
@@ -292,6 +293,7 @@ class ResourceRegistry
             ],
 
             'job_applications' => [
+                'csv' => ['created_at' => 'Date', 'career.title' => 'Job', 'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'status' => 'Status', 'cover_letter' => 'Cover letter', 'admin_note' => 'Note'],
                 'model' => JobApplication::class,
                 'readonly' => true,
                 'private_files' => ['cv_path'],
@@ -367,6 +369,24 @@ class ResourceRegistry
                     'email' => 'nullable|email|max:255',
                     'address' => 'nullable|string|max:1000',
                     'opening_due' => 'nullable|numeric|min:-999999999|max:999999999999',
+                    'notes' => 'nullable|string|max:2000',
+                    'is_active' => 'boolean',
+                ],
+            ],
+
+            'contractors' => [
+                'model' => \App\Models\Business\Contractor::class,
+                'permission' => 'labour.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name', 'phone', 'trade'],
+                'order' => ['name', 'asc'],
+                'rules' => [
+                    'name' => 'required|string|max:255',
+                    'trade' => 'nullable|string|max:30',
+                    'phone' => 'nullable|string|max:50',
+                    'daily_rate' => 'nullable|numeric|min:0|max:99999999',
+                    'opening_due' => 'nullable|numeric|min:-99999999|max:999999999',
                     'notes' => 'nullable|string|max:2000',
                     'is_active' => 'boolean',
                 ],

@@ -112,6 +112,7 @@ export function TicketDetail() {
   const [projects, setProjects] = useState([])
   const [comment, setComment] = useState('')
   const [photo, setPhoto] = useState(null)
+  const [isPublic, setIsPublic] = useState(false)
   const fileRef = useRef(null)
   const manage = can('tickets.manage')
 
@@ -127,7 +128,8 @@ export function TicketDetail() {
     const fd = new FormData()
     if (comment) fd.append('body', comment)
     if (photo) fd.append('photo', photo)
-    try { await businessApi.post(`/tickets/${id}/comments`, fd); setComment(''); setPhoto(null); load() } catch (e) { toast(errorMessage(e), 'error') }
+    if (isPublic) fd.append('is_public', '1')
+    try { await businessApi.post(`/tickets/${id}/comments`, fd); setComment(''); setPhoto(null); setIsPublic(false); load() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const phone = t.customer?.phone || t.contact_phone
   const next = { open: ['in_progress', 'Start work'], in_progress: ['resolved', 'Mark resolved'], resolved: ['closed', 'Close ticket'] }[t.status]
@@ -156,14 +158,15 @@ export function TicketDetail() {
                 <div className="b-activity-foot">
                   <span><button type="button" className="a-btn a-btn-light" onClick={() => fileRef.current?.click()}><FiImage /> {photo ? photo.name : 'Photo'}</button>
                     <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => setPhoto(e.target.files[0] || null)} /></span>
+                  <label className="b-check" title="Shown to the customer in the client portal"><input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> Visible to customer</label>
                   <button className="a-btn a-btn-primary" onClick={send} disabled={!comment && !photo}><FiSend /> Add</button>
                 </div>
               </div>
             )}
             <ul className="b-timeline">
               {t.comments.map((c) => (
-                <li key={c.id} className={c.kind === 'status' ? 't-stage' : c.kind === 'system' ? '' : 't-call'}>
-                  <div className="b-tl-head"><b>{c.user?.name || 'System'}</b><span className="a-muted">{dateTime(c.created_at)}</span></div>
+                <li key={c.id} className={c.kind === 'status' ? 't-stage' : c.kind === 'system' ? '' : c.kind === 'client' ? 't-client' : 't-call'}>
+                  <div className="b-tl-head"><b>{c.kind === 'client' ? `${t.customer?.name || 'Customer'} (portal)` : c.user?.name || 'System'}{c.is_public ? <span className="b-public"> · visible to customer</span> : null}</b><span className="a-muted">{dateTime(c.created_at)}</span></div>
                   <p>{c.body}</p>
                   {c.attachment && <a href={img(c.attachment)} target="_blank" rel="noreferrer"><img src={img(c.attachment)} alt="" className="b-tl-photo" /></a>}
                 </li>

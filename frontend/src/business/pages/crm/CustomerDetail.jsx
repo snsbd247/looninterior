@@ -2,11 +2,42 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FiArrowLeft, FiEdit2, FiPhone, FiMail, FiFileText, FiPlus } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
-import { businessApi, errorMessage, formatDate } from '../../../lib/api'
+import { businessApi, errorMessage, fieldErrors, formatDate, sitePath } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
 import { InfoGrid, Money, Stat, Status } from '../../components/ui'
-import { phoneHref, waHref, money } from '../../lib'
+import { phoneHref, waHref, money, dateTime } from '../../lib'
+
+/** Client portal access for this customer (perm portal.manage). The customer signs in at /portal with phone or e-mail. */
+function PortalAccess({ customer, onChange }) {
+  const { toast } = useAdmin()
+  const [pw, setPw] = useState(null)
+  const [errors, setErrors] = useState({})
+  const save = async (enabled, password) => {
+    try { const r = await businessApi.post(`/customers/${customer.id}/portal`, { enabled, password: password || null }); toast(r.data.message); setPw(null); setErrors({}); onChange(r.data.data) } catch (e) { setErrors(fieldErrors(e)); toast(errorMessage(e), 'error') }
+  }
+  return (
+    <div className="a-panel b-pad">
+      <h3 className="b-panel-title">Client portal</h3>
+      {customer.portal_enabled ? (
+        <p className="b-sub"><Status value="active" text="Enabled" /> <span className="a-muted">{customer.portal_last_login ? `Last sign-in ${dateTime(customer.portal_last_login)}` : 'Not signed in yet'}</span></p>
+      ) : <p className="a-muted b-sub">Off. Turn it on so the customer can follow the project, download invoices and receipts, and request service online.</p>}
+      {pw !== null ? (
+        <div className="b-portal-pw">
+          <input type="text" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Password (min 8 characters)" autoComplete="off" />
+          {(errors.password || errors.enabled) && <small className="a-error">{errors.password || errors.enabled}</small>}
+          <div className="b-head-actions"><button className="a-btn a-btn-light" onClick={() => setPw(null)}>Cancel</button><button className="a-btn a-btn-primary" onClick={() => save(true, pw)}>Save & enable</button></div>
+          <p className="a-muted b-sub">Share it with the customer: sign in at {window.location.origin + sitePath('/portal')} with {customer.phone || customer.email}.</p>
+        </div>
+      ) : (
+        <div className="b-head-actions">
+          <button className="a-btn a-btn-light" onClick={() => setPw('')}>{customer.portal_enabled ? 'Reset password' : 'Enable portal'}</button>
+          {customer.portal_enabled && <button className="a-btn a-btn-light danger" onClick={() => save(false)}>Turn off</button>}
+        </div>
+      )}
+    </div>
+  )
+}
 
 /* Sections appear only when that module exists and has data (later steps add more). */
 const SECTIONS = [
@@ -82,6 +113,7 @@ export default function CustomerDetail() {
             <InfoGrid items={[['Phone', c.phone], ['Email', c.email], ['Company', c.company], ['Address', c.address], ['Branch', c.branch?.name], ['Since', formatDate(c.created_at)]]} />
             {c.notes && <><h4 className="b-mini-title"><FiFileText /> Notes</h4><p className="b-pre">{c.notes}</p></>}
           </div>
+          {can('portal.manage') && <PortalAccess customer={c} onChange={(d) => setC({ ...c, ...d })} />}
         </aside>
       </div>
     </>

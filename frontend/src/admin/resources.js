@@ -193,7 +193,7 @@ export const RESOURCES = {
   },
 
   job_applications: {
-    label: 'Applications', singular: 'Application', icon: FiUserPlus, group: 'Careers', readonly: true,
+    label: 'Applications', singular: 'Application', icon: FiUserPlus, group: 'Careers', readonly: true, csv: true,
     filter: { name: 'status', label: 'All status', options: ['new', 'shortlisted', 'rejected', 'hired'] },
     columns: [
       { key: 'name', label: 'Name' }, { key: 'career.title', label: 'Job' }, { key: 'phone', label: 'Phone' },
@@ -210,7 +210,7 @@ export const RESOURCES = {
   },
 
   inquiries: {
-    label: 'Quote Requests', singular: 'Inquiry', icon: FiInbox, group: 'Website Inbox', readonly: true,
+    label: 'Quote Requests', singular: 'Inquiry', icon: FiInbox, group: 'Website Inbox', readonly: true, csv: true,
     filter: { name: 'status', label: 'All status', options: ['new', 'contacted', 'converted', 'closed'] },
     columns: [
       { key: 'name', label: 'Name' }, { key: 'phone', label: 'Phone' }, { key: 'type', label: 'Type' },
@@ -278,6 +278,20 @@ export const RESOURCES = {
     ],
   },
 
+  contractors: {
+    label: 'Contractor List', singular: 'Contractor', icon: FiUsers, group: 'Sales & Projects', perm: 'labour.manage', noDelete: true, hidden: true,
+    columns: [{ key: 'name', label: 'Name' }, { key: 'trade', label: 'Trade', type: 'badge' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'name', label: 'Contractor / group name', required: true, half: true },
+      { name: 'trade', label: 'Trade', type: 'select', options: ['carpenter', 'painter', 'electrician', 'plumber', 'mason', 'tiles', 'glass', 'helper', 'other'], half: true },
+      { name: 'phone', label: 'Phone', half: true },
+      { name: 'daily_rate', label: 'Usual daily rate (৳)', type: 'number', half: true, default: 0 },
+      { name: 'opening_due', label: 'Opening due (৳)', type: 'number', half: true, default: 0, help: 'What you already owe this contractor when you start' },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+      { name: 'notes', label: 'Notes', type: 'textarea' },
+    ],
+  },
+
   transaction_categories: {
     label: 'Income/Expense Heads', singular: 'Category', icon: FiList, group: 'Accounts', perm: 'accounts.manage', noDelete: true,
     filter: { name: 'type', label: 'All types', options: ['income', 'expense'] },
@@ -302,7 +316,7 @@ export const RESOURCES = {
 }
 
 /* Sidebar order. Business groups first; a group shows only if the user can open something in it. */
-export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
+export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'HR', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
 
 /** Permission needed for a resource (website content by default). */
 export const resourcePerm = (cfg) => cfg?.perm || 'website.manage'

@@ -20,7 +20,7 @@ class ActivityLogger
     public static function record(string $action, ?Model $subject = null, ?string $description = null, ?array $changes = null): void
     {
         $user = Auth::user();
-        if (! $user) {
+        if (! $user instanceof \App\Models\User) { // staff only; client-portal customers are not logged as users
             return;
         }
 

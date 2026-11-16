@@ -41,7 +41,7 @@ Route::get('/sitemap.xml', function () {
 });
 
 Route::get('/robots.txt', function () {
-    $body = "User-agent: *\nDisallow: /admin\nDisallow: /api\n\nSitemap: ".Seo::base()."/sitemap.xml\n";
+    $body = "User-agent: *\nDisallow: /admin\nDisallow: /api\nDisallow: /portal\n\nSitemap: ".Seo::base()."/sitemap.xml\n";
 
     return response($body)->header('Content-Type', 'text/plain; charset=UTF-8');
 });

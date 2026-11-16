@@ -62,6 +62,9 @@ class Billing
             $inv->paid = round((float) $inv->paid + $amount, 2);
             $inv->refreshPaymentStatus();
             $inv->save();
+            // Sent only after commit (see Sms::event); off unless SMS is enabled in Business Settings.
+            \App\Services\Sms::event('payment', $inv->customer?->phone, ['name' => $inv->customer?->name,
+                'amount' => number_format($amount, 2), 'invoice' => $inv->number, 'receipt' => $payment->number]);
 
             return $payment;
         });

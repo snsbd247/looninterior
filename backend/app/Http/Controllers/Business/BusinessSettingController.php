@@ -41,7 +41,26 @@ class BusinessSettingController extends Controller
         'number_padding' => 'nullable|integer|min:1|max:10',
         'bn_digits' => 'nullable|in:0,1',
         'lead_branch_id' => 'nullable|integer|exists:branches,id',
+        // SMS gateway (App\Services\Sms). The URL may hold the gateway API key: it is only ever shown on this page.
+        'sms_enabled' => 'nullable|in:0,1',
+        'sms_url' => 'nullable|string|max:1000',
+        'sms_method' => 'nullable|in:GET,POST',
+        'sms_body' => 'nullable|string|max:2000',
+        'sms_on_payment' => 'nullable|in:0,1',
+        'sms_on_ticket' => 'nullable|in:0,1',
+        'sms_payment_text' => 'nullable|string|max:500',
+        'sms_ticket_text' => 'nullable|string|max:500',
     ];
+
+    /** Send a test SMS with the saved settings. */
+    public function testSms(Request $request)
+    {
+        $data = $request->validate(['to' => 'required|string|max:30']);
+        [$ok, $detail] = \App\Services\Sms::send($data['to'], 'Test SMS from '.(Setting::businessArray()['biz_company_name'] ?? config('app.name')).'.');
+        ActivityLogger::record('sms_test', null, "Test SMS to {$data['to']}: ".($ok ? 'sent' : 'failed'));
+
+        return response()->json(['ok' => $ok, 'message' => ($ok ? 'Sent. ' : 'Failed. ').$detail], $ok ? 200 : 422);
+    }
 
     private const IMAGES = ['logo', 'signature', 'seal'];
 

@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business\Customer;
+use App\Support\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
@@ -60,6 +63,31 @@ class CustomerController extends Controller
         $customer->update($data);
 
         return response()->json(['message' => 'Customer updated', 'data' => $customer]);
+    }
+
+    /** Client portal access: turn on/off and set a password (perm portal.manage). Turning off signs the customer out. */
+    public function portal(Request $request, Customer $customer)
+    {
+        $data = $request->validate(['enabled' => 'required|boolean', 'password' => 'nullable|string|min:8|max:100']);
+        if ($data['enabled']) {
+            if (! $customer->phone && ! $customer->email) {
+                throw ValidationException::withMessages(['enabled' => 'Add a phone number or e-mail first; the customer signs in with it.']);
+            }
+            if (empty($data['password']) && ! $customer->portal_password) {
+                throw ValidationException::withMessages(['password' => 'Set a password (at least 8 characters).']);
+            }
+        }
+        $customer->forceFill(array_filter([
+            'portal_enabled' => (bool) $data['enabled'],
+            'portal_password' => ! empty($data['password']) ? Hash::make($data['password']) : null,
+        ], fn ($v) => $v !== null))->save();
+        if (! $data['enabled'] || ! empty($data['password'])) {
+            $customer->tokens()->delete();
+        }
+        ActivityLogger::record('portal', $customer, $data['enabled'] ? 'Client portal enabled'.(! empty($data['password']) ? ' (password set)' : '') : 'Client portal disabled');
+
+        return response()->json(['message' => $data['enabled'] ? 'Client portal enabled' : 'Client portal disabled',
+            'data' => $customer->only(['id', 'portal_enabled', 'portal_last_login'])]);
     }
 
     private function validated(Request $request): array

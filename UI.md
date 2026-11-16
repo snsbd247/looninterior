@@ -157,7 +157,13 @@ labib/
 | ↳ ধাপ ৮ Dashboard | `GET /api/business/dashboard` (যেকোনো স্টাফ; ভেতরে প্রতিটা অংশ পারমিশন দেখে দেয়: crm, quotations, billing, accounts, projects, inventory, tickets; সেন্ট্রাল ভিউতে `branches`) |
 | ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
-| `/sitemap.xml`, `/robots.txt` | SEO |
+| ↳ পর্যায় F ক্যালেন্ডার | `calendar?from&to&mine` (crm/projects/tickets/billing/inventory যেকোনো view পারমিশন; ভেতরে প্রতিটা ধরন আলাদা পারমিশন দেখে) |
+| ↳ পর্যায় F HR | `employees[/{id}?month]`, `attendance?date`, `POST attendance`, `attendance/month?month`, `leaves`, `leaves/{id}/decide`, `payrolls[/{id}]`, `payrolls/generate`, `payrolls/{p}/items/{i}`, `…/finalize`, `…/pay`, `…/unpay`, `…/csv`, `…/items/{i}/payslip` (hr.view/.manage/.pay) |
+| ↳ পর্যায় F শ্রমিক | `labour[?work_project_id&contractor_id&status]` (+ `amount_total`), `labour/{id}/cancel`, `contractors[/{id}]` (স্টেটমেন্ট), `contractors/{id}/pay`, `contractor-payments/{id}/cancel` (labour.view/.manage/.pay); ঠিকাদার তৈরি-এডিট জেনেরিক CRUD `/api/admin/contractors` |
+| ↳ পর্যায় F পোর্টাল (স্টাফ) | `POST customers/{id}/portal` {enabled, password} (portal.manage); `tickets/{id}/comments` এ `is_public` |
+| ↳ পর্যায় F SMS | `POST sms/test` (settings.business); সেটিং `biz_sms_*` |
+| `/api/portal/*` ✅ | ক্লায়েন্ট পোর্টাল: `POST login` (throttle:portal-login), বাকিগুলো `auth:sanctum` + `portal`: `me`, `logout`, `password`, `projects[/{id}]`, `invoices`, `invoices/{id}/pdf`, `payments`, `payments/{id}/pdf`, `tickets[/{id}]`, `POST tickets`, `tickets/{id}/comments` |
+| `/sitemap.xml`, `/robots.txt` | SEO (robots এ `/portal` Disallow; `/portal*` পেজ noindex) |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
 | বাকি সব | React index.html + SEO meta |
 
@@ -202,6 +208,7 @@ ResourceList.jsx / ResourceForm.jsx        ← একই দুইটা পে�
 | পারমিশন ✅ | প্রতিটা API রুটে `perm:` middleware (`perm:a\|b` মানে যেকোনো একটা থাকলেই চলবে)। জেনেরিক CRUD এ রেজিস্ট্রির `permission` কী। শুধু মেনু লুকানো যথেষ্ট না |
 | শাখা ✅ | `ResolveBranch` middleware `X-Branch-Id` হেডার যাচাই করে: অনুমোদিত শাখা না হলে 403। "all" শুধু `branches.all` পারমিশনে। `BelongsToBranch` trait সার্ভারেই ফিল্টার করে |
 | নিষ্ক্রিয় ইউজার ✅ | `active` middleware: পুরনো টোকেন থাকলেও 401 দেয় আর টোকেন মুছে দেয়। লগইনও বন্ধ |
+| টোকেনের ধরন ✅ | স্টাফ = `User`, ক্লায়েন্ট = `Customer` (দুজনেই Sanctum)। `active` middleware `User` ছাড়া সবাইকে 401 দেয়, `perm` শুধু `User` এ চলে, `portal` middleware শুধু `Customer` (portal_enabled) নেয়। `ActivityLogger` শুধু `User` এর কাজ লগ করে |
 | সেটিংস আলাদা ✅ | `biz_*` কী শুধু Business Settings API দিয়ে লেখা আর পড়া যায়। ওয়েবসাইট সেটিংস আর পাবলিক API তে আসে না |
 
 ### ৪.৫ ইমেইল ✅
@@ -346,7 +353,15 @@ Request
 | | `stock_balances` | store_id + item_id (unique), qty। ক্যাশ, প্রতিটা movement এর সাথে একই transaction এ row lock দিয়ে আপডেট হয় |
 | | `supplier_payments` (শাখাভিত্তিক) | number (SP), supplier_id, purchase_id, account_id, method, amount, reference, date, status (paid/cancelled) → Ledger এ "supplier_payment" খরচ (প্রজেক্ট ছাড়া) |
 | **টিকেটিং ✅** | `tickets` (শাখাভিত্তিক) | number (TKT), customer_id (null হতে পারে), work_project_id, contact_name/phone/email, address, subject, description, priority (low/medium/high/urgent), status (open/in_progress/resolved/closed), source (phone/website/email/walk_in/visit), assigned_to, visit_at, warranty_until (প্রজেক্ট থেকে snapshot; `in_warranty` হিসাব করা মান), resolved_at, closed_at, created_by |
-| | `ticket_comments` | ticket_id, user_id (null = সিস্টেম/ওয়েবসাইট), body, attachment (public uploads/tickets ছবি), kind (comment/status/system) |
+| | `ticket_comments` | ticket_id, user_id (null = সিস্টেম/ওয়েবসাইট/ক্লায়েন্ট), body, attachment (public uploads/tickets ছবি), kind (comment/status/system/client), is_public (পর্যায় F: true হলে ক্লায়েন্ট পোর্টালে দেখায়) |
+| **HR ✅ (পর্যায় F)** | `employees` (শাখাভিত্তিক) | code, name, designation, department, phone, email, nid, address, join_date, basic_salary, allowance, user_id (ঐচ্ছিক লগইন), is_active |
+| | `attendances` | employee_id + date (unique), status (present/absent/half_day/leave/holiday), note, marked_by। মার্ক না থাকলে উপস্থিত ধরা হয় |
+| | `leaves` | employee_id, type (casual/sick/annual/unpaid), from_date, to_date, days, reason, status (pending/approved/rejected), decided_by |
+| | `payrolls` → `payroll_items` (শাখাভিত্তিক) | payroll: number (PAY), month (branch+month unique), working_days, status (draft/finalized/paid), total, account_id, paid_date, transaction_id; item: employee_id, basic, allowance, absent_days, unpaid_leave_days, deduction, bonus, advance, net |
+| **শ্রমিক ✅ (পর্যায় F)** | `contractors` (কোম্পানি-ব্যাপী, জেনেরিক CRUD) | name, trade, phone, daily_rate, opening_due, notes, is_active |
+| | `labour_entries` (শাখাভিত্তিক) | number (LB), work_project_id, contractor_id (null = তাৎক্ষণিক নগদ), date, description, workers, days, rate, amount (= workers × days × rate, সার্ভারে), status (active/cancelled) → প্রজেক্টের খরচে `labour` |
+| | `contractor_payments` (শাখাভিত্তিক) | number (CP), contractor_id, account_id, method, amount, reference, date, status → Ledger এ "labour" খরচ (প্রজেক্ট ছাড়া, দ্বিগুণ গোনা হয় না) |
+| **পোর্টাল ✅ (পর্যায় F)** | `customers` এ নতুন কলাম | portal_enabled, portal_password (hash, `$hidden`), portal_last_login; টোকেন `personal_access_tokens` এ (tokenable = Customer) |
 
 **মূল সম্পর্ক:**
 
@@ -377,9 +392,17 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
                               ├── users, users/new, users/:id        (users.manage)
                               ├── roles, roles/new, roles/:id        (roles.manage)
                               ├── settings                           (settings.business)
-                              └── activity                           (activity.view)
+                              ├── activity                           (activity.view)
+                              ├── calendar                           (পর্যায় F)
+                              ├── employees[/:id], attendance, leaves, payrolls[/:id]   (hr.view)
+                              └── labour, contractors[/:id]          (labour.view)
                        (Branches আর Tax Rates চলে জেনেরিক /admin/r/branches আর /admin/r/tax_rates দিয়ে)
   /*        → <PublicSite/>  → SiteProvider → Header + Routes + Footer + FloatingContact
+                └── /portal/* → <Portal/> (lazy chunk, `src/portal/`): নিজের টোকেন `localStorage.portal_token`, নিজের axios (`/api/portal`)
+                       ├── /portal (লগইন বা প্রজেক্ট), /portal/projects/:id
+                       ├── /portal/billing (ইনভয়েস + রিসিট PDF)
+                       ├── /portal/tickets[/:id] (সার্ভিস রিকোয়েস্ট + মেসেজ)
+                       └── /portal/account (পাসওয়ার্ড বদল)
 ```
 
 ### ৬.২ ডেটা আনা ✅
@@ -467,6 +490,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 - **খোলা/বন্ধ:** বর্তমান পেজের মেনু নিজে থেকে খোলে। খোলা মেনুগুলো `localStorage.admin_menu_open` এ মনে থাকে। মেনু বন্ধ থাকলেও নতুন কিছুর ব্যাজ (যেমন নতুন কোট রিকোয়েস্ট) মূল মেনুতে দেখায়।
 - **ক্লাস:** `.a-nav`, `.a-nav-item`, `.a-sub` (`.is-open`, `.has-active`), `.a-sub-toggle`, `.a-sub-caret`, `.a-sub-items`।
 - **নতুন মেনু যোগ:** নতুন মূল মেনু লাগলে `GROUPS` আর `GROUP_ICONS` এ যোগ করতে হবে।
+- **পর্যায় F:** নতুন মূল মেনু **HR** (Employees, Attendance, Leave, Salary Sheets); "Sales & Projects" এ Labour Work আর Contractors; CRM এ Calendar। প্রতিটা অ্যাডমিন পেজের নিচে `AdminFooter` (কপিরাইট, ওয়েবসাইটের `copyright` সেটিং থেকে)।
 
 **ভাষা:** অ্যাডমিন আর ওয়েবসাইটের সব লেখা ইংরেজি। বাংলা শুধু ডকুমেন্ট PDF এর ভেতরে (`lang/bn/doc.php`, "PDF (Bangla)" বোতাম)।
 

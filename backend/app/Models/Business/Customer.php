@@ -5,13 +5,21 @@ namespace App\Models\Business;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
-/** Business customer (CRM). Not the website "clients" logo list. */
+/**
+ * Business customer (CRM). Not the website "clients" logo list.
+ * Can sign in to the client portal (/portal) when staff enable it (portal_enabled + portal_password).
+ */
 class Customer extends Model
 {
-    use BelongsToBranch, LogsActivity;
+    use BelongsToBranch, HasApiTokens, LogsActivity;
 
     protected $guarded = ['id'];
+
+    protected $hidden = ['portal_password'];
+
+    protected $casts = ['portal_enabled' => 'boolean', 'portal_last_login' => 'datetime'];
 
     public function leads()
     {

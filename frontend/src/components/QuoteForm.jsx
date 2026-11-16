@@ -36,6 +36,9 @@ export default function QuoteForm({ type = 'quote', compact = false }) {
       const res = await api.post('/inquiries', { ...form, type, website: hp, form_token })
       setForm(EMPTY)
       setStatus({ loading: false, ok: res.data.message, error: '' })
+      // Conversion events for ads (no-op when Analytics/Pixel are not configured)
+      window.gtag?.('event', 'generate_lead', { form: type })
+      window.fbq?.('track', type === 'quote' ? 'Lead' : 'Contact')
     } catch (err) {
       setErrors(fieldErrors(err))
       setStatus({ loading: false, ok: '', error: errorMessage(err) })

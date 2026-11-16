@@ -76,7 +76,8 @@ class WorkProjectController extends Controller
         $credited = (float) (clone $inv)->sum('credited');
         $expenses = (float) Transaction::where('work_project_id', $p->id)->where('status', 'active')->where('type', 'expense')->sum('amount');
         $materials = class_exists(\App\Services\Stock::class) ? \App\Services\Stock::projectMaterialCost($p->id) : 0.0;
-        $cost = round($expenses + $materials, 2);
+        $labour = (float) \App\Models\Business\LabourEntry::where('work_project_id', $p->id)->where('status', 'active')->sum('amount');
+        $cost = round($expenses + $materials + $labour, 2);
 
         return [
             'contract' => (float) $p->contract_value,
@@ -86,6 +87,7 @@ class WorkProjectController extends Controller
             'receivable' => round($invoiced - $received - $credited, 2),
             'expenses' => round($expenses, 2),
             'materials' => round($materials, 2),
+            'labour' => round($labour, 2),
             'cost' => $cost,
             'profit' => round((float) $p->contract_value - $cost, 2),
             'cash_profit' => round($received - $cost, 2),

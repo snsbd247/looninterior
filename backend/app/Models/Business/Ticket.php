@@ -13,11 +13,20 @@ class Ticket extends Model
 
     public const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
     public const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
-    public const SOURCES = ['phone', 'website', 'email', 'walk_in', 'visit'];
+    public const SOURCES = ['phone', 'website', 'email', 'walk_in', 'visit', 'portal'];
 
     protected $guarded = ['id'];
 
     protected $appends = ['in_warranty'];
+
+    /** SMS to the customer when a ticket is opened (staff, website or client portal); only if enabled in Business Settings. */
+    protected static function booted(): void
+    {
+        static::created(function (Ticket $t) {
+            $c = $t->customer_id ? Customer::withoutGlobalScopes()->find($t->customer_id, ['id', 'name', 'phone']) : null;
+            \App\Services\Sms::event('ticket', $t->contact_phone ?: $c?->phone, ['name' => $c?->name ?? $t->contact_name, 'ticket' => $t->number]);
+        });
+    }
 
     protected function casts(): array
     {

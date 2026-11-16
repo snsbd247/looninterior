@@ -78,6 +78,11 @@ class Seo
             'type' => $type,
         ]));
 
+        // Client portal: private pages, never indexed (not in the sitemap either).
+        if ($path === 'portal' || str_starts_with($path, 'portal/')) {
+            return [array_merge($page('Client Portal'), ['robots' => 'noindex,nofollow']), 200];
+        }
+
         if ($path === 'admin' || str_starts_with($path, 'admin/')) {
             return [array_merge($meta, ['title' => 'Admin Panel | '.$siteName, 'robots' => 'noindex,nofollow']), 200];
         }

@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // uses up the admin login attempts (plain "throttle:x,y" shares one key per IP).
         RateLimiter::for('forms', fn (Request $r) => Limit::perMinute(10)->by('forms|'.$r->ip()));
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(10)->by('login|'.$r->ip()));
+        RateLimiter::for('portal-login', fn (Request $r) => Limit::perMinute(10)->by('portal-login|'.$r->ip()));
         RateLimiter::for('password-reset', fn (Request $r) => [
             Limit::perMinutes(10, 3)->by('pw-mail|'.$r->ip()),
             Limit::perMinutes(10, 3)->by('pw-mail|'.strtolower((string) $r->input('email'))),

@@ -1,0 +1,30 @@
+-- DEV ONLY: wipe all business test data (no real business data exists yet).
+-- Keeps: users (non-test), roles, tax rates, transaction categories, branch HO + its Cash account, website content.
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE lead_activities; TRUNCATE leads; TRUNCATE customers;
+TRUNCATE quotation_items; TRUNCATE quotations;
+TRUNCATE project_files; TRUNCATE project_tasks; TRUNCATE project_milestones; TRUNCATE payment_schedules; TRUNCATE work_projects;
+TRUNCATE invoice_items; TRUNCATE invoices; TRUNCATE payments; TRUNCATE credit_notes; TRUNCATE transactions;
+TRUNCATE document_sequences;
+TRUNCATE ticket_comments; TRUNCATE tickets;
+TRUNCATE payroll_items; TRUNCATE payrolls; TRUNCATE leaves; TRUNCATE attendances; TRUNCATE employees;
+TRUNCATE contractor_payments; TRUNCATE labour_entries; DELETE FROM contractors WHERE name LIKE 'T- %';
+UPDATE customers SET portal_enabled = 0, portal_password = NULL;
+TRUNCATE supplier_payments; TRUNCATE stock_balances; TRUNCATE stock_movements; TRUNCATE stock_entry_items; TRUNCATE stock_entries;
+TRUNCATE purchase_items; TRUNCATE purchases; TRUNCATE purchase_order_items; TRUNCATE purchase_orders;
+DELETE FROM items WHERE name LIKE 'T- %'; DELETE FROM item_categories WHERE name LIKE 'T- %'; DELETE FROM suppliers WHERE name LIKE 'T- %';
+DELETE FROM stores WHERE branch_id <> 1;
+DELETE FROM inquiries WHERE name LIKE 'CRM %' OR name LIKE 'T- %';
+SET @users := (SELECT GROUP_CONCAT(id) FROM users WHERE email LIKE 'test-%@example.com');
+DELETE FROM personal_access_tokens WHERE FIND_IN_SET(tokenable_id, @users);
+DELETE FROM personal_access_tokens WHERE tokenable_type LIKE '%Customer';
+DELETE FROM branch_user WHERE FIND_IN_SET(user_id, @users);
+DELETE FROM users WHERE FIND_IN_SET(id, @users);
+DELETE FROM branch_user WHERE branch_id <> 1;
+DELETE FROM accounts WHERE branch_id <> 1 OR name <> 'Cash';
+DELETE FROM branches WHERE id <> 1;
+UPDATE accounts SET opening_balance = 0;
+ALTER TABLE branches AUTO_INCREMENT = 2;
+DELETE FROM activity_logs WHERE action <> 'login' OR FIND_IN_SET(user_id, @users);
+SET FOREIGN_KEY_CHECKS = 1;
+DELETE FROM settings WHERE `key` LIKE 'biz_sms%';

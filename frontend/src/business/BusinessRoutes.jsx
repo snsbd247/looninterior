@@ -36,6 +36,9 @@ import { PurchaseOrderList, PurchaseOrderForm, PurchaseOrderDetail } from './pag
 import { PurchaseList, PurchaseForm, PurchaseDetail } from './pages/purchases/Purchases'
 import { SupplierList, SupplierDetail } from './pages/purchases/Suppliers'
 import { TicketList, TicketForm, TicketDetail } from './pages/tickets/Tickets'
+import Calendar from './pages/calendar/Calendar'
+import { Employees, EmployeeDetail, Attendance, Leaves, Payrolls, PayrollDetail } from './pages/hr/Hr'
+import { LabourEntries, Contractors, ContractorDetail } from './pages/labour/Labour'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -105,6 +108,17 @@ const ROUTES = [
   ['tickets', 'tickets.view', <TicketList />],
   ['tickets/new', 'tickets.manage', <TicketForm />],
   ['tickets/:id', 'tickets.view', <TicketDetail />],
+  // Phase F
+  ['calendar', 'crm.view|projects.view|tickets.view|billing.view|inventory.view', <Calendar />],
+  ['employees', 'hr.view', <Employees />],
+  ['employees/:id', 'hr.view', <EmployeeDetail />],
+  ['attendance', 'hr.view', <Attendance />],
+  ['leaves', 'hr.view', <Leaves />],
+  ['payrolls', 'hr.view', <Payrolls />],
+  ['payrolls/:id', 'hr.view', <PayrollDetail />],
+  ['labour', 'labour.view', <LabourEntries />],
+  ['contractors', 'labour.view', <Contractors />],
+  ['contractors/:id', 'labour.view', <ContractorDetail />],
 ]
 
 export default function BusinessRoutes() {

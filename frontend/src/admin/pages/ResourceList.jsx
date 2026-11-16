@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiEye, FiCheck, FiX } from 'react-icons/fi'
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiEye, FiCheck, FiX, FiDownload } from 'react-icons/fi'
 import { adminApi, errorMessage, formatDate, img } from '../../lib/api'
 import Loader from '../../components/Loader'
 import { RESOURCES, getPath, resourcePerm } from '../resources'
@@ -67,10 +67,24 @@ function List({ resource, cfg }) {
 
   const submitSearch = (e) => { e.preventDefault(); setPage(1); setSearch(q) }
 
+  const exportCsv = async () => {
+    const params = { q: search, format: 'csv' }
+    if (filter && cfg.filter) params[cfg.filter.name] = filter
+    try {
+      const r = await adminApi.get(`/${resource}`, { params, responseType: 'blob' })
+      const url = URL.createObjectURL(r.data)
+      const a = document.createElement('a')
+      a.href = url; a.download = `${resource}-${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+    } catch (e) { toast(errorMessage(e), 'error') }
+  }
+
   return (
     <>
       <div className="a-page-head">
         <h1>{cfg.label}</h1>
+        {cfg.csv && <button type="button" className="a-btn a-btn-light" onClick={exportCsv}><FiDownload /> Excel (CSV)</button>}
         {!cfg.readonly && (
           <Link to={`/admin/r/${resource}/new`} className="a-btn a-btn-primary"><FiPlus /> Add {cfg.singular}</Link>
         )}

@@ -223,7 +223,7 @@ function Billing({ project, invoices, canManage, onSaved }) {
 function Costs({ project, expenses }) {
   return (
     <div className="a-panel">
-      <div className="a-panel-head"><h3>Expenses linked to this project</h3><Can perm="accounts.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/transactions?new=expense&project=${project.id}`}><FiPlus /> Expense</Link></Can><Can perm="inventory.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/stock-entries/new?type=issue&project=${project.id}`}><FiPlus /> Issue material</Link><Link className="a-btn a-btn-light" to={`/admin/biz/purchases/new?type=direct&project=${project.id}`}><FiPlus /> Direct purchase</Link></Can></div>
+      <div className="a-panel-head b-wrap-head"><h3>Expenses linked to this project</h3><div className="b-head-actions"><Can perm="accounts.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/transactions?new=expense&project=${project.id}`}><FiPlus /> Expense</Link></Can><Can perm="inventory.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/stock-entries/new?type=issue&project=${project.id}`}><FiPlus /> Issue material</Link><Link className="a-btn a-btn-light" to={`/admin/biz/purchases/new?type=direct&project=${project.id}`}><FiPlus /> Direct purchase</Link></Can><Can perm="labour.view"><Link className="a-btn a-btn-light" to={`/admin/biz/labour?project=${project.id}`}><FiPlus /> Labour</Link></Can></div></div>
       <div className="a-table-wrap">
         <table className="a-table">
           <thead><tr><th>Date</th><th>Category</th><th>Description</th><th className="r">Amount</th></tr></thead>
@@ -234,7 +234,7 @@ function Costs({ project, expenses }) {
           </tbody>
         </table>
       </div>
-      <p className="a-muted b-sub b-pad">Material issued from stores and direct purchases for this project are added automatically (Inventory).</p>
+      <p className="a-muted b-sub b-pad">Material issued from stores, direct purchases and labour work recorded for this project are added to the cost automatically.</p>
     </div>
   )
 }
@@ -297,7 +297,7 @@ export default function ProjectDetail() {
         <Stat label="Contract" value={money(f.contract, { symbol: true })} sub={`${p.code}`} />
         {can('billing.view') && <Stat label="Invoiced" value={money(f.invoiced, { symbol: true })} />}
         {can('billing.view') && <Stat label="Received" value={money(f.received, { symbol: true })} tone="good" sub={f.receivable > 0 ? `Due ${money(f.receivable)}` : ''} />}
-        <Stat label="Cost so far" value={money(f.cost, { symbol: true })} tone="warn" sub={f.materials ? `Materials ${money(f.materials)}` : ''} />
+        <Stat label="Cost so far" value={money(f.cost, { symbol: true })} tone="warn" sub={[f.materials ? `Materials ${money(f.materials)}` : '', f.labour ? `Labour ${money(f.labour)}` : ''].filter(Boolean).join(' · ')} />
         <Stat label="Profit (contract − cost)" value={money(f.profit, { symbol: true })} tone={f.profit >= 0 ? 'good' : 'bad'} />
       </div>
 

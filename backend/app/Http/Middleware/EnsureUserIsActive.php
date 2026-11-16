@@ -11,6 +11,10 @@ class EnsureUserIsActive
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
+        // Staff routes accept only staff tokens (a client-portal customer token is rejected here).
+        if ($user && ! $user instanceof \App\Models\User) {
+            return response()->json(['message' => 'Staff sign-in required.'], 401);
+        }
         if ($user && $user->is_active === false) {
             $user->currentAccessToken()?->delete();
 

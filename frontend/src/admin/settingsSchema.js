@@ -90,6 +90,8 @@ export const SETTINGS_TABS = [
       { name: 'meta_description', label: 'Meta Description', type: 'textarea' },
       { name: 'meta_keywords', label: 'Meta Keywords', help: 'Comma separated' },
       { name: 'og_image', label: 'Social Share Image', type: 'image', help: '1200 × 630 px' },
+      { name: 'ga_id', label: 'Google Analytics ID', half: true, help: 'GA4 Measurement ID, e.g. G-XXXXXXXXXX. Empty = off' },
+      { name: 'fb_pixel_id', label: 'Facebook Pixel ID', half: true, help: 'Numbers only, e.g. 123456789012345. Empty = off' },
     ],
   },
 ]

@@ -1,0 +1,7 @@
+# Normalise line endings (stops the LF/CRLF warnings on Windows)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.ttf binary
+*.pdf binary

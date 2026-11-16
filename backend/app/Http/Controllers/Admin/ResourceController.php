@@ -51,6 +51,14 @@ class ResourceController extends Controller
         [$col, $dir] = $cfg['order'] ?? ['id', 'desc'];
         $query->orderBy($col, $dir)->orderBy('id', 'desc');
 
+        // Excel/CSV export of the filtered list (registry key "csv" => [column => header])
+        if ($request->query('format') === 'csv' && ! empty($cfg['csv'])) {
+            $rows = $query->limit(20000)->get();
+
+            return \App\Support\Csv::download($resource.'-'.date('Y-m-d').'.csv', array_values($cfg['csv']),
+                $rows->map(fn ($r) => array_map(fn ($col) => data_get($r, $col) instanceof \DateTimeInterface ? data_get($r, $col)->format('Y-m-d H:i') : data_get($r, $col), array_keys($cfg['csv'])))->all());
+        }
+
         if ($request->boolean('all')) {
             return response()->json(['data' => $query->get()]);
         }

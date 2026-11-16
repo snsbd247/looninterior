@@ -53,6 +53,26 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - All text on the website and the admin panel is **English**. Bangla appears only inside business document PDFs ("PDF (Bangla)" option, `lang/bn/doc.php`).
 - The admin sidebar is an **accordion submenu** (`SideMenu` in `AdminApp.jsx`). New sections go into an existing group (`GROUPS` / `EXTRA_LINKS`), or a new group with an icon in `GROUP_ICONS`.
 
+## Client portal and token rules
+
+- Two token owners share Sanctum: staff `User` and portal `Customer`. Staff routes must keep the `active`
+  middleware (it rejects non-`User` tokens). Portal routes live under `/api/portal` with `auth:sanctum` + `portal`.
+- Portal queries always filter by the signed-in `customer_id` and never show drafts, cancelled documents or
+  internal ticket notes (only `kind = client` or `is_public = true` comments).
+- `ActivityLogger` records staff only. Never write a customer id into a `user_id` column.
+
+## SMS and email
+
+- Send SMS only through `App\Services\Sms` (`Sms::event()` for automatic messages: it waits for the DB commit
+  and never throws). With no gateway URL it writes to `storage/logs/sms.log`.
+- Gateway secrets live in `biz_sms_*` settings, which only `settings.business` can read. Never return them elsewhere.
+
+## Tests
+
+- API tests per module are in `scripts/tests/` (`th.ps1` helpers). Add a test file for each new module and list it in
+  `run-all.ps1`. Login is throttled (10/min), so wait about 60 s between test runs.
+- Reset local test data with `scripts/tests/dev-reset-business-data.sql`. Never run it on a live server.
+
 ## Commands (local Windows / XAMPP)
 
 ```powershell

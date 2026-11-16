@@ -52,7 +52,37 @@ const TABS = [
       { name: 'lead_branch_id', label: 'Branch for website leads', type: 'branch', half: true, help: 'Quote requests from the website become leads in this branch. Empty = first active branch.' },
     ],
   },
+  {
+    key: 'sms', label: 'SMS',
+    fields: [
+      { name: 'sms_enabled', label: 'Send SMS to customers', type: 'select', half: true, default: '0', options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }], help: 'Off = no SMS is sent' },
+      { name: 'sms_method', label: 'Gateway method', type: 'select', half: true, default: 'GET', options: [{ value: 'GET', label: 'GET (URL only)' }, { value: 'POST', label: 'POST (URL + body)' }] },
+      { name: 'sms_url', label: 'Gateway URL', placeholder: 'https://api.your-sms-company.com/send?api_key=KEY&to={to}&msg={message}', help: 'From your SMS provider. {to} = phone (8801XXXXXXXXX), {message} = text. Empty = messages are only written to storage/logs/sms.log (test mode).' },
+      { name: 'sms_body', label: 'POST body (only for POST)', type: 'textarea', rows: 2, placeholder: 'api_key=KEY&to={to}&msg={message}   or JSON {"to":"{to}","text":"{message}"}' },
+      { name: 'sms_on_payment', label: 'When a payment is received', type: 'select', half: true, options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }] },
+      { name: 'sms_on_ticket', label: 'When a service ticket is opened', type: 'select', half: true, options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }] },
+      { name: 'sms_payment_text', label: 'Payment message', type: 'textarea', rows: 2, placeholder: 'Dear {name}, we received Tk {amount} against invoice {invoice}. Receipt: {receipt}. Thank you. - {company}', help: 'Empty = the default shown. Tags: {name} {amount} {invoice} {receipt} {company}' },
+      { name: 'sms_ticket_text', label: 'Service ticket message', type: 'textarea', rows: 2, placeholder: 'Dear {name}, your service request {ticket} is registered. Our team will contact you soon. - {company}', help: 'Tags: {name} {ticket} {company}' },
+    ],
+  },
 ]
+
+/** Sends a test SMS with the saved settings (save first). */
+function SmsTest() {
+  const { toast } = useAdmin()
+  const [to, setTo] = useState('')
+  const [busy, setBusy] = useState(false)
+  const send = async () => {
+    setBusy(true)
+    try { const r = await businessApi.post('/sms/test', { to }); toast(r.data.message) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
+  return (
+    <div className="a-field full">
+      <span>Test (uses the saved settings, so save first)</span>
+      <div className="b-sms-test"><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" /><button type="button" className="a-btn a-btn-light" onClick={send} disabled={busy || !to}>{busy ? 'Sending…' : 'Send test SMS'}</button></div>
+    </div>
+  )
+}
 
 const IMAGE_KEYS = TABS.flatMap((t) => t.fields).filter((f) => f.type === 'image').map((f) => f.name)
 const TEXT_KEYS = TABS.flatMap((t) => t.fields).filter((f) => f.type !== 'image').flatMap((f) => (f.bn ? [f.name, `${f.name}_bn`] : [f.name]))
@@ -72,7 +102,7 @@ function Input({ f, name, value, onChange, error }) {
   if (f.type === 'number') return <input type="number" {...common} />
   if (f.type === 'select') {
     return (
-      <select value={value ?? '1'} onChange={(e) => onChange(e.target.value)}>
+      <select value={value || f.default || '1'} onChange={(e) => onChange(e.target.value)}>
         {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     )
@@ -201,6 +231,7 @@ export default function BusinessSettings() {
               </label>
             ))
           })}
+          {tab === 'sms' && <SmsTest />}
           {tab === 'numbering' && preview && (
             <div className="a-field full">
               <span>Next invoice number in this branch</span>

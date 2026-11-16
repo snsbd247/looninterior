@@ -119,12 +119,57 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::get('settings', 'index');
         Route::post('settings', 'update');
         Route::get('pdf/sample', 'samplePdf');
+        Route::post('sms/test', 'testSms')->middleware('throttle:test-mail');
     });
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
 
     // Step 8: role-based dashboard (each block is permission-checked inside)
     Route::get('dashboard', [\App\Http\Controllers\Business\DashboardController::class, 'index']);
+    // Phase F: calendar (each source is permission-checked inside)
+    Route::get('calendar', [\App\Http\Controllers\Business\CalendarController::class, 'index']);
+
+    // Phase F: HR & payroll
+    Route::middleware('perm:hr.view')->controller(\App\Http\Controllers\Business\HrController::class)->group(function () {
+        Route::get('employees', 'employees');
+        Route::get('employees/{employee}', 'showEmployee')->whereNumber('employee');
+        Route::get('attendance', 'attendanceDay');
+        Route::get('attendance/month', 'attendanceMonth');
+        Route::get('leaves', 'leaves');
+        Route::get('payrolls', 'payrolls');
+        Route::get('payrolls/{payroll}', 'showPayroll')->whereNumber('payroll');
+        Route::get('payrolls/{payroll}/csv', 'payrollCsv')->whereNumber('payroll');
+        Route::get('payrolls/{payroll}/items/{item}/payslip', 'payslip')->whereNumber(['payroll', 'item']);
+    });
+    Route::middleware('perm:hr.manage')->controller(\App\Http\Controllers\Business\HrController::class)->group(function () {
+        Route::post('employees', 'saveEmployee');
+        Route::post('employees/{employee}', 'saveEmployee')->whereNumber('employee');
+        Route::post('attendance', 'saveAttendance');
+        Route::post('leaves', 'storeLeave');
+        Route::post('leaves/{leave}/decide', 'decideLeave')->whereNumber('leave');
+        Route::post('payrolls/generate', 'generate');
+        Route::post('payrolls/{payroll}/items/{item}', 'updateItem')->whereNumber(['payroll', 'item']);
+        Route::post('payrolls/{payroll}/finalize', 'finalize')->whereNumber('payroll');
+    });
+    Route::middleware('perm:hr.pay')->controller(\App\Http\Controllers\Business\HrController::class)->group(function () {
+        Route::post('payrolls/{payroll}/pay', 'pay')->whereNumber('payroll');
+        Route::post('payrolls/{payroll}/unpay', 'unpay')->whereNumber('payroll');
+    });
+
+    // Phase F: labour & contractors
+    Route::middleware('perm:labour.view')->controller(\App\Http\Controllers\Business\LabourController::class)->group(function () {
+        Route::get('labour', 'entries');
+        Route::get('contractors', 'contractors');
+        Route::get('contractors/{contractor}', 'showContractor')->whereNumber('contractor');
+    });
+    Route::middleware('perm:labour.manage')->controller(\App\Http\Controllers\Business\LabourController::class)->group(function () {
+        Route::post('labour', 'storeEntry');
+        Route::post('labour/{entry}/cancel', 'cancelEntry')->whereNumber('entry');
+    });
+    Route::middleware('perm:labour.pay')->controller(\App\Http\Controllers\Business\LabourController::class)->group(function () {
+        Route::post('contractors/{contractor}/pay', 'pay')->whereNumber('contractor');
+        Route::post('contractor-payments/{payment}/cancel', 'cancelPayment')->whereNumber('payment');
+    });
 
     // Lookups for business forms (any staff)
     Route::get('lookup/staff', [LookupController::class, 'staff']);
@@ -149,6 +194,7 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::post('customers', [CustomerController::class, 'store']);
         Route::post('customers/{customer}', [CustomerController::class, 'update'])->whereNumber('customer');
     });
+    Route::post('customers/{customer}/portal', [CustomerController::class, 'portal'])->whereNumber('customer')->middleware('perm:portal.manage');
 
     // Step 3: Quotations
     Route::middleware('perm:quotations.view')->controller(QuotationController::class)->group(function () {
@@ -281,3 +327,26 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
 */
 Route::get('public/quotations/{quotation}/pdf', [QuotationController::class, 'publicPdf'])
     ->whereNumber('quotation')->middleware(['signed', 'throttle:30,1'])->name('public.quotation.pdf');
+/*
+|--------------------------------------------------------------------------
+| Client portal (/portal): customer tokens only, own records only
+|--------------------------------------------------------------------------
+*/
+Route::prefix('portal')->controller(\App\Http\Controllers\Portal\PortalController::class)->group(function () {
+    Route::post('login', 'login')->middleware('throttle:portal-login');
+    Route::middleware(['auth:sanctum', 'portal'])->group(function () {
+        Route::get('me', 'me');
+        Route::post('logout', 'logout');
+        Route::post('password', 'password')->middleware('throttle:portal-login');
+        Route::get('projects', 'projects');
+        Route::get('projects/{id}', 'project')->whereNumber('id');
+        Route::get('invoices', 'invoices');
+        Route::get('invoices/{id}/pdf', 'invoicePdf')->whereNumber('id');
+        Route::get('payments', 'payments');
+        Route::get('payments/{id}/pdf', 'receiptPdf')->whereNumber('id');
+        Route::get('tickets', 'tickets');
+        Route::post('tickets', 'createTicket')->middleware('throttle:forms');
+        Route::get('tickets/{id}', 'ticket')->whereNumber('id');
+        Route::post('tickets/{id}/comments', 'comment')->whereNumber('id')->middleware('throttle:forms');
+    });
+});

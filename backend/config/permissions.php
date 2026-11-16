@@ -60,6 +60,20 @@ return [
         'activity' => ['label' => 'Activity Log', 'actions' => [
             'view' => 'View the activity log',
         ]],
+        // Phase F
+        'hr' => ['label' => 'HR & Payroll', 'actions' => [
+            'view' => 'View employees, attendance and salary sheets',
+            'manage' => 'Add employees, mark attendance, approve leave, prepare salary',
+            'pay' => 'Pay salaries from an account',
+        ]],
+        'labour' => ['label' => 'Labour & Contractors', 'actions' => [
+            'view' => 'View labour entries and contractor dues',
+            'manage' => 'Record labour work on projects',
+            'pay' => 'Pay contractors from an account',
+        ]],
+        'portal' => ['label' => 'Client Portal', 'actions' => [
+            'manage' => 'Give customers portal access (login) and reset their password',
+        ]],
     ],
 
     /* Default roles (created once; afterwards the Admin can edit them in the panel). */
@@ -68,6 +82,7 @@ return [
         'accounts' => ['name' => 'Accounts', 'permissions' => [
             'crm.view', 'quotations.view', 'projects.view', 'billing.view', 'billing.manage',
             'accounts.view', 'accounts.manage', 'inventory.view', 'suppliers.pay',
+            'hr.view', 'hr.pay', 'labour.view', 'labour.pay',
         ]],
         'store' => ['name' => 'Store', 'permissions' => [
             'projects.view', 'inventory.view', 'inventory.manage',
@@ -75,6 +90,7 @@ return [
         'sales' => ['name' => 'Sales & Marketing', 'permissions' => [
             'website.manage', 'crm.view', 'crm.manage', 'quotations.view', 'quotations.manage',
             'projects.view', 'projects.manage', 'billing.view', 'tickets.view',
+            'labour.view', 'labour.manage', 'portal.manage',
         ]],
         'support' => ['name' => 'Support', 'permissions' => [
             'crm.view', 'projects.view', 'tickets.view', 'tickets.manage',

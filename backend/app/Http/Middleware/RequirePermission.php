@@ -15,7 +15,7 @@ class RequirePermission
     {
         $user = $request->user();
         foreach (explode('|', $permissions) as $perm) {
-            if ($user && $user->hasPermission(trim($perm))) {
+            if ($user instanceof \App\Models\User && $user->hasPermission(trim($perm))) {
                 return $next($request);
             }
         }
