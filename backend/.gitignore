@@ -1,0 +1,7 @@
+/vendor
+/node_modules
+/public/build
+/public/uploads/*
+!/public/uploads/.htaccess
+.env
+.phpunit.result.cache

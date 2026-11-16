@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+backend/vendor/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Build output
+backend/public/build/
+frontend/dist/
+
+# User uploads & runtime files
+backend/public/uploads/*
+!backend/public/uploads/.htaccess
+backend/storage/*.key
+backend/storage/logs/*.log
+*.sqlite
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
