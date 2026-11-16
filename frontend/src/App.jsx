@@ -17,6 +17,7 @@ import Careers from './pages/Careers'
 import CareerDetail from './pages/CareerDetail'
 import Contact from './pages/Contact'
 import GetQuote from './pages/GetQuote'
+import ServiceRequest from './pages/ServiceRequest'
 import Faq from './pages/Faq'
 import CmsPage from './pages/CmsPage'
 import NotFound from './pages/NotFound'
@@ -48,6 +49,7 @@ function PublicSite() {
           <Route path="careers/:slug" element={<CareerDetail />} />
           <Route path="contact" element={<Contact />} />
           <Route path="get-quote" element={<GetQuote />} />
+          <Route path="service-request" element={<ServiceRequest />} />
           <Route path="faq" element={<Faq />} />
           <Route path="page/:slug" element={<CmsPage />} />
           <Route path="*" element={<NotFound />} />

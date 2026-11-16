@@ -336,3 +336,9 @@
   .b-irow .c-item { grid-column: 1 / -1; }
   .b-irow .c-amt { padding-top: 4px; grid-column: 1 / 3; text-align: left; }
 }
+
+/* ===================== Ticketing (step 7) ===================== */
+.b-tl-photo { margin-top: 8px; max-width: 220px; max-height: 160px; border-radius: 8px; border: 1px solid var(--a-border); object-fit: cover; }
+.b-ticket-ctrl { display: grid; gap: 14px; }
+.a-status svg { vertical-align: -2px; }
+.a-field input[type=datetime-local], .a-field input[type=file] { border: 1px solid var(--a-border); border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 14.5px; background: #fff; width: 100%; }

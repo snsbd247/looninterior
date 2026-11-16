@@ -27,6 +27,7 @@ class Seo
         'contact' => 'Contact Us',
         'get-quote' => 'Get a Free Quote',
         'faq' => 'FAQ',
+        'service-request' => 'Service Request',
     ];
 
     public static function base(): string

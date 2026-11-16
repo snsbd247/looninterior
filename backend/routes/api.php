@@ -21,6 +21,7 @@ use App\Http\Controllers\Business\WorkProjectController;
 use App\Http\Controllers\Business\InventoryController;
 use App\Http\Controllers\Business\PurchaseController;
 use App\Http\Controllers\Business\SupplierController;
+use App\Http\Controllers\Business\TicketController;
 use App\Http\Controllers\Business\RoleController;
 use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
@@ -51,6 +52,7 @@ Route::controller(PublicController::class)->group(function () {
 Route::middleware('throttle:forms')->group(function () {
     Route::post('inquiries', [FormController::class, 'inquiry']);
     Route::post('careers/{slug}/apply', [FormController::class, 'apply']);
+    Route::post('service-requests', [FormController::class, 'serviceRequest']);
 });
 
 /*
@@ -248,6 +250,18 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
     Route::middleware('perm:suppliers.pay')->group(function () {
         Route::post('suppliers/{supplier}/pay', [SupplierController::class, 'pay'])->whereNumber('supplier');
         Route::post('supplier-payments/{payment}/cancel', [SupplierController::class, 'cancelPayment'])->whereNumber('payment');
+    });
+
+    // Step 7: Ticketing
+    Route::middleware('perm:tickets.view')->group(function () {
+        Route::get('tickets', [TicketController::class, 'index']);
+        Route::get('tickets/report', [TicketController::class, 'report']);
+        Route::get('tickets/{ticket}', [TicketController::class, 'show'])->whereNumber('ticket');
+    });
+    Route::middleware('perm:tickets.manage')->group(function () {
+        Route::post('tickets', [TicketController::class, 'store']);
+        Route::post('tickets/{ticket}', [TicketController::class, 'update'])->whereNumber('ticket');
+        Route::post('tickets/{ticket}/comments', [TicketController::class, 'comment'])->whereNumber('ticket');
     });
 
     Route::middleware('perm:accounts.manage')->group(function () {

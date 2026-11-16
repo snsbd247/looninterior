@@ -2,7 +2,7 @@ import { createContext, lazy, Suspense, useContext, useEffect, useState, useCall
 import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
-  FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck,
+  FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck, FiLifeBuoy,
 } from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -50,6 +50,9 @@ const EXTRA_LINKS = {
     { to: '/admin/biz/purchases', label: 'Purchases (GRN)', icon: FiPackage, perm: 'inventory.view' },
     { to: '/admin/biz/suppliers', label: 'Suppliers', icon: FiTruck, perm: 'inventory.view|suppliers.pay' },
     { to: '/admin/biz/stores', label: 'Stores', icon: FiHome, perm: 'inventory.view' },
+  ],
+  Service: [
+    { to: '/admin/biz/tickets', label: 'Service Tickets', icon: FiLifeBuoy, perm: 'tickets.view' },
   ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },

@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৬ সম্পূর্ণ)
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৭ সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -128,7 +128,8 @@ labib/
                                       accounts/ (Accounts, AccountLedger, Transactions+EntryModal+TransferModal, Reports+Bars),
                                       settings/BusinessSettings, activity/ActivityLog
                                       inventory/ (Stock, ItemLedger, StockEntries+Form, Stores), purchases/ (PurchaseOrders, Purchases, Suppliers+PayModal),
-                                      🔜 tickets/, dashboard/
+                                      tickets/ (TicketList, TicketForm, TicketDetail)
+                                      🔜 dashboard/
 ```
 
 ---
@@ -152,6 +153,7 @@ labib/
 | ↳ ধাপ ৪ বিলিং | `invoices[?status=unpaid|overdue|…]`, `invoices/prefill?schedule_id|quotation_id|project_id`, `invoices/{id}`, `…/issue`, `…/receive`, `…/credit-note`, `…/cancel`, `…/pdf`, `…/email`, `payments[/{id}]`, `payments/{id}/cancel|pdf|email`, `receivables[?format=csv]` (billing.view/.manage) |
 | ↳ ধাপ ৫ অ্যাকাউন্টস | `accounts[/{id}?from&to]` (লেজার), `transactions`, `transactions/transfer`, `transactions/{id}/cancel|attachment`, `reports/{cashbook,summary,profit-loss,projects,branches}` (সব রিপোর্টে `?format=csv`), `lookup/accounts`, `lookup/categories` (accounts.view/.manage) |
 | ↳ ধাপ ৬ ইনভেন্টরি | `stock[?store_id&low&format=csv]`, `stock/items/{id}`, `stock-entries[/{id}]`, `stock-entries/{id}/cancel`, `stores[/{id}]`, `purchase-orders[/{id}]`, `…/status|pdf|email`, `purchases[/{id}]`, `purchases/{id}/cancel`, `suppliers[/{id}]`, `suppliers/{id}/pay`, `supplier-payments/{id}/cancel`, `lookup/stores|items` (inventory.view/.manage, suppliers.pay); Items/Categories/Suppliers তৈরি-এডিট জেনেরিক CRUD দিয়ে |
+| ↳ ধাপ ৭ টিকেটিং | `tickets[?status=active|…&priority&assigned_to=me]`, `tickets/report`, `tickets/{id}`, `POST tickets`, `tickets/{id}` (assign/status/visit/priority/project), `tickets/{id}/comments` (ছবিসহ) (tickets.view/.manage); পাবলিক: `POST /api/service-requests` (throttle:forms + SpamGuard) → `TicketIntake` |
 | ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
@@ -342,8 +344,8 @@ Request
 | | `stock_movements` (শাখাভিত্তিক, লেজার) | store_id, item_id, type (in/issue/return/transfer_in/transfer_out/adjust/reverse), qty (+/−), unit_cost, value (±), work_project_id, source (morph: Purchase/StockEntry), date। কখনো বদলানো বা মোছা হয় না |
 | | `stock_balances` | store_id + item_id (unique), qty। ক্যাশ, প্রতিটা movement এর সাথে একই transaction এ row lock দিয়ে আপডেট হয় |
 | | `supplier_payments` (শাখাভিত্তিক) | number (SP), supplier_id, purchase_id, account_id, method, amount, reference, date, status (paid/cancelled) → Ledger এ "supplier_payment" খরচ (প্রজেক্ট ছাড়া) |
-| **টিকেটিং** | `tickets` (শাখাভিত্তিক) | number, customer, work_project, subject, priority, status, assigned_to, visit_at, warranty_until, resolved_at |
-| | `ticket_comments` | ticket, user/customer, body, attachments |
+| **টিকেটিং ✅** | `tickets` (শাখাভিত্তিক) | number (TKT), customer_id (null হতে পারে), work_project_id, contact_name/phone/email, address, subject, description, priority (low/medium/high/urgent), status (open/in_progress/resolved/closed), source (phone/website/email/walk_in/visit), assigned_to, visit_at, warranty_until (প্রজেক্ট থেকে snapshot; `in_warranty` হিসাব করা মান), resolved_at, closed_at, created_by |
+| | `ticket_comments` | ticket_id, user_id (null = সিস্টেম/ওয়েবসাইট), body, attachment (public uploads/tickets ছবি), kind (comment/status/system) |
 
 **মূল সম্পর্ক:**
 

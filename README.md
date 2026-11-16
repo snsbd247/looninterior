@@ -193,6 +193,17 @@ labib/
 - **Suppliers:** কার কাছে কত দেনা, স্টেটমেন্ট, পেমেন্ট (Accounts রোলের `suppliers.pay` পারমিশন লাগে)।
 - **প্রজেক্টের খরচ:** ইস্যু করা মাল আর সরাসরি ক্রয় নিজে থেকে প্রজেক্টের "Cost so far" এ যোগ হয়।
 
+### Business প্যানেল: ধাপ ৭ (টিকেটিং) ✅
+
+- **Service → Service Tickets:**
+  - কাজ শেষের পর ক্লায়েন্টের অভিযোগ বা মেরামতের টিকেট।
+  - টেকনিশিয়ান assign করা, ভিজিটের সময়, অগ্রাধিকার।
+  - কমেন্ট আর ছবি দেওয়া যায়। প্রতিটা পরিবর্তন টাইমলাইনে লেখা থাকে।
+  - প্রজেক্টের ওয়ারেন্টির মধ্যে আছে কিনা নিজে থেকে দেখায় (প্রজেক্টে "Warranty Until" তারিখ দিন)।
+- **ওয়েবসাইটে `/service-request` পেজ (ফুটারে লিংক):**
+  - ক্লায়েন্ট নিজে অনুরোধ পাঠাতে পারে। ফোন নম্বর মিলিয়ে তার প্রজেক্ট খুঁজে টিকেট তৈরি হয়।
+  - ক্লায়েন্ট ইমেইলে টিকেট নম্বর পায়।
+
 ---
 
 ## কোডের গঠন
@@ -604,6 +615,9 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `GET stock`, `stock/items/{id}`, `stock-entries`, `purchase-orders`, `purchases`, `suppliers` | inventory.view | স্টক, ইতিহাস, ক্রয় |
 | `POST stores`, `stock-entries`, `purchase-orders`, `purchases`, `…/cancel` | inventory.manage | স্টোর, ইস্যু/ট্রান্সফার, PO, GRN |
 | `POST suppliers/{id}/pay`, `supplier-payments/{id}/cancel` | suppliers.pay | সাপ্লায়ার পেমেন্ট |
+| `GET tickets`, `tickets/{id}`, `tickets/report` | tickets.view | সার্ভিস টিকেট |
+| `POST tickets`, `tickets/{id}`, `tickets/{id}/comments` | tickets.manage | টিকেট খোলা, assign, স্ট্যাটাস, কমেন্ট |
+| `POST /api/service-requests` | পাবলিক (form_token) | ওয়েবসাইটের Service Request |
 | `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
 | `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
 | `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |

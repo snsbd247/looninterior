@@ -69,7 +69,7 @@ Write-Host "`nSmoke test: $Base`n" -ForegroundColor Cyan
 
 # ---------------------------------------------------------------- Public pages
 Write-Host '[Public pages]'
-foreach ($p in '/', '/about', '/services', '/projects', '/blog', '/careers', '/contact', '/get-quote', '/faq') {
+foreach ($p in '/', '/about', '/services', '/projects', '/blog', '/careers', '/contact', '/get-quote', '/faq', '/service-request') {
   $res = Expect "page $p" GET $p 200
   if ($res.Status -eq 200 -and -not $res.Body.Contains('id="root"')) { Report $false "page $p has React root" }
 }
@@ -150,7 +150,8 @@ if (-not $Email -or -not $Password) {
                    '/api/business/reports/cashbook', '/api/business/reports/summary', '/api/business/reports/profit-loss',
                    '/api/business/reports/projects', '/api/business/reports/branches',
                    '/api/business/stock', '/api/business/stock-entries', '/api/business/purchase-orders', '/api/business/purchases',
-                   '/api/business/suppliers', '/api/business/lookup/stores', '/api/business/lookup/items') {
+                   '/api/business/suppliers', '/api/business/lookup/stores', '/api/business/lookup/items',
+                   '/api/business/tickets', '/api/business/tickets/report') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 

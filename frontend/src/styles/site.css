@@ -529,3 +529,9 @@ a.contact-card:hover h4 { color: #fff; }
 /* Spam honeypot: kept off-screen (not display:none, which some bots skip) */
 .hp-field { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 .quote-form { position: relative; }
+
+/* Service request success */
+.service-done { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 0; }
+.service-done > svg { font-size: 44px; color: #16a34a; }
+.service-done h3 { margin: 0; }
+.service-done .ticket-no { font-size: 1.6rem; font-weight: 700; color: var(--primary); letter-spacing: .04em; margin: 0; }

@@ -35,6 +35,7 @@ import Stores from './pages/inventory/Stores'
 import { PurchaseOrderList, PurchaseOrderForm, PurchaseOrderDetail } from './pages/purchases/PurchaseOrders'
 import { PurchaseList, PurchaseForm, PurchaseDetail } from './pages/purchases/Purchases'
 import { SupplierList, SupplierDetail } from './pages/purchases/Suppliers'
+import { TicketList, TicketForm, TicketDetail } from './pages/tickets/Tickets'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -100,6 +101,10 @@ const ROUTES = [
   ['purchases/:id', 'inventory.view', <PurchaseDetail />],
   ['suppliers', 'inventory.view|suppliers.pay', <SupplierList />],
   ['suppliers/:id', 'inventory.view|suppliers.pay', <SupplierDetail />],
+  // Step 7: Ticketing
+  ['tickets', 'tickets.view', <TicketList />],
+  ['tickets/new', 'tickets.manage', <TicketForm />],
+  ['tickets/:id', 'tickets.view', <TicketDetail />],
 ]
 
 export default function BusinessRoutes() {

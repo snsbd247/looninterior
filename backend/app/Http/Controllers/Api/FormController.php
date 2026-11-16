@@ -47,6 +47,25 @@ class FormController extends Controller
         return $thanks;
     }
 
+    /** Website "Service Request" (after-sales / warranty) → ticket. */
+    public function serviceRequest(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:30',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:1000',
+            'subject' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
+        ]);
+        if (SpamGuard::isBot($request)) {
+            return response()->json(['message' => 'Thank you! Your request has been received.', 'number' => null], 201);
+        }
+        $ticket = \App\Services\TicketIntake::fromWebsite($data);
+
+        return response()->json(['message' => "Thank you! Your ticket number is {$ticket->number}. Our team will contact you soon.", 'number' => $ticket->number], 201);
+    }
+
     public function apply(Request $request, string $slug)
     {
         $career = Career::active()->where('slug', $slug)->firstOrFail();
