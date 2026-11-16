@@ -2,7 +2,7 @@ import { createContext, lazy, Suspense, useContext, useEffect, useState, useCall
 import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
-  FiTarget, FiClock, FiUserCheck,
+  FiTarget, FiClock, FiUserCheck, FiFileText,
 } from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -28,6 +28,9 @@ const EXTRA_LINKS = {
     { to: '/admin/biz/leads', label: 'Leads', icon: FiTarget, perm: 'crm.view' },
     { to: '/admin/biz/follow-ups', label: 'Follow-ups', icon: FiClock, perm: 'crm.view' },
     { to: '/admin/biz/customers', label: 'Customers', icon: FiUserCheck, perm: 'crm.view' },
+  ],
+  'Sales & Projects': [
+    { to: '/admin/biz/quotations', label: 'Quotations', icon: FiFileText, perm: 'quotations.view' },
   ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },

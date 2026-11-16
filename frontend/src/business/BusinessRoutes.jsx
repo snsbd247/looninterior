@@ -13,6 +13,9 @@ import FollowUps from './pages/crm/FollowUps'
 import Customers from './pages/crm/Customers'
 import CustomerForm from './pages/crm/CustomerForm'
 import CustomerDetail from './pages/crm/CustomerDetail'
+import Quotations from './pages/quotations/Quotations'
+import QuotationForm from './pages/quotations/QuotationForm'
+import QuotationDetail from './pages/quotations/QuotationDetail'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -42,6 +45,11 @@ const ROUTES = [
   ['customers/new', 'crm.manage', <CustomerForm />],
   ['customers/:id', 'crm.view', <CustomerDetail />],
   ['customers/:id/edit', 'crm.manage', <CustomerForm />],
+  // Step 3: Quotations
+  ['quotations', 'quotations.view', <Quotations />],
+  ['quotations/new', 'quotations.manage', <QuotationForm />],
+  ['quotations/:id', 'quotations.view', <QuotationDetail />],
+  ['quotations/:id/edit', 'quotations.manage', <QuotationForm />],
 ]
 
 export default function BusinessRoutes() {

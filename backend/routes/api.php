@@ -11,6 +11,7 @@ use App\Http\Controllers\Business\BusinessSettingController;
 use App\Http\Controllers\Business\CustomerController;
 use App\Http\Controllers\Business\LeadController;
 use App\Http\Controllers\Business\LookupController;
+use App\Http\Controllers\Business\QuotationController;
 use App\Http\Controllers\Business\RoleController;
 use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
@@ -134,4 +135,24 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::post('customers', [CustomerController::class, 'store']);
         Route::post('customers/{customer}', [CustomerController::class, 'update'])->whereNumber('customer');
     });
+
+    // Step 3: Quotations
+    Route::middleware('perm:quotations.view')->controller(QuotationController::class)->group(function () {
+        Route::get('quotations', 'index');
+        Route::get('quotations/{quotation}', 'show')->whereNumber('quotation');
+        Route::get('quotations/{quotation}/pdf', 'pdf')->whereNumber('quotation');
+    });
+    Route::middleware('perm:quotations.manage')->controller(QuotationController::class)->group(function () {
+        Route::post('quotations', 'store');
+        Route::post('quotations/{quotation}', 'update')->whereNumber('quotation');
+        Route::post('quotations/{quotation}/status', 'status')->whereNumber('quotation');
+        Route::post('quotations/{quotation}/revise', 'revise')->whereNumber('quotation');
+        Route::post('quotations/{quotation}/email', 'email')->whereNumber('quotation')->middleware('throttle:test-mail');
+    });
 });
+
+/*
+| Public signed document links (shared on WhatsApp). Valid only with an unexpired signature.
+*/
+Route::get('public/quotations/{quotation}/pdf', [QuotationController::class, 'publicPdf'])
+    ->whereNumber('quotation')->middleware(['signed', 'throttle:30,1'])->name('public.quotation.pdf');

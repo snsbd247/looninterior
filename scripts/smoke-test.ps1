@@ -143,7 +143,8 @@ if (-not $Email -or -not $Password) {
     Expect 'business API requires login' GET '/api/business/users' 401 | Out-Null
     # Step 2: CRM
     foreach ($p in '/api/business/leads', '/api/business/leads?view=board', '/api/business/follow-ups', '/api/business/customers',
-                   '/api/business/lookup/staff', '/api/business/lookup/tax-rates', '/api/business/lookup/branches') {
+                   '/api/business/lookup/staff', '/api/business/lookup/tax-rates', '/api/business/lookup/branches',
+                   '/api/business/quotations') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 

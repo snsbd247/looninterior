@@ -145,6 +145,13 @@ labib/
   - লিড Won হলে নিজে থেকে তৈরি হয়।
   - প্রোফাইলে সব লিড দেখা যায়। পরের ধাপে কোটেশন, প্রজেক্ট, ইনভয়েস আর পেমেন্টও এখানে আসবে।
 
+### Business প্যানেল: ধাপ ৩ (কোটেশন / BOQ) ✅
+
+- **Sales & Projects → Quotations:** ঘর/সেকশন অনুযায়ী আইটেম (একক, পরিমাণ, দর), ডিসকাউন্ট (% বা ৳), ট্যাক্স, মেয়াদ আর শর্তাবলী। মোট সার্ভারে হিসাব হয়।
+- **স্ট্যাটাস:** Draft → Sent → Approved / Rejected। Sent হলে লিড "Quotation Sent", Approved হলে লিড "Won" হয়ে যায়।
+- **Revise:** পাঠানো কোটেশন বদলাতে হলে নতুন সংস্করণ (…-R1) তৈরি হয়। পুরনোটা থেকে যায়।
+- **PDF (English / বাংলা)**, ডাউনলোড, **ইমেইল** (PDF সংযুক্ত), আর **WhatsApp** এ ৩০ দিন মেয়াদি PDF লিংক শেয়ার।
+
 ---
 
 ## কোডের গঠন
@@ -540,6 +547,9 @@ php artisan config:cache && php artisan route:cache
 | `GET /api/business/leads[?view=board]`, `GET leads/{id}`, `GET follow-ups` | crm.view | লিড, পাইপলাইন, ফলো-আপ |
 | `POST leads`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle` | crm.manage | লিড তৈরি/এডিট, ধাপ বদল, টাইমলাইন, ক্লায়েন্ট বানানো |
 | `GET/POST /api/business/customers[/{id}]` | crm.view / crm.manage | ক্লায়েন্ট |
+| `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
+| `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
+| `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |
 
 ---
 

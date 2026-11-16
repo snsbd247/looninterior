@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১ ও ২ সম্পূর্ণ)
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৩ সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -74,7 +74,8 @@ labib/
 │   │   ├── Models/                   ওয়েবসাইটের মডেল (BaseModel → active()/ordered() + LogsActivity)
 │   │   │   ├── Business/             ✅ Branch, Role, TaxRate, ActivityLog (🔜 বাকি মডেল)
 │   │   │   └── Concerns/             ✅ LogsActivity, BelongsToBranch (trait)
-│   │   ├── Services/                 ✅ DocumentNumber, Pdf, CompanyProfile, AmountInWords, Money
+│   │   ├── Services/                 ✅ DocumentNumber, Pdf, CompanyProfile, AmountInWords, Money,
+│   │   │                             LeadIntake, DocumentTotals (সার্ভারে মোট হিসাব), Documents ($doc বানানো + ইমেইল)
 │   │   │                             🔜 Ledger, Stock
 │   │   ├── Support/                  ResourceRegistry, Uploader, SpamGuard, Notifier, Seo,
 │   │   │                             ✅ BranchContext, ActivityLogger, BusinessFoundation
@@ -86,7 +87,7 @@ labib/
 │   ├── database/migrations, seeders/
 │   ├── resources/fonts/              ✅ HindSiliguri-*.ttf + OFL.txt
 │   ├── resources/views/emails/       ইমেইল টেমপ্লেট (Blade)
-│   │   └── pdf/document.blade.php    ✅ সব ডকুমেন্টের এক টেমপ্লেট (en, bn)
+│   │   └── pdf/document.blade.php    ✅ সব ডকুমেন্টের এক টেমপ্লেট (en, bn); emails/document.blade.php (PDF সংযুক্ত মেইল)
 │   ├── routes/                       web.php, api.php, console.php
 │   ├── storage/app/cvs/              CV (পাবলিক না)
 │   └── public/                       index.php, .htaccess, build/, uploads/, brand/
@@ -112,12 +113,14 @@ labib/
             ├── BusinessRoutes.jsx    ✅ রাউট + প্রতিটা পেজে পারমিশন গার্ড
             ├── business.css          ✅ b-* ক্লাস (admin.css এর টোকেন ব্যবহার করে)
             ├── lib.js                ✅ money() (BD কমা), label(), dateTime(), useList(), useLookup(), phoneHref(), waHref()
-            ├── components/           ✅ Pagination, ui.jsx (Status, Money, Modal, Field, BranchPicker, InfoGrid, Stat, Empty)
+            ├── components/           ✅ Pagination, ui.jsx (Status, Money, Modal, Field, BranchPicker, InfoGrid, Stat, Empty),
+            │                         LineItems (+TotalsBox, calcTotals), CustomerSelect, DocActions (PDF/ইমেইল/WhatsApp)
             │                         🔜 DataTable, LineItems, MoneyInput, StatusBadge, Kanban …
             └── pages/                ✅ users/ (Users, UserForm, Roles, RoleForm), crm/ (Leads+Board, LeadForm,
                                       LeadDetail, FollowUps, Customers, CustomerForm, CustomerDetail),
+                                      quotations/ (Quotations, QuotationForm, QuotationDetail+ItemsTable+TotalsView),
                                       settings/BusinessSettings, activity/ActivityLog
-                                      🔜 quotations/, projects/, billing/, accounts/,
+                                      🔜 projects/, billing/, accounts/,
                                       inventory/, tickets/, reports/
 ```
 
@@ -138,6 +141,7 @@ labib/
 | `/api/business/*` ✅ | `auth:sanctum` + `active` + `branch` + `perm:*` |
 | ↳ ধাপ ১ | `permissions`, `roles[/{id}]`, `users[/{id}]`, `settings`, `pdf/sample?lang=`, `activity-logs` |
 | ↳ lookup | `lookup/staff`, `lookup/tax-rates`, `lookup/branches` (যেকোনো স্টাফ) |
+| ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
@@ -307,8 +311,8 @@ Request
 | **CRM ✅** | `leads` (শাখাভিত্তিক) | name, phone, email, address, source, stage, service, property_type, area_size, budget, expected_value, requirements, assigned_to, inquiry_id, customer_id, next_follow_up_at (সবচেয়ে কাছের খোলা ফলো-আপ, ক্যাশ), lost_reason, won_at, created_by |
 | | `lead_activities` | lead_id, user_id, type (call/meeting/visit/note/follow_up/stage), note, follow_up_at, done_at |
 | | `customers` (শাখাভিত্তিক) | name, phone, email, address, company, notes, created_by (লিড → customer_id দিয়ে যুক্ত) |
-| **কোটেশন** | `quotations` (শাখাভিত্তিক) | number, customer, revision, parent_id, status, subtotal, discount, tax_rate, tax, total, valid_until, terms_en/bn |
-| | `quotation_sections` → `quotation_items` | ঘর → আইটেম (description, unit, qty, rate, amount) |
+| **কোটেশন ✅** | `quotations` (শাখাভিত্তিক) | number (unique), base_number, revision, parent_id, customer_id, lead_id, title, status (draft/sent/approved/rejected/revised/cancelled), date, valid_until, discount_type (amount/percent), discount_value, subtotal, discount, tax_rate_id, tax_name, tax_rate (snapshot), tax, total, terms, notes, created_by, sent_at, approved_at |
+| | `quotation_items` | section (ঘরের নাম, আলাদা টেবিল নেই), description, unit, qty (12,3), rate, amount, sort_order |
 | **প্রজেক্ট** | `work_projects` (শাখাভিত্তিক) | code, customer, quotation, title, site_address, contract_value, start/end, manager_id, status, progress, portfolio_project_id |
 | | `project_milestones`, `project_tasks`, `project_files` | ধাপ, টাস্ক (assignee, due, status), ছবি/ডকুমেন্ট |
 | **বিলিং** | `invoices` (শাখাভিত্তিক) | number, customer, work_project, quotation, status (draft/issued/partial/paid/cancelled), subtotal, discount, tax, total, paid, due_date |
@@ -463,9 +467,9 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **DataTable** | সব তালিকা | সার্চ, ফিল্টার (তারিখ, স্ট্যাটাস, শাখা), পেজিনেশন, কলাম সর্ট, Excel এক্সপোর্ট। মোবাইলে কার্ড ভিউ |
 | **Status** ✅ (`ui.jsx`) | সব জায়গায় | স্ট্যাটাস অনুযায়ী রং, যেমন Draft ধূসর, Sent নীল, Approved/Paid সবুজ, Partial হলুদ, Overdue/Cancelled লাল |
 | **Kanban** ✅ | CRM পাইপলাইন | ধাপের কলাম (HTML5 drag & drop)। মোবাইলে কলামগুলো আনুভূমিক স্ক্রল আর কার্ডে "move to" dropdown |
-| **LineItemsEditor** | কোটেশন, ইনভয়েস, PO | সেকশন/ঘর → আইটেমের সারি (বিবরণ, একক, পরিমাণ, দর, মোট)। সারি যোগ/মুছা/সাজানো। নিচে subtotal → discount → tax → total (ব্রাউজারে শুধু দেখানোর জন্য হিসাব, আসল হিসাব সার্ভারে) |
+| **LineItems** ✅ | কোটেশন, ইনভয়েস, PO | সেকশন/ঘর → আইটেমের সারি (বিবরণ, একক, পরিমাণ, দর, মোট)। সারি যোগ/মুছা/সাজানো। নিচে subtotal → discount → tax → total (ব্রাউজারে শুধু দেখানোর জন্য হিসাব, আসল হিসাব সার্ভারে) |
 | **MoneyInput / Money** | টাকার ফিল্ড | `৳ 1,20,000.00` বাংলাদেশি কমা-ফরম্যাট, ডান দিকে সাজানো |
-| **DocumentView** | কোটেশন/ইনভয়েস/রিসিট/PO | ডকুমেন্টের প্রিভিউ, পাশে অ্যাকশন: Edit, Send, **Print/PDF (EN \| বাংলা)**, WhatsApp, Cancel |
+| **DocumentView** ✅ (QuotationDetail + DocActions) | কোটেশন/ইনভয়েস/রিসিট/PO | ডকুমেন্টের প্রিভিউ, পাশে অ্যাকশন: Edit, Send, **Print/PDF (EN \| বাংলা)**, WhatsApp, Cancel |
 | **Timeline** ✅ (লিড) | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
 | **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
