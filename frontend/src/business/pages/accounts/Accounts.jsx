@@ -4,7 +4,7 @@ import { FiPlus, FiEdit2, FiRepeat } from 'react-icons/fi'
 import { businessApi, errorMessage, fieldErrors } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { BranchPicker, Field, Modal, Stat } from '../../components/ui'
+import { BranchPicker, DeleteButton, Field, Modal, Stat } from '../../components/ui'
 import { label, money } from '../../lib'
 import { TransferModal } from './Transactions'
 
@@ -71,6 +71,7 @@ export default function Accounts() {
               <span className="b-account-icon">{TYPE_ICON[a.type]}</span>
               <div><Link to={`/admin/biz/accounts/${a.id}`}><b>{a.name}</b></Link><div className="a-muted b-sub">{label(a.type)}{a.bank_name ? ` · ${a.bank_name}` : ''}{a.account_number ? ` · ${a.account_number}` : ''}</div></div>
               {can('accounts.manage') && <button className="a-icon-btn" onClick={() => setModal(a)} title="Edit"><FiEdit2 /></button>}
+              {can('accounts.manage') && <DeleteButton icon path={`/accounts/${a.id}`} what="account" onDone={load} />}
             </div>
             <div className={`b-account-balance ${a.balance < 0 ? 'is-neg' : ''}`}>{money(a.balance, { symbol: true })}</div>
             <div className="a-muted b-sub">{a.branch?.name}{a.is_active ? '' : ' · inactive'}</div>

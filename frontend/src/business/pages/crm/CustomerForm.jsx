@@ -6,7 +6,7 @@ import Loader from '../../../components/Loader'
 import { useAdmin } from '../../../admin/AdminApp'
 import { BranchPicker, Field } from '../../components/ui'
 
-const EMPTY = { branch_id: '', name: '', phone: '', email: '', company: '', address: '', notes: '' }
+const EMPTY = { branch_id: '', name: '', phone: '', email: '', company: '', address: '', notes: '', marketing_opt_out: false }
 
 export default function CustomerForm() {
   const { id } = useParams()
@@ -54,6 +54,7 @@ export default function CustomerForm() {
           <Field label="Company" error={errors.company}><input value={form.company} onChange={set('company')} /></Field>
           <Field label="Address" error={errors.address} full><textarea rows={2} value={form.address} onChange={set('address')} /></Field>
           <Field label="Notes" error={errors.notes} full><textarea rows={3} value={form.notes} onChange={set('notes')} /></Field>
+          <label className="b-check b-full"><input type="checkbox" checked={!!form.marketing_opt_out} onChange={(e) => setForm({ ...form, marketing_opt_out: e.target.checked })} /> No marketing SMS / e-mail (opted out)</label>
         </div>
         <div className="a-form-actions"><button className="a-btn a-btn-primary" disabled={saving}><FiSave /> {saving ? 'Saving…' : 'Save Customer'}</button></div>
       </form>

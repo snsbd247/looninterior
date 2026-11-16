@@ -25,7 +25,7 @@ if ((Get-Content $envFile) -match '^APP_URL=https?://(?!localhost|127\.0\.0\.1)'
 function Reset() { Get-Content (Join-Path $PSScriptRoot 'dev-reset-business-data.sql') -Raw | & $Mysql -u root $Database }
 $total = 0; $failed = 0
 Reset
-$steps = 'test-step1.ps1', 'test-step2.ps1', 'test-step3.ps1', 'test-step4.ps1', 'test-step6.ps1', 'test-step7.ps1', 'test-step8.ps1', 'test-hr-labour.ps1', 'test-portal.ps1', 'test-sms.ps1'
+$steps = 'test-step1.ps1', 'test-step2.ps1', 'test-step3.ps1', 'test-step4.ps1', 'test-step6.ps1', 'test-step7.ps1', 'test-step8.ps1', 'test-hr-labour.ps1', 'test-portal.ps1', 'test-sms.ps1', 'test-delete.ps1', 'test-marketing.ps1'
 foreach ($i in 0..($steps.Count - 1)) {
   $s = $steps[$i]
   Write-Host "`n### $s" -ForegroundColor Cyan

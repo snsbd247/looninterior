@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
   FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck, FiLifeBuoy,
-  FiChevronDown, FiFolder, FiInbox, FiLayout, FiEdit3, FiCalendar, FiUserX, FiCheckSquare, FiHardDrive,
+  FiChevronDown, FiFolder, FiInbox, FiLayout, FiEdit3, FiCalendar, FiUserX, FiCheckSquare, FiHardDrive, FiSend,
 } from 'react-icons/fi'
 import { api, adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -58,6 +58,9 @@ const EXTRA_LINKS = {
   Service: [
     { to: '/admin/biz/tickets', label: 'Service Tickets', icon: FiLifeBuoy, perm: 'tickets.view' },
   ],
+  Marketing: [
+    { to: '/admin/biz/campaigns', label: 'SMS & E-mail Campaigns', icon: FiSend, perm: 'marketing.view|marketing.send' },
+  ],
   HR: [
     { to: '/admin/biz/employees', label: 'Employees', icon: FiUsers, perm: 'hr.view' },
     { to: '/admin/biz/attendance', label: 'Attendance', icon: FiCheckSquare, perm: 'hr.view' },
@@ -104,7 +107,7 @@ export function NoAccess() {
 /* Icon of each top-level menu (submenu parents). */
 const GROUP_ICONS = {
   CRM: FiTarget, 'Sales & Projects': FiTool, Billing: FiFile, Accounts: FiCreditCard, Inventory: FiBox,
-  Service: FiLifeBuoy, HR: FiUsers, Reports: FiPieChart, 'Website Inbox': FiInbox, 'Home Page': FiLayout, Content: FiEdit3,
+  Service: FiLifeBuoy, Marketing: FiSend, HR: FiUsers, Reports: FiPieChart, 'Website Inbox': FiInbox, 'Home Page': FiLayout, Content: FiEdit3,
   Careers: FiBriefcase, Administration: FiShield, System: FiSettings,
 }
 const OPEN_KEY = 'admin_menu_open'

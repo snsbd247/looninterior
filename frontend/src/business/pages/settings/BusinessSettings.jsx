@@ -55,9 +55,13 @@ const TABS = [
   {
     key: 'sms', label: 'SMS',
     fields: [
-      { name: 'sms_enabled', label: 'Send SMS to customers', type: 'select', half: true, default: '0', options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }], help: 'Off = no SMS is sent' },
-      { name: 'sms_method', label: 'Gateway method', type: 'select', half: true, default: 'GET', options: [{ value: 'GET', label: 'GET (URL only)' }, { value: 'POST', label: 'POST (URL + body)' }] },
-      { name: 'sms_url', label: 'Gateway URL', placeholder: 'https://api.your-sms-company.com/send?api_key=KEY&to={to}&msg={message}', help: 'From your SMS provider. {to} = phone (8801XXXXXXXXX), {message} = text. Empty = messages are only written to storage/logs/sms.log (test mode).' },
+      { name: 'sms_enabled', label: 'Automatic SMS (payment, service ticket)', type: 'select', half: true, default: '0', options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }], help: 'Off = no automatic SMS. Marketing campaigns are sent from Marketing → Campaigns.' },
+      { name: 'sms_provider', label: 'SMS provider', type: 'select', half: true, default: 'custom', options: [{ value: 'greenweb', label: 'Greenweb (BDBulkSMS)' }, { value: 'custom', label: 'Other gateway (URL)' }], help: 'Greenweb: only the API token is needed' },
+      { name: 'sms_greenweb_token', label: 'Greenweb API token', half: true, placeholder: 'From your Greenweb / BDBulkSMS dashboard', help: 'Used only when the provider is Greenweb' },
+      { name: 'sms_greenweb_url', label: 'Greenweb send URL (advanced)', half: true, placeholder: 'https://api.greenweb.com.bd/api.php', help: 'Leave empty unless Greenweb gives you another address' },
+      { name: 'sms_greenweb_balance_url', label: 'Greenweb balance URL (advanced)', half: true, placeholder: 'https://api.greenweb.com.bd/g_api.php' },
+      { name: 'sms_method', label: 'Other gateway: method', type: 'select', half: true, default: 'GET', options: [{ value: 'GET', label: 'GET (URL only)' }, { value: 'POST', label: 'POST (URL + body)' }] },
+      { name: 'sms_url', label: 'Other gateway: URL', placeholder: 'https://api.your-sms-company.com/send?api_key=KEY&to={to}&msg={message}', help: 'From your SMS provider. {to} = phone (8801XXXXXXXXX), {message} = text. Empty = messages are only written to storage/logs/sms.log (test mode).' },
       { name: 'sms_body', label: 'POST body (only for POST)', type: 'textarea', rows: 2, placeholder: 'api_key=KEY&to={to}&msg={message}   or JSON {"to":"{to}","text":"{message}"}' },
       { name: 'sms_on_payment', label: 'When a payment is received', type: 'select', half: true, options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }] },
       { name: 'sms_on_ticket', label: 'When a service ticket is opened', type: 'select', half: true, options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }] },
@@ -76,10 +80,14 @@ function SmsTest() {
     setBusy(true)
     try { const r = await businessApi.post('/sms/test', { to }); toast(r.data.message) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
+  const balance = async () => {
+    setBusy(true)
+    try { const r = await businessApi.get('/sms/balance'); toast(`Balance: ${r.data.message}`, r.data.ok ? undefined : 'error') } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
   return (
     <div className="a-field full">
       <span>Test (uses the saved settings, so save first)</span>
-      <div className="b-sms-test"><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" /><button type="button" className="a-btn a-btn-light" onClick={send} disabled={busy || !to}>{busy ? 'Sending…' : 'Send test SMS'}</button></div>
+      <div className="b-sms-test"><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" /><button type="button" className="a-btn a-btn-light" onClick={send} disabled={busy || !to}>{busy ? 'Sending…' : 'Send test SMS'}</button><button type="button" className="a-btn a-btn-light" onClick={balance} disabled={busy}>Check balance</button></div>
     </div>
   )
 }

@@ -8,6 +8,7 @@ use App\Support\Uploader;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ResourceController extends Controller
 {
@@ -108,6 +109,10 @@ class ResourceController extends Controller
         abort_if(! empty($cfg['no_delete']), 405, 'This record cannot be deleted. Mark it inactive instead.');
         $model = $cfg['model']::findOrFail($id);
 
+        if (! empty($cfg['safe_delete'])) {
+            return $this->safeDestroy($resource, $model);
+        }
+
         foreach ($cfg['files'] ?? [] as $field) {
             Uploader::delete($model->getAttribute($field));
         }
@@ -126,6 +131,45 @@ class ResourceController extends Controller
         }
 
         $model->delete();
+
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+
+    /** Business master data: delete only when unused (SafeDelete), with a few records that must always stay. */
+    protected function safeDestroy(string $resource, Model $model)
+    {
+        $what = str_replace('_', ' ', \Illuminate\Support\Str::singular($resource));
+        $before = null;
+        $ignore = [];
+        if ($resource === 'transaction_categories' && $model->is_system) {
+            throw ValidationException::withMessages(['delete' => 'This is a system category used by the software. Mark it inactive instead.']);
+        }
+        if ($resource === 'branches') {
+            if (\App\Models\Business\Branch::count() <= 1) {
+                throw ValidationException::withMessages(['delete' => 'The last branch cannot be deleted.']);
+            }
+            if ((string) (\App\Models\Setting::businessArray()['biz_lead_branch_id'] ?? '') === (string) $model->id) {
+                throw ValidationException::withMessages(['delete' => 'Website leads go to this branch (Business Settings → CRM). Choose another branch there first.']);
+            }
+            $ignore = ['activity_logs']; // the log text stays; its branch becomes empty (nullOnDelete)
+            // A new branch gets a Cash account and a Main Store automatically: remove them if they were never used.
+            $before = function ($b) {
+                foreach (\App\Models\Business\Account::withoutGlobalScopes()->where('branch_id', $b->id)->get() as $a) {
+                    if (! \App\Support\SafeDelete::usage($a) && (float) $a->opening_balance == 0.0) {
+                        $a->delete();
+                    }
+                }
+                foreach (\App\Models\Business\Store::withoutGlobalScopes()->where('branch_id', $b->id)->get() as $s) {
+                    if (! \App\Support\SafeDelete::usage($s)) {
+                        $s->delete();
+                    }
+                }
+            };
+        }
+        // Branch access of users is a cascade pivot, but losing it would lock users out: it must block.
+        $block = $resource === 'branches' ? ['branch_user'] : [];
+        $hint = $resource === 'branches' ? 'Remove the branch from those users first (Users → Edit), or mark it inactive.' : 'Mark it inactive instead.';
+        \App\Support\SafeDelete::delete($model, $what, $hint, $block, $ignore, $before);
 
         return response()->json(['message' => 'Deleted successfully']);
     }

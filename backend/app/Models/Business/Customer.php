@@ -19,7 +19,7 @@ class Customer extends Model
 
     protected $hidden = ['portal_password'];
 
-    protected $casts = ['portal_enabled' => 'boolean', 'portal_last_login' => 'datetime'];
+    protected $casts = ['portal_enabled' => 'boolean', 'portal_last_login' => 'datetime', 'marketing_opt_out' => 'boolean'];
 
     public function leads()
     {

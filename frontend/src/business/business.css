@@ -167,6 +167,7 @@
 @media (max-width: 1000px) {
   .b-detail { grid-template-columns: minmax(0, 1fr); }
   .b-detail-side { order: -1; }
+  .b-side-last .b-detail-side { order: 0; }
 }
 @media (max-width: 640px) {
   .b-board { grid-auto-columns: 82%; padding: 12px; }
@@ -436,3 +437,16 @@ a.b-kpi:hover { border-color: var(--a-accent); }
 .b-portal-pw input { border: 1px solid var(--a-border); border-radius: 8px; padding: 9px 11px; font: inherit; }
 .b-sms-test { display: flex; gap: 8px; flex-wrap: wrap; }
 .b-sms-test input { flex: 1 1 180px; min-width: 0; }
+
+/* ---------- Marketing campaigns (phase G) ---------- */
+.b-filter-label { font-size: 13px; font-weight: 600; color: var(--a-head); margin: 12px 0 6px; }
+.b-chips-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.b-chips-pick button { border: 1px solid var(--a-border); background: #fff; border-radius: 16px; padding: 4px 11px; font: inherit; font-size: 12px; cursor: pointer; color: var(--a-text, inherit); }
+.b-chips-pick button.is-on { background: var(--a-accent); border-color: var(--a-accent); color: #fff; }
+.b-audience-count { margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--a-accent) 10%, white); font-size: 14px; }
+.b-audience-count b { font-size: 22px; color: var(--a-head); margin-right: 4px; }
+.b-sample { list-style: none; padding: 0; margin: 10px 0 0; font-size: 13px; display: flex; flex-direction: column; gap: 3px; }
+.b-sample li { display: flex; justify-content: space-between; gap: 8px; overflow-wrap: anywhere; }
+.b-wide { width: 100%; justify-content: center; margin-top: 12px; }
+.b-full { grid-column: 1 / -1; justify-self: start; }
+.b-err { min-width: 160px; overflow-wrap: anywhere; }

@@ -100,6 +100,7 @@ class CustomerController extends Controller
             'address' => 'nullable|string|max:1000',
             'company' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:5000',
+            'marketing_opt_out' => 'sometimes|boolean', // phase G: no marketing SMS/e-mail
         ]);
     }
 }

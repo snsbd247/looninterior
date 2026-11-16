@@ -7,6 +7,7 @@ TRUNCATE project_files; TRUNCATE project_tasks; TRUNCATE project_milestones; TRU
 TRUNCATE invoice_items; TRUNCATE invoices; TRUNCATE payments; TRUNCATE credit_notes; TRUNCATE transactions;
 TRUNCATE document_sequences;
 TRUNCATE ticket_comments; TRUNCATE tickets;
+DELETE FROM campaign_recipients; DELETE FROM campaigns;
 TRUNCATE payroll_items; TRUNCATE payrolls; TRUNCATE leaves; TRUNCATE attendances; TRUNCATE employees;
 TRUNCATE contractor_payments; TRUNCATE labour_entries; DELETE FROM contractors WHERE name LIKE 'T- %';
 UPDATE customers SET portal_enabled = 0, portal_password = NULL;

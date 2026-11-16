@@ -162,6 +162,8 @@ labib/
 | ↳ পর্যায় F শ্রমিক | `labour[?work_project_id&contractor_id&status]` (+ `amount_total`), `labour/{id}/cancel`, `contractors[/{id}]` (স্টেটমেন্ট), `contractors/{id}/pay`, `contractor-payments/{id}/cancel` (labour.view/.manage/.pay); ঠিকাদার তৈরি-এডিট জেনেরিক CRUD `/api/admin/contractors` |
 | ↳ পর্যায় F পোর্টাল (স্টাফ) | `POST customers/{id}/portal` {enabled, password} (portal.manage); `tickets/{id}/comments` এ `is_public` |
 | ↳ পর্যায় F SMS | `POST sms/test` (settings.business); সেটিং `biz_sms_*` |
+| ↳ পর্যায় G Delete | `DELETE users|leads|lead-activities|customers|quotations|projects|projects/{p}/milestones/{m}|accounts|stores|purchase-orders|employees|leaves|payrolls|tickets/{id}` (`DeleteController`, সংশ্লিষ্ট `.manage` পারমিশন); জেনেরিক CRUD এ রেজিস্ট্রির `safe_delete` রিসোর্স। ব্যবহৃত হলে 422 আর কারণ |
+| ↳ পর্যায় G মার্কেটিং | `campaigns[/{id}?status&page]` (marketing.view), `campaigns/preview`, `POST campaigns[/{id}]`, `DELETE campaigns/{id}` (ড্রাফট), `…/start`, `…/batch`, `…/retry`, `…/stop` (marketing.send); `GET sms/balance` (settings.business); পাবলিক: `GET /api/public/unsubscribe/{lead|customer}/{id}` (signed) |
 | `/api/portal/*` ✅ | ক্লায়েন্ট পোর্টাল: `POST login` (throttle:portal-login), বাকিগুলো `auth:sanctum` + `portal`: `me`, `logout`, `password`, `projects[/{id}]`, `invoices`, `invoices/{id}/pdf`, `payments`, `payments/{id}/pdf`, `tickets[/{id}]`, `POST tickets`, `tickets/{id}/comments` |
 | `/sitemap.xml`, `/robots.txt` | SEO (robots এ `/portal` Disallow; `/portal*` পেজ noindex) |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
@@ -361,6 +363,9 @@ Request
 | **শ্রমিক ✅ (পর্যায় F)** | `contractors` (কোম্পানি-ব্যাপী, জেনেরিক CRUD) | name, trade, phone, daily_rate, opening_due, notes, is_active |
 | | `labour_entries` (শাখাভিত্তিক) | number (LB), work_project_id, contractor_id (null = তাৎক্ষণিক নগদ), date, description, workers, days, rate, amount (= workers × days × rate, সার্ভারে), status (active/cancelled) → প্রজেক্টের খরচে `labour` |
 | | `contractor_payments` (শাখাভিত্তিক) | number (CP), contractor_id, account_id, method, amount, reference, date, status → Ledger এ "labour" খরচ (প্রজেক্ট ছাড়া, দ্বিগুণ গোনা হয় না) |
+| **মার্কেটিং ✅ (পর্যায় G)** | `campaigns` (শাখাভিত্তিক) | name, channel (sms/email), subject, message, audience (JSON: type, customers, stages, sources, from, to), status (draft/sending/sent/cancelled), total, sent, failed, created_by, sent_at |
+| | `campaign_recipients` | campaign_id, recipient_type (lead/customer), recipient_id, name, to (8801… বা ইমেইল; campaign+to unique), status (pending/sending/sent/failed), error, sent_at। Start করলে লিস্ট ফ্রিজ হয় |
+| | `leads`, `customers` এ নতুন কলাম | marketing_opt_out (default false): মার্কেটিং SMS/ইমেইল যাবে না |
 | **পোর্টাল ✅ (পর্যায় F)** | `customers` এ নতুন কলাম | portal_enabled, portal_password (hash, `$hidden`), portal_last_login; টোকেন `personal_access_tokens` এ (tokenable = Customer) |
 
 **মূল সম্পর্ক:**
@@ -522,6 +527,8 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **Timeline** ✅ (লিড) | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
 | **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
+| **DeleteButton** ✅ (`ui.jsx`, পর্যায় G) | লিস্টের সারি (`icon`) আর ডিটেইল পেজের মাথা | নিশ্চিত করতে বলে, `DELETE` পাঠায়। সার্ভার ব্যবহৃত রেকর্ড মুছতে না দিলে কারণটা toast এ দেখায়। নতুন Add/Edit পেজে এটাই ব্যবহার করুন; টাকা/স্টকের ডকুমেন্টে Delete না, Cancel |
+| **Campaign sender** ✅ (`pages/marketing/Campaigns.jsx`) | মার্কেটিং | ফর্মের পাশে লাইভ অডিয়েন্স কাউন্ট (debounced `campaigns/preview`); পাঠানোর সময় `…/batch` লুপ + প্রোগ্রেস বার, Pause/Continue/Stop/Retry |
 | **রোলভিত্তিক Dashboard** ✅ | `/admin` | `business/pages/dashboard/BusinessDashboard.jsx`: `Card` + `Kpis` (ক্লিক করলে সংশ্লিষ্ট পেজে যায়) + `TrendBars` (৬ মাস বিল বনাম আদায়)। শুধু পারমিশন আছে এমন অংশ। "All branches" ভিউতে শাখার তুলনার টেবিল |
 
 ### ৬.৬ প্রিন্ট ও PDF (ইঞ্জিন ✅)

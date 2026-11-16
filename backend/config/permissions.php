@@ -74,6 +74,10 @@ return [
         'portal' => ['label' => 'Client Portal', 'actions' => [
             'manage' => 'Give customers portal access (login) and reset their password',
         ]],
+        'marketing' => ['label' => 'Marketing (SMS & E-mail campaigns)', 'actions' => [
+            'view' => 'See campaigns and their delivery reports',
+            'send' => 'Create and send bulk SMS / e-mail campaigns (SMS costs money)',
+        ]],
     ],
 
     /* Default roles (created once; afterwards the Admin can edit them in the panel). */
@@ -90,7 +94,7 @@ return [
         'sales' => ['name' => 'Sales & Marketing', 'permissions' => [
             'website.manage', 'crm.view', 'crm.manage', 'quotations.view', 'quotations.manage',
             'projects.view', 'projects.manage', 'billing.view', 'tickets.view',
-            'labour.view', 'labour.manage', 'portal.manage',
+            'labour.view', 'labour.manage', 'portal.manage', 'marketing.view', 'marketing.send',
         ]],
         'support' => ['name' => 'Support', 'permissions' => [
             'crm.view', 'projects.view', 'tickets.view', 'tickets.manage',

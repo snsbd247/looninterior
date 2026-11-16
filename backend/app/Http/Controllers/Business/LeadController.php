@@ -218,6 +218,7 @@ class LeadController extends Controller
             'budget' => 'nullable|string|max:255',
             'expected_value' => 'nullable|numeric|min:0|max:999999999999',
             'requirements' => 'nullable|string|max:5000',
+            'marketing_opt_out' => 'sometimes|boolean', // phase G: no marketing SMS/e-mail
             'assigned_to' => 'nullable|integer|exists:users,id',
         ]);
     }

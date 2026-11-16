@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FiArrowLeft, FiEdit2, FiPhone, FiMail, FiUser, FiCheckCircle, FiCircle, FiClock, FiFileText } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import { businessApi, errorMessage, fieldErrors } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { Field, InfoGrid, Money, Status } from '../../components/ui'
+import { DeleteButton, Field, InfoGrid, Money, Status } from '../../components/ui'
 import { dateTime, label, phoneHref, toLocalInput, waHref } from '../../lib'
 import { STAGES } from './Leads'
 
@@ -51,6 +51,7 @@ export default function LeadDetail() {
   const [busy, setBusy] = useState(false)
   const canManage = can('crm.manage')
 
+  const navigate = useNavigate()
   const load = useCallback(() => {
     businessApi.get(`/leads/${id}`).then((r) => setLead(r.data.data)).catch((e) => toast(errorMessage(e), 'error'))
   }, [id, toast])
@@ -90,6 +91,7 @@ export default function LeadDetail() {
         <div className="b-head-actions">
           <Link to="/admin/biz/leads" className="a-btn a-btn-light"><FiArrowLeft /> Leads</Link>
           {canManage && <Link to={`/admin/biz/leads/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link>}
+          {canManage && <DeleteButton path={`/leads/${id}`} what="lead" onDone={() => navigate('/admin/biz/leads')} />}
         </div>
       </div>
 
@@ -112,7 +114,7 @@ export default function LeadDetail() {
                 <li key={a.id} className={`t-${a.type}`}>
                   <div className="b-tl-head">
                     <b>{label(a.type === 'visit' ? 'site_visit' : a.type)}</b>
-                    <span className="a-muted">{a.user?.name || 'Website'} · {dateTime(a.created_at)}</span>
+                    <span className="a-muted">{a.user?.name || 'Website'} · {dateTime(a.created_at)} {canManage && <DeleteButton icon path={`/lead-activities/${a.id}`} what="activity" onDone={load} />}</span>
                   </div>
                   {a.note && <p>{a.note}</p>}
                   {a.follow_up_at && (

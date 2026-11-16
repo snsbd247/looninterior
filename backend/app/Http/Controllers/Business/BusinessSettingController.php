@@ -43,6 +43,10 @@ class BusinessSettingController extends Controller
         'lead_branch_id' => 'nullable|integer|exists:branches,id',
         // SMS gateway (App\Services\Sms). The URL may hold the gateway API key: it is only ever shown on this page.
         'sms_enabled' => 'nullable|in:0,1',
+        'sms_provider' => 'nullable|in:custom,greenweb',
+        'sms_greenweb_token' => 'nullable|string|max:255',
+        'sms_greenweb_url' => 'nullable|url|max:255',
+        'sms_greenweb_balance_url' => 'nullable|url|max:255',
         'sms_url' => 'nullable|string|max:1000',
         'sms_method' => 'nullable|in:GET,POST',
         'sms_body' => 'nullable|string|max:2000',
@@ -51,6 +55,16 @@ class BusinessSettingController extends Controller
         'sms_payment_text' => 'nullable|string|max:500',
         'sms_ticket_text' => 'nullable|string|max:500',
     ];
+
+    /** SMS balance (Greenweb). */
+    public function smsBalance()
+    {
+        $b = \App\Services\Sms::balance();
+
+        return response()->json($b === null
+            ? ['ok' => false, 'message' => 'Balance check is available for Greenweb only.']
+            : ['ok' => $b[0], 'message' => $b[1]]);
+    }
 
     /** Send a test SMS with the saved settings. */
     public function testSms(Request $request)

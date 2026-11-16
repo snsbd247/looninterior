@@ -6,7 +6,7 @@ import { businessApi, errorMessage, fieldErrors, formatDate, img } from '../../.
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
 import Pagination from '../../components/Pagination'
-import { BranchPicker, Field, InfoGrid, Stat, Status } from '../../components/ui'
+import { BranchPicker, DeleteButton, Field, InfoGrid, Stat, Status } from '../../components/ui'
 import CustomerSelect from '../../components/CustomerSelect'
 import { dateTime, label, phoneHref, toLocalInput, useList, useLookup, waHref } from '../../lib'
 
@@ -140,6 +140,7 @@ export function TicketDetail() {
         <h1>{t.number} <Status value={t.status} /> <Status value={t.priority} /></h1>
         <div className="b-head-actions">
           <Link to="/admin/biz/tickets" className="a-btn a-btn-light"><FiArrowLeft /> Tickets</Link>
+          {manage && t.status === 'open' && <DeleteButton path={`/tickets/${id}`} what="ticket" onDone={() => navigate('/admin/biz/tickets')} />}
           {manage && next && <button className="a-btn a-btn-primary" onClick={() => update({ status: next[0] }, next[1])}>{next[1]}</button>}
           {manage && ['resolved', 'closed'].includes(t.status) && <button className="a-btn a-btn-light" onClick={() => update({ status: 'open', note: window.prompt('Why reopen?') || '' }, 'Reopened')}>Reopen</button>}
         </div>

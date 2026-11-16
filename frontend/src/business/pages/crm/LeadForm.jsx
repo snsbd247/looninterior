@@ -8,7 +8,7 @@ import { BranchPicker, Field } from '../../components/ui'
 import { label, useLookup } from '../../lib'
 import { SOURCES } from './Leads'
 
-const EMPTY = { branch_id: '', name: '', phone: '', email: '', address: '', source: 'phone', service: '', property_type: '', area_size: '', budget: '', expected_value: '', requirements: '', assigned_to: '' }
+const EMPTY = { branch_id: '', name: '', phone: '', email: '', address: '', source: 'phone', service: '', property_type: '', area_size: '', budget: '', expected_value: '', requirements: '', assigned_to: '', marketing_opt_out: false }
 
 export default function LeadForm() {
   const { id } = useParams()
@@ -75,6 +75,7 @@ export default function LeadForm() {
           </Field>
           <Field label="Address / Location" error={errors.address} full><textarea rows={2} value={form.address} onChange={set('address')} /></Field>
           <Field label="Requirements" error={errors.requirements} full><textarea rows={4} value={form.requirements} onChange={set('requirements')} /></Field>
+          <label className="b-check b-full"><input type="checkbox" checked={!!form.marketing_opt_out} onChange={(e) => setForm({ ...form, marketing_opt_out: e.target.checked })} /> No marketing SMS / e-mail (opted out)</label>
         </div>
         <div className="a-form-actions">
           <button className="a-btn a-btn-primary" disabled={saving}><FiSave /> {saving ? 'Saving…' : 'Save Lead'}</button>

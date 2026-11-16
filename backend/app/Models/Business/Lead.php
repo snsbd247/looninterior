@@ -23,6 +23,7 @@ class Lead extends Model
             'expected_value' => 'decimal:2',
             'next_follow_up_at' => 'datetime',
             'won_at' => 'datetime',
+            'marketing_opt_out' => 'boolean',
         ];
     }
 

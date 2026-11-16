@@ -4,7 +4,7 @@ import { FiArrowLeft, FiEdit2, FiSend, FiCheck, FiX, FiCopy, FiSlash, FiBriefcas
 import { businessApi, errorMessage, formatDate } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { InfoGrid, Money, Status } from '../../components/ui'
+import { DeleteButton, InfoGrid, Money, Status } from '../../components/ui'
 import DocActions from '../../components/DocActions'
 import { money } from '../../lib'
 
@@ -74,6 +74,7 @@ export default function QuotationDetail() {
         <div className="b-head-actions">
           <Link to="/admin/biz/quotations" className="a-btn a-btn-light"><FiArrowLeft /> Quotations</Link>
           {manage && q.status === 'draft' && <Link to={`/admin/biz/quotations/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link>}
+          {manage && q.status === 'draft' && <DeleteButton path={`/quotations/${id}`} what="draft quotation" onDone={() => navigate('/admin/biz/quotations')} />}
         </div>
       </div>
 

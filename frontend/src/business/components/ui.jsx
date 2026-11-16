@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { FiX } from 'react-icons/fi'
+import { FiX, FiTrash2 } from 'react-icons/fi'
+import { businessApi, errorMessage } from '../../lib/api'
 import { useAdmin } from '../../admin/AdminApp'
 import { label, money } from '../lib'
 
@@ -82,4 +83,20 @@ export function Stat({ label: text, value, tone, sub }) {
       {sub && <small>{sub}</small>}
     </div>
   )
+}
+
+/**
+ * Delete with confirmation. The server decides: unused records are deleted, used ones return 422 with the reason
+ * (shown as a toast). Money and stock documents have Cancel instead, never Delete.
+ */
+export function DeleteButton({ path, what, onDone, icon = false, label: text = 'Delete' }) {
+  const { toast } = useAdmin()
+  const go = async (e) => {
+    e?.stopPropagation()
+    if (!window.confirm(`Delete this ${what}? This cannot be undone.`)) return
+    try { const r = await businessApi.delete(path); toast(r.data?.message || 'Deleted'); onDone?.() } catch (x) { toast(errorMessage(x), 'error') }
+  }
+  return icon
+    ? <button type="button" className="a-icon-btn danger" title={`Delete ${what}`} onClick={go}><FiTrash2 /></button>
+    : <button type="button" className="a-btn a-btn-light danger" onClick={go}><FiTrash2 /> {text}</button>
 }

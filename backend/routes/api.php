@@ -120,6 +120,7 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::post('settings', 'update');
         Route::get('pdf/sample', 'samplePdf');
         Route::post('sms/test', 'testSms')->middleware('throttle:test-mail');
+        Route::get('sms/balance', 'smsBalance')->middleware('throttle:test-mail');
     });
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
@@ -320,11 +321,49 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::post('transactions/transfer', [TransactionController::class, 'transfer']);
         Route::post('transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->whereNumber('transaction');
     });
+
+    // Phase G: marketing campaigns (bulk SMS / e-mail). Sending is driven by the browser in batches.
+    Route::controller(\App\Http\Controllers\Business\MarketingController::class)->group(function () {
+        Route::middleware('perm:marketing.view|marketing.send')->group(function () {
+            Route::get('campaigns', 'index');
+            Route::get('campaigns/{campaign}', 'show')->whereNumber('campaign');
+        });
+        Route::middleware('perm:marketing.send')->group(function () {
+            Route::post('campaigns/preview', 'preview');
+            Route::post('campaigns', 'store');
+            Route::post('campaigns/{campaign}', 'update')->whereNumber('campaign');
+            Route::delete('campaigns/{campaign}', 'destroy')->whereNumber('campaign');
+            Route::post('campaigns/{campaign}/start', 'start')->whereNumber('campaign');
+            Route::post('campaigns/{campaign}/batch', 'batch')->whereNumber('campaign');
+            Route::post('campaigns/{campaign}/retry', 'retry')->whereNumber('campaign');
+            Route::post('campaigns/{campaign}/stop', 'stop')->whereNumber('campaign');
+        });
+    });
+
+    // Phase G: Delete buttons. Only unused records / drafts (SafeDelete); money and stock documents use Cancel.
+    Route::controller(\App\Http\Controllers\Business\DeleteController::class)->group(function () {
+        Route::delete('users/{user}', 'user')->whereNumber('user')->middleware('perm:users.manage');
+        Route::delete('leads/{lead}', 'lead')->whereNumber('lead')->middleware('perm:crm.manage');
+        Route::delete('lead-activities/{activity}', 'leadActivity')->whereNumber('activity')->middleware('perm:crm.manage');
+        Route::delete('customers/{customer}', 'customer')->whereNumber('customer')->middleware('perm:crm.manage');
+        Route::delete('quotations/{quotation}', 'quotation')->whereNumber('quotation')->middleware('perm:quotations.manage');
+        Route::delete('projects/{project}', 'project')->whereNumber('project')->middleware('perm:projects.manage');
+        Route::delete('projects/{project}/milestones/{milestone}', 'milestone')->whereNumber(['project', 'milestone'])->middleware('perm:projects.manage');
+        Route::delete('accounts/{account}', 'account')->whereNumber('account')->middleware('perm:accounts.manage');
+        Route::delete('stores/{store}', 'store')->whereNumber('store')->middleware('perm:inventory.manage');
+        Route::delete('purchase-orders/{order}', 'purchaseOrder')->whereNumber('order')->middleware('perm:inventory.manage');
+        Route::delete('employees/{employee}', 'employee')->whereNumber('employee')->middleware('perm:hr.manage');
+        Route::delete('leaves/{leave}', 'leave')->whereNumber('leave')->middleware('perm:hr.manage');
+        Route::delete('payrolls/{payroll}', 'payroll')->whereNumber('payroll')->middleware('perm:hr.manage');
+        Route::delete('tickets/{ticket}', 'ticket')->whereNumber('ticket')->middleware('perm:tickets.manage');
+    });
 });
 
 /*
 | Public signed document links (shared on WhatsApp). Valid only with an unexpired signature.
 */
+Route::get('public/unsubscribe/{type}/{id}', [\App\Http\Controllers\Business\MarketingController::class, 'unsubscribe'])
+    ->where('type', 'lead|customer')->whereNumber('id')->middleware(['signed', 'throttle:30,1'])->name('public.unsubscribe');
 Route::get('public/quotations/{quotation}/pdf', [QuotationController::class, 'publicPdf'])
     ->whereNumber('quotation')->middleware(['signed', 'throttle:30,1'])->name('public.quotation.pdf');
 /*

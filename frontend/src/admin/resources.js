@@ -10,7 +10,7 @@ import { ICON_KEYS } from '../lib/icons'
  * `half: true` places a field in a two-column row.
  * Keys must match backend app/Support/ResourceRegistry.php
  * `perm`     role permission needed (default "website.manage", same as the backend registry)
- * `noDelete` records can only be deactivated (business data)
+ * `noDelete` hide Delete. Business master data uses safe delete on the server (deleted only when unused)
  */
 
 const sort = { name: 'sort_order', label: 'Display Order', type: 'number', half: true, default: 0, help: 'Lower numbers show first' }
@@ -231,7 +231,7 @@ export const RESOURCES = {
   /* ---------------- Business setup (simple lists) ---------------- */
 
   branches: {
-    label: 'Branches', singular: 'Branch', icon: FiMapPin, group: 'Administration', perm: 'branches.manage', noDelete: true,
+    label: 'Branches', singular: 'Branch', icon: FiMapPin, group: 'Administration', perm: 'branches.manage',
     columns: [{ key: 'name', label: 'Name' }, { key: 'code', label: 'Code' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
       { name: 'name', label: 'Branch Name', required: true, half: true },
@@ -244,7 +244,7 @@ export const RESOURCES = {
   },
 
   items: {
-    label: 'Items', singular: 'Item', icon: FiLayers, group: 'Inventory', perm: 'inventory.manage', noDelete: true,
+    label: 'Items', singular: 'Item', icon: FiLayers, group: 'Inventory', perm: 'inventory.manage',
     filter: { name: 'item_category_id', label: 'All categories', source: 'item_categories', labelKey: 'name' },
     columns: [{ key: 'name', label: 'Item' }, { key: 'sku', label: 'SKU' }, { key: 'category.name', label: 'Category' }, { key: 'unit', label: 'Unit' }, { key: 'min_stock', label: 'Min stock' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
@@ -259,13 +259,13 @@ export const RESOURCES = {
   },
 
   item_categories: {
-    label: 'Item Categories', singular: 'Category', icon: FiFolder, group: 'Inventory', perm: 'inventory.manage', noDelete: true,
+    label: 'Item Categories', singular: 'Category', icon: FiFolder, group: 'Inventory', perm: 'inventory.manage',
     columns: [{ key: 'name', label: 'Name' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [{ name: 'name', label: 'Name', required: true, half: true }, { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true }],
   },
 
   suppliers: {
-    label: 'Supplier List', singular: 'Supplier', icon: FiBriefcase, group: 'Inventory', perm: 'inventory.manage', noDelete: true, hidden: true,
+    label: 'Supplier List', singular: 'Supplier', icon: FiBriefcase, group: 'Inventory', perm: 'inventory.manage', hidden: true,
     columns: [{ key: 'name', label: 'Name' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
       { name: 'name', label: 'Supplier name', required: true, half: true },
@@ -279,7 +279,7 @@ export const RESOURCES = {
   },
 
   contractors: {
-    label: 'Contractor List', singular: 'Contractor', icon: FiUsers, group: 'Sales & Projects', perm: 'labour.manage', noDelete: true, hidden: true,
+    label: 'Contractor List', singular: 'Contractor', icon: FiUsers, group: 'Sales & Projects', perm: 'labour.manage', hidden: true,
     columns: [{ key: 'name', label: 'Name' }, { key: 'trade', label: 'Trade', type: 'badge' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
       { name: 'name', label: 'Contractor / group name', required: true, half: true },
@@ -293,7 +293,7 @@ export const RESOURCES = {
   },
 
   transaction_categories: {
-    label: 'Income/Expense Heads', singular: 'Category', icon: FiList, group: 'Accounts', perm: 'accounts.manage', noDelete: true,
+    label: 'Income/Expense Heads', singular: 'Category', icon: FiList, group: 'Accounts', perm: 'accounts.manage',
     filter: { name: 'type', label: 'All types', options: ['income', 'expense'] },
     columns: [{ key: 'name', label: 'Name' }, { key: 'type', label: 'Type', type: 'badge' }, { key: 'is_system', label: 'System', type: 'bool' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
@@ -304,7 +304,7 @@ export const RESOURCES = {
   },
 
   tax_rates: {
-    label: 'Tax Rates', singular: 'Tax Rate', icon: FiPercent, group: 'Administration', perm: 'settings.business', noDelete: true,
+    label: 'Tax Rates', singular: 'Tax Rate', icon: FiPercent, group: 'Administration', perm: 'settings.business',
     columns: [{ key: 'name', label: 'Name' }, { key: 'rate', label: 'Rate %' }, { key: 'is_default', label: 'Default', type: 'bool' }, { key: 'is_active', label: 'Active', type: 'bool' }],
     fields: [
       { name: 'name', label: 'Name', required: true, half: true, help: 'e.g. VAT, AIT' },
@@ -316,7 +316,7 @@ export const RESOURCES = {
 }
 
 /* Sidebar order. Business groups first; a group shows only if the user can open something in it. */
-export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'HR', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
+export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'Marketing', 'HR', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
 
 /** Permission needed for a resource (website content by default). */
 export const resourcePerm = (cfg) => cfg?.perm || 'website.manage'

@@ -5,6 +5,7 @@ import { businessApi, errorMessage, formatDate } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { useAdmin } from '../../../admin/AdminApp'
 import Pagination from '../../components/Pagination'
+import { DeleteButton } from '../../components/ui'
 
 export default function Users() {
   const { toast } = useAdmin()
@@ -62,7 +63,7 @@ export default function Users() {
                     <td>{u.branches?.length ? u.branches.map((b) => <span key={b.id} className="b-chip">{b.code}</span>) : '—'}</td>
                     <td><span className={`a-status ${u.is_active ? 's-active' : 's-inactive'}`}>{u.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>{u.last_login_at ? formatDate(u.last_login_at) : <span className="a-muted">Never</span>}</td>
-                    <td className="a-actions"><Link to={`/admin/biz/users/${u.id}`} className="a-icon-btn" title="Edit"><FiEdit2 /></Link></td>
+                    <td className="a-actions"><Link to={`/admin/biz/users/${u.id}`} className="a-icon-btn" title="Edit"><FiEdit2 /></Link><DeleteButton icon path={`/users/${u.id}`} what="user" onDone={load} /></td>
                   </tr>
                 )) : <tr><td colSpan={6} className="a-empty">No users found</td></tr>}
               </tbody>

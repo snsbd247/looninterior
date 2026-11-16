@@ -153,7 +153,8 @@ if (-not $Email -or -not $Password) {
                    '/api/business/suppliers', '/api/business/lookup/stores', '/api/business/lookup/items',
                    '/api/business/tickets', '/api/business/tickets/report', '/api/business/dashboard',
                    '/api/business/calendar', '/api/business/employees', '/api/business/attendance', '/api/business/attendance/month',
-                   '/api/business/leaves', '/api/business/payrolls', '/api/business/labour', '/api/business/contractors') {
+                   '/api/business/leaves', '/api/business/payrolls', '/api/business/labour', '/api/business/contractors',
+                   '/api/business/campaigns') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 
@@ -164,6 +165,7 @@ if (-not $Email -or -not $Password) {
 
     # Client portal: staff token must be refused; customer token is refused on staff APIs (scripts/tests/test-portal.ps1)
     Expect 'portal rejects staff token' GET '/api/portal/me' 401 $null $auth | Out-Null
+    Expect 'unsubscribe needs signature' GET '/api/public/unsubscribe/customer/1' 403 | Out-Null
     Expect 'portal login validates' POST '/api/portal/login' 422 @{ login = 'nobody@example.com'; password = 'x' } | Out-Null
     Expect 'GET /portal page' GET '/portal' 200 | Out-Null
 

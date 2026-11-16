@@ -39,6 +39,9 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 
 ## Non-negotiable rules for money and stock
 
+- Delete (phase G): use `App\Support\SafeDelete` (deletes only when no foreign key points to the record, otherwise 422
+  with the reason) and the `DeleteButton` component. Generic CRUD resources opt in with `safe_delete`. Watch cascade
+  pivots that would lock people out (e.g. `branch_user`): pass them in `$block`.
 - Wrap every posting in `DB::transaction`. A half-saved invoice, payment or stock move must be impossible.
 - Never hard-delete financial or stock documents. Cancel them, or post a reversing entry.
 - Totals are always computed on the server. Never trust totals sent by the browser.
@@ -66,6 +69,10 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - Send SMS only through `App\Services\Sms` (`Sms::event()` for automatic messages: it waits for the DB commit
   and never throws). With no gateway URL it writes to `storage/logs/sms.log`.
 - Gateway secrets live in `biz_sms_*` settings, which only `settings.business` can read. Never return them elsewhere.
+- Providers: `greenweb` (token only, `Sms::sendMany` sends 100 numbers per request) or `custom` (URL template).
+  Greenweb's format was not verified against their docs (login-only): confirm with a real token before relying on it.
+- Marketing campaigns (`MarketingController`) send in browser-driven batches (no queue on cPanel). Always skip
+  `marketing_opt_out` people and keep the signed unsubscribe link in campaign e-mails.
 
 ## Tests
 

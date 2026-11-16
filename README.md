@@ -231,6 +231,19 @@ labib/
 - **SMS (Business Settings → SMS):** SMS কোম্পানির URL বসান (`{to}` আর `{message}` সহ), চালু করুন, "Send test SMS" দিয়ে যাচাই করুন। পেমেন্ট পেলে আর টিকেট খুললে ক্লায়েন্ট SMS পায়। URL খালি থাকলে SMS শুধু `backend/storage/logs/sms.log` এ লেখা হয় (টেস্ট মোড)।
 - **ছোট উন্নতি:** ছবি আপলোডে নিজে থেকে ছোট হয় (১৯২০px); Site Settings → SEO তে Google Analytics (GA4) আর Facebook Pixel ID; Inquiries আর Job Applications এ "Excel (CSV)" বাটন; অ্যাডমিন প্যানেলের নিচে কপিরাইট লাইন।
 
+### পর্যায় G: Delete, Greenweb SMS, মার্কেটিং ক্যাম্পেইন ✅
+
+- **Delete বাটন:** যেখানে Add/Edit আছে প্রায় সবখানে Delete আছে।
+  - রেকর্ড কোথাও ব্যবহার না হলে মুছে যায়।
+  - ব্যবহার হয়ে থাকলে মুছবে না, কারণ দেখাবে (যেমন "used in 2 invoices… Mark it inactive instead.")।
+  - ইনভয়েস, পেমেন্ট, স্টক আর লেজারে আগের মতো **Cancel** থাকে, এগুলো কখনো মোছে না।
+- **Greenweb SMS (Business Settings → SMS):** Provider = **Greenweb** বেছে নিয়ে API টোকেন বসান → Save → "Send test SMS" আর "Check balance" দিয়ে যাচাই করুন। পেমেন্ট আর টিকেটের অটো SMS চালু করতে "Automatic SMS" = On করুন।
+- **মার্কেটিং (সাইডবার → Marketing → SMS & E-mail Campaigns):**
+  - **New campaign:** নাম, SMS না E-mail, মেসেজ (`{name}`, `{company}` বসানো যায়), আর কাকে পাঠাবে (ক্লায়েন্ট বা লিড, স্টেজ, সোর্স, তারিখ)। পাশে সাথে সাথে কতজন আর কত SMS তা দেখায়।
+  - **Save draft** → **Send now**। পাঠানোর সময় পেজটা খোলা রাখুন; প্রোগ্রেস বার দেখায়। Pause আর Continue করা যায়, ব্যর্থগুলো **Retry failed** দিয়ে আবার পাঠানো যায়।
+  - যারা আর মেসেজ চান না: লিড বা ক্লায়েন্টের Edit পেজে "No marketing SMS / e-mail" টিক দিন। ইমেইলের নিচের Unsubscribe লিংকে ক্লিক করলেও নিজে থেকে বন্ধ হয়ে যায়।
+- **ইনভয়েস ও কোটেশন ইমেইল:** ডিটেইল পেজের **Email** বাটনে PDF (English বা Bangla) সংযুক্ত হয়ে যায়।
+
 ### অ্যাডমিন প্যানেলের মেনু আর ভাষা
 
 - **সাইডবার:** submenu স্টাইলে। CRM, Billing, Inventory… তে ক্লিক করলে নিচের মেনু খোলে। যে পেজ খোলা, তার মেনু নিজে থেকে খোলা থাকে।
@@ -511,7 +524,7 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 ```
 এরপর প্রতিদিন সকাল ৯টায় `business:reminders` নিজে থেকে চলবে। হাতে টেস্ট করতে: `php artisan business:reminders --dry`
 
-**অটো টেস্ট (শুধু লোকালে):** `scripts\tests\` এ প্রতিটা মডিউলের API টেস্ট আছে (যেমন `test-portal.ps1`, `test-hr-labour.ps1`, `test-sms.ps1`)। সব একসাথে: `powershell -File scripts\tests\run-all.ps1 -ConfirmWipe`। এটা Business ডেটা মুছে দেয়, তাই localhost ছাড়া চলে না।
+**অটো টেস্ট (শুধু লোকালে):** `scripts\tests\` এ প্রতিটা মডিউলের API টেস্ট আছে (যেমন `test-portal.ps1`, `test-hr-labour.ps1`, `test-sms.ps1`, `test-delete.ps1`, `test-marketing.ps1`)। সব একসাথে: `powershell -File scripts\tests\run-all.ps1 -ConfirmWipe`। এটা Business ডেটা মুছে দেয়, তাই localhost ছাড়া চলে না।
 
 ### ধাপ ৮: Google এ জমা দেওয়া
 - [Google Search Console](https://search.google.com/search-console) এ ডোমেইন যোগ করে `https://yourdomain.com/sitemap.xml` জমা দিন।
@@ -662,7 +675,11 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `employees`, `attendance`, `leaves`, `payrolls` (+ generate, finalize, pay, unpay, csv, payslip) | hr.view / hr.manage / hr.pay | HR ও বেতন |
 | `labour`, `contractors`, `contractors/{id}/pay` | labour.view / labour.manage / labour.pay | শ্রমিক ও ঠিকাদার |
 | `POST customers/{id}/portal` | portal.manage | ক্লায়েন্ট পোর্টাল চালু/বন্ধ, পাসওয়ার্ড |
-| `POST sms/test` | settings.business | টেস্ট SMS |
+| `POST sms/test`, `GET sms/balance` | settings.business | টেস্ট SMS, Greenweb ব্যালেন্স |
+| `DELETE users\|leads\|customers\|quotations\|projects\|accounts\|stores\|purchase-orders\|employees\|leaves\|payrolls\|tickets/{id}` | সংশ্লিষ্ট .manage | Delete (ব্যবহৃত হলে 422 আর কারণ) |
+| `campaigns`, `campaigns/{id}` | marketing.view | ক্যাম্পেইন তালিকা ও রিপোর্ট |
+| `POST campaigns[/{id}]`, `campaigns/preview`, `…/start`, `…/batch`, `…/retry`, `…/stop`, `DELETE campaigns/{id}` | marketing.send | ক্যাম্পেইন তৈরি ও পাঠানো |
+| `GET /api/public/unsubscribe/{lead\|customer}/{id}` | (signed লিংক) | ইমেইল থেকে আনসাবস্ক্রাইব |
 
 ### Client Portal API (`/api/portal`, কাস্টমারের টোকেন)
 

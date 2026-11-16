@@ -37,6 +37,7 @@ use App\Models\Business\TaxRate;
  * readonly  records come from the website; admin may only edit `rules` fields
  * permission  role permission needed (default "website.manage"), see config/permissions.php
  * no_delete   records can only be deactivated, never deleted (business data)
+ * safe_delete deleted only when nothing else uses the record (App\Support\SafeDelete); otherwise 422 with the reason
  */
 class ResourceRegistry
 {
@@ -312,7 +313,7 @@ class ResourceRegistry
             'branches' => [
                 'model' => Branch::class,
                 'permission' => 'branches.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name', 'code', 'phone'],
                 'order' => ['id', 'asc'],
@@ -329,7 +330,7 @@ class ResourceRegistry
             'item_categories' => [
                 'model' => \App\Models\Business\ItemCategory::class,
                 'permission' => 'inventory.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name'],
                 'order' => ['name', 'asc'],
@@ -339,7 +340,7 @@ class ResourceRegistry
             'items' => [
                 'model' => \App\Models\Business\Item::class,
                 'permission' => 'inventory.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name', 'sku'],
                 'filters' => ['item_category_id'],
@@ -359,7 +360,7 @@ class ResourceRegistry
             'suppliers' => [
                 'model' => \App\Models\Business\Supplier::class,
                 'permission' => 'inventory.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name', 'phone'],
                 'order' => ['name', 'asc'],
@@ -377,7 +378,7 @@ class ResourceRegistry
             'contractors' => [
                 'model' => \App\Models\Business\Contractor::class,
                 'permission' => 'labour.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name', 'phone', 'trade'],
                 'order' => ['name', 'asc'],
@@ -395,7 +396,7 @@ class ResourceRegistry
             'transaction_categories' => [
                 'model' => \App\Models\Business\TransactionCategory::class,
                 'permission' => 'accounts.manage',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active'],
                 'search' => ['name'],
                 'filters' => ['type'],
@@ -410,7 +411,7 @@ class ResourceRegistry
             'tax_rates' => [
                 'model' => TaxRate::class,
                 'permission' => 'settings.business',
-                'no_delete' => true,
+                'safe_delete' => true,
                 'booleans' => ['is_active', 'is_default'],
                 'search' => ['name'],
                 'order' => ['id', 'asc'],

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FiArrowLeft, FiEdit2, FiPhone, FiMail, FiFileText, FiPlus } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import { businessApi, errorMessage, fieldErrors, formatDate, sitePath } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { InfoGrid, Money, Stat, Status } from '../../components/ui'
+import { DeleteButton, InfoGrid, Money, Stat, Status } from '../../components/ui'
 import { phoneHref, waHref, money, dateTime } from '../../lib'
 
 /** Client portal access for this customer (perm portal.manage). The customer signs in at /portal with phone or e-mail. */
@@ -53,6 +53,7 @@ export default function CustomerDetail() {
   const { id } = useParams()
   const { toast, can } = useAdmin()
   const [c, setC] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     businessApi.get(`/customers/${id}`).then((r) => setC(r.data.data)).catch((e) => toast(errorMessage(e), 'error'))
@@ -70,7 +71,7 @@ export default function CustomerDetail() {
         <h1>{c.name}</h1>
         <div className="b-head-actions">
           <Link to="/admin/biz/customers" className="a-btn a-btn-light"><FiArrowLeft /> Customers</Link>
-          <Can perm="crm.manage"><Link to={`/admin/biz/customers/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link></Can>
+          <Can perm="crm.manage"><Link to={`/admin/biz/customers/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link><DeleteButton path={`/customers/${id}`} what="customer" onDone={() => navigate('/admin/biz/customers')} /></Can>
           {'quotations' in c && <Can perm="quotations.manage"><Link to={`/admin/biz/quotations/new?customer_id=${id}`} className="a-btn a-btn-primary"><FiPlus /> Quotation</Link></Can>}
         </div>
       </div>

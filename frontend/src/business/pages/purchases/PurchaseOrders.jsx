@@ -5,7 +5,7 @@ import { businessApi, errorMessage, fieldErrors, formatDate } from '../../../lib
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
 import Pagination from '../../components/Pagination'
-import { Field, InfoGrid, Money, Status } from '../../components/ui'
+import { DeleteButton, Field, InfoGrid, Money, Status } from '../../components/ui'
 import DocActions from '../../components/DocActions'
 import ItemRows, { blankRow } from '../../components/ItemRows'
 import { label, money, today, useList } from '../../lib'
@@ -108,6 +108,7 @@ export function PurchaseOrderDetail() {
         <div className="b-head-actions">
           <Link to="/admin/biz/purchase-orders" className="a-btn a-btn-light"><FiArrowLeft /> POs</Link>
           {manage && o.status === 'draft' && <Link to={`/admin/biz/purchase-orders/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link>}
+          {manage && o.status === 'draft' && <DeleteButton path={`/purchase-orders/${id}`} what="draft purchase order" onDone={() => navigate('/admin/biz/purchase-orders')} />}
         </div>
       </div>
       <div className="a-panel b-pad b-actionbar">

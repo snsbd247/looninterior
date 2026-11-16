@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FiPlus, FiEdit2, FiSave, FiCheck, FiX, FiDownload, FiFileText, FiDollarSign, FiArrowLeft, FiRotateCcw } from 'react-icons/fi'
 import { businessApi, errorMessage, fieldErrors, formatDate } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { BranchPicker, Field, Modal, Money, Stat, Status } from '../../components/ui'
+import { BranchPicker, DeleteButton, Field, Modal, Money, Stat, Status } from '../../components/ui'
 import { downloadCsv } from '../../components/Csv'
 import { openPdf } from '../../components/DocActions'
 import { label, money, today, useLookup } from '../../lib'
@@ -39,7 +39,7 @@ export function Employees() {
             <td><Link to={`/admin/biz/employees/${r.id}`}><b>{r.name}</b></Link>{r.code && <div className="a-muted b-sub">{r.code}</div>}</td><td>{r.designation}{r.department && <div className="a-muted b-sub">{r.department}</div>}</td>
             <td>{r.phone}</td><td>{formatDate(r.join_date)}</td><td className="r">{money(r.basic_salary)}</td><td className="r">{money(r.allowance)}</td>
             <td><Status value={r.is_active ? 'active' : 'cancelled'} text={r.is_active ? 'Active' : 'Left'} /></td>
-            <td className="a-actions">{can('hr.manage') && <button className="a-icon-btn" onClick={() => { setErrors({}); setForm({ ...r }) }}><FiEdit2 /></button>}</td>
+            <td className="a-actions">{can('hr.manage') && <><button className="a-icon-btn" onClick={() => { setErrors({}); setForm({ ...r }) }}><FiEdit2 /></button><DeleteButton icon path={`/employees/${r.id}`} what="employee" onDone={load} /></>}</td>
           </tr>
         )) : <tr><td colSpan={8} className="a-empty">No employees yet</td></tr>}</tbody>
       </table></div></div>
@@ -180,7 +180,7 @@ export function Leaves() {
             <tbody>{rows.length ? rows.map((l) => (
               <tr key={l.id}><td><b>{l.employee?.name}</b></td><td>{label(l.type)}</td><td className="b-nowrap">{formatDate(l.from_date)} → {formatDate(l.to_date)}</td><td className="r">{Number(l.days)}</td><td>{l.reason}</td>
                 <td><Status value={l.status === 'pending' ? 'draft' : l.status} text={label(l.status)} /></td>
-                <td className="a-actions">{can('hr.manage') && l.status === 'pending' && <><button className="a-icon-btn" title="Approve" onClick={() => decide(l, 'approved')}><FiCheck /></button><button className="a-icon-btn danger" title="Reject" onClick={() => decide(l, 'rejected')}><FiX /></button></>}</td></tr>
+                <td className="a-actions">{can('hr.manage') && l.status === 'pending' && <><button className="a-icon-btn" title="Approve" onClick={() => decide(l, 'approved')}><FiCheck /></button><button className="a-icon-btn danger" title="Reject" onClick={() => decide(l, 'rejected')}><FiX /></button><DeleteButton icon path={`/leaves/${l.id}`} what="leave request" onDone={load} /></>}</td></tr>
             )) : <tr><td colSpan={7} className="a-empty">No leave requests</td></tr>}</tbody>
           </table></div>
         )}
@@ -236,6 +236,7 @@ export function PayrollDetail() {
   const { toast, can } = useAdmin()
   const [p, setP] = useState(null)
   const [pay, setPay] = useState(null)
+  const navigate = useNavigate()
   const [accounts, setAccounts] = useState([])
   const load = useCallback(() => { businessApi.get(`/payrolls/${id}`).then((r) => setP(r.data.data)).catch((e) => toast(errorMessage(e), 'error')) }, [id, toast])
   useEffect(() => { load() }, [load])
@@ -251,6 +252,7 @@ export function PayrollDetail() {
         <div className="b-head-actions">
           <Link to="/admin/biz/payrolls" className="a-btn a-btn-light"><FiArrowLeft /> Sheets</Link>
           <button className="a-btn a-btn-light" onClick={() => downloadCsv(`/payrolls/${id}/csv`, {}, `salary-${p.month}.csv`, toast)}><FiDownload /> CSV</button>
+          {draft && <DeleteButton path={`/payrolls/${id}`} what="draft salary sheet" onDone={() => navigate('/admin/biz/payrolls')} />}
           {draft && <button className="a-btn a-btn-primary" onClick={() => act('finalize', {}, 'Finalized')}><FiCheck /> Finalize</button>}
           {p.status === 'finalized' && can('hr.pay') && <button className="a-btn a-btn-primary" onClick={() => setPay({ account_id: accounts.find((a) => a.branch_id === p.branch_id)?.id || '', date: today() })}><FiDollarSign /> Pay salaries</button>}
           {p.status === 'paid' && can('hr.pay') && <button className="a-btn a-btn-light danger" onClick={() => { const reason = window.prompt('Why cancel the salary payment?'); if (reason) act('unpay', { reason }, 'Payment cancelled') }}><FiRotateCcw /> Cancel payment</button>}

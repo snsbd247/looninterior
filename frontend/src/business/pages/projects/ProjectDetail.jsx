@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FiArrowLeft, FiEdit2, FiPlus, FiTrash2, FiUpload, FiDownload, FiFileText, FiGlobe, FiSave, FiCheckCircle } from 'react-icons/fi'
 import { adminApi, businessApi, errorMessage, fieldErrors, formatDate, img } from '../../../lib/api'
 import Loader from '../../../components/Loader'
 import { Can, useAdmin } from '../../../admin/AdminApp'
-import { Field, InfoGrid, Modal, Money, Stat, Status } from '../../components/ui'
+import { DeleteButton, Field, InfoGrid, Modal, Money, Stat, Status } from '../../components/ui'
 import { label, money, useLookup } from '../../lib'
 import { Progress } from './Projects'
 
@@ -287,6 +287,7 @@ export default function ProjectDetail() {
         <div className="b-head-actions">
           <Link to="/admin/biz/projects" className="a-btn a-btn-light"><FiArrowLeft /> Projects</Link>
           {canManage && <Link to={`/admin/biz/projects/${id}/edit`} className="a-btn a-btn-light"><FiEdit2 /> Edit</Link>}
+          {canManage && <DeleteButton path={`/projects/${id}`} what="project" onDone={() => navigate('/admin/biz/projects')} />}
           {canManage && can('website.manage') && p.status === 'completed' && !p.portfolio && <button className="a-btn a-btn-primary" onClick={() => setPublish(true)}><FiGlobe /> Publish to website</button>}
         </div>
       </div>
