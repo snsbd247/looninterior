@@ -203,3 +203,28 @@
 .login-links a:hover { color: var(--a-head); }
 .login-forgot { justify-self: end; margin-top: -8px; font-size: 13px; color: var(--a-muted); }
 .login-forgot:hover { color: var(--a-head); }
+
+/* ---- Roles & branches (business step 1) ---- */
+.a-user { display: flex; flex-direction: column; line-height: 1.2; text-align: right; }
+.a-user small { font-weight: 400; font-size: 11.5px; color: var(--a-muted); }
+.a-branch { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-size: 13px; color: var(--a-muted); }
+.a-branch select { border: 1px solid var(--a-border); border-radius: 6px; padding: 7px 10px; font-family: inherit; font-size: 13.5px; background: #fff; color: var(--a-head); max-width: 230px; }
+.a-branch select:focus { outline: none; border-color: var(--a-accent); }
+.a-branch-static { margin-left: 4px; font-size: 13px; padding: 5px 10px; border-radius: 20px; background: #f3f4f6; color: var(--a-text); }
+.a-noaccess { padding: 28px; }
+.a-noaccess h2 { margin: 0 0 6px; font-size: 1.2rem; }
+.a-noaccess p { margin: 0 0 14px; }
+.s-active { background: #dcfce7; color: #166534; }
+.s-inactive { background: #f3f4f6; color: #6b7280; }
+@media (max-width: 860px) {
+  .a-branch > span { display: none; }
+  .a-branch select { max-width: 150px; padding: 6px 8px; }
+  .a-user small { display: none; }
+}
+@media (max-width: 640px) {
+  .a-topbar { gap: 8px; }
+  .a-top-right { gap: 6px; }
+  .a-user { display: none; }
+  .a-branch { margin-left: 0; min-width: 0; flex: 1; }
+  .a-branch select { max-width: 100%; width: 100%; }
+}

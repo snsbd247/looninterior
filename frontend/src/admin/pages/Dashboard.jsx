@@ -3,8 +3,28 @@ import { Link } from 'react-router-dom'
 import { FiInbox, FiGrid, FiLayers, FiUserPlus, FiEdit, FiMessageCircle, FiUsers, FiBell } from 'react-icons/fi'
 import { adminApi, formatDate } from '../../lib/api'
 import Loader from '../../components/Loader'
+import { useAdmin } from '../AdminApp'
+
+/** Shown to staff whose role has no website access (their own dashboards come in plan step 8). */
+function Welcome() {
+  const { user } = useAdmin()
+  return (
+    <>
+      <div className="a-page-head"><h1>Welcome, {user.name}</h1></div>
+      <div className="a-panel a-noaccess">
+        <p>You are signed in as <b>{user.role?.name || 'Staff'}</b>.</p>
+        <p className="a-muted">Use the menu on the left to open the sections your role can access.</p>
+      </div>
+    </>
+  )
+}
 
 export default function Dashboard() {
+  const { can } = useAdmin()
+  return can('website.manage') ? <WebsiteDashboard /> : <Welcome />
+}
+
+function WebsiteDashboard() {
   const [data, setData] = useState(null)
 
   useEffect(() => {

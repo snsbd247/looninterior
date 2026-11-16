@@ -6,6 +6,10 @@ use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\PublicController;
+use App\Http\Controllers\Business\ActivityLogController;
+use App\Http\Controllers\Business\BusinessSettingController;
+use App\Http\Controllers\Business\RoleController;
+use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -46,19 +50,23 @@ Route::prefix('admin')->group(function () {
     Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset-submit');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
         Route::post('profile', [AuthController::class, 'profile']);
 
-        Route::get('dashboard', [DashboardController::class, 'index']);
-        Route::get('job_applications/{id}/cv', [DashboardController::class, 'cv'])->whereNumber('id');
+        // Website content (role permission: website.manage)
+        Route::middleware('perm:website.manage')->group(function () {
+            Route::get('dashboard', [DashboardController::class, 'index']);
+            Route::get('job_applications/{id}/cv', [DashboardController::class, 'cv'])->whereNumber('id');
 
-        Route::get('settings', [SettingController::class, 'index']);
-        Route::post('settings', [SettingController::class, 'update']);
-        Route::post('settings/test-mail', [SettingController::class, 'testMail'])->middleware('throttle:test-mail');
+            Route::get('settings', [SettingController::class, 'index']);
+            Route::post('settings', [SettingController::class, 'update']);
+            Route::post('settings/test-mail', [SettingController::class, 'testMail'])->middleware('throttle:test-mail');
+        });
 
-        // Generic CRUD for every registered resource
+        // Generic CRUD for every registered resource.
+        // Permission is checked per resource in ResourceController (registry key "permission").
         $resources = implode('|', ResourceRegistry::keys());
         Route::controller(ResourceController::class)->group(function () use ($resources) {
             Route::get('{resource}', 'index')->where('resource', $resources);
@@ -68,4 +76,35 @@ Route::prefix('admin')->group(function () {
             Route::delete('{resource}/{id}', 'destroy')->where('resource', $resources)->whereNumber('id');
         });
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Business API (staff panel): auth + active user + branch context + permission
+|--------------------------------------------------------------------------
+*/
+Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->group(function () {
+    Route::get('permissions', [RoleController::class, 'catalog'])->middleware('perm:roles.manage|users.manage');
+
+    Route::middleware('perm:users.manage')->controller(UserController::class)->group(function () {
+        Route::get('users', 'index');
+        Route::post('users', 'store');
+        Route::get('users/{user}', 'show')->whereNumber('user');
+        Route::post('users/{user}', 'update')->whereNumber('user');
+    });
+    Route::get('roles', [RoleController::class, 'index'])->middleware('perm:roles.manage|users.manage');
+    Route::middleware('perm:roles.manage')->controller(RoleController::class)->group(function () {
+        Route::post('roles', 'store');
+        Route::get('roles/{role}', 'show')->whereNumber('role');
+        Route::post('roles/{role}', 'update')->whereNumber('role');
+        Route::delete('roles/{role}', 'destroy')->whereNumber('role');
+    });
+
+    Route::middleware('perm:settings.business')->controller(BusinessSettingController::class)->group(function () {
+        Route::get('settings', 'index');
+        Route::post('settings', 'update');
+        Route::get('pdf/sample', 'samplePdf');
+    });
+
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
 });

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use App\Support\Notifier;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\DB;
@@ -31,10 +33,31 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => 'Invalid email or password.']);
         }
+        if ($user->is_active === false) {
+            throw ValidationException::withMessages(['email' => 'Your account has been deactivated. Please contact the Admin.']);
+        }
+
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
+        $token = $user->createToken('admin-panel')->plainTextToken;
+        Auth::setUser($user);
+        ActivityLogger::record('login', $user, 'Signed in');
 
         return response()->json([
-            'token' => $user->createToken('admin-panel')->plainTextToken,
-            'user' => $user,
+            'token' => $token,
+            'user' => $this->userPayload($user),
+        ]);
+    }
+
+    /** The signed-in user with role, permission keys and allowed branches (drives the admin UI). */
+    private function userPayload(User $user): array
+    {
+        $user->loadMissing('role');
+
+        return array_merge($user->only(['id', 'name', 'email', 'phone']), [
+            'role' => $user->role?->only(['id', 'name', 'slug']),
+            'permissions' => $user->permissionList(),
+            'branches' => $user->allowedBranches(),
+            'can_all_branches' => $user->hasPermission('branches.all'),
         ]);
     }
 
@@ -117,7 +140,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json(['user' => $request->user()]);
+        return response()->json(['user' => $this->userPayload($request->user())]);
     }
 
     public function profile(Request $request)
@@ -136,12 +159,13 @@ class AuthController extends Controller
                 throw ValidationException::withMessages(['current_password' => 'Current password is incorrect.']);
             }
             $user->password = $data['password'];
+            ActivityLogger::record('password_changed', $user, 'Changed own password');
         }
 
         $user->name = $data['name'];
         $user->email = $data['email'];
         $user->save();
 
-        return response()->json(['message' => 'Profile updated', 'user' => $user]);
+        return response()->json(['message' => 'Profile updated', 'user' => $this->userPayload($user)]);
     }
 }

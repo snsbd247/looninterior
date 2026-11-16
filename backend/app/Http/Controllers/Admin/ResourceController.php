@@ -15,6 +15,11 @@ class ResourceController extends Controller
     {
         $cfg = ResourceRegistry::get($resource);
         abort_if(! $cfg, 404, 'Unknown resource');
+        abort_unless(
+            request()->user()?->hasPermission($cfg['permission'] ?? 'website.manage'),
+            403,
+            'You do not have permission to do this.'
+        );
 
         return $cfg;
     }
@@ -92,6 +97,7 @@ class ResourceController extends Controller
     public function destroy(string $resource, int $id)
     {
         $cfg = $this->config($resource);
+        abort_if(! empty($cfg['no_delete']), 405, 'This record cannot be deleted. Mark it inactive instead.');
         $model = $cfg['model']::findOrFail($id);
 
         foreach ($cfg['files'] ?? [] as $field) {

@@ -44,7 +44,9 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - Totals are always computed on the server. Never trust totals sent by the browser.
 - Branch isolation is enforced on the server (the `BranchContext` middleware plus the model scope), not only in the UI.
 - Every business API route needs a `perm:` middleware. Hiding a menu item is not access control.
-- Document numbers come from `DocumentNumber::next()` with a row lock. They must never be generated in PHP memory or JS.
+- Document numbers come from `DocumentNumber::next()`, called inside the document's transaction. It does an atomic upsert and was tested with 6 parallel processes. They must never be generated in PHP memory or JS.
+- New business tables with a `branch_id` use the `BelongsToBranch` trait. New models use `LogsActivity`.
+- New permissions go in `config/permissions.php`. Every new route needs `perm:`.
 
 ## Commands (local Windows / XAMPP)
 

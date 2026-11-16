@@ -1,0 +1,59 @@
+/* Business module styles. Builds on admin.css tokens (--a-*). Prefix: b- */
+
+.b-sub { font-size: 13px; }
+.b-intro { margin: -12px 0 18px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.b-intro a { color: var(--a-accent); display: inline-flex; align-items: center; gap: 4px; }
+.b-nowrap { white-space: nowrap; }
+.b-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.b-chip { display: inline-block; padding: 2px 9px; margin: 2px 4px 2px 0; border-radius: 20px; font-size: 12px; background: #f3f4f6; color: var(--a-text); white-space: nowrap; }
+.b-chip-full { background: color-mix(in srgb, var(--a-accent) 16%, white); color: #6b4f22; }
+
+/* Branch checkboxes (user form) */
+.b-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.b-check { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--a-border); border-radius: 8px; cursor: pointer; font-size: 14px; background: #fff; }
+.b-check.is-on { border-color: var(--a-accent); background: color-mix(in srgb, var(--a-accent) 8%, white); }
+.b-check input { accent-color: var(--a-accent); }
+
+/* Roles */
+.b-role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.b-role { padding: 18px 20px; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.b-role-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.b-role-head h3 { margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 6px; }
+.b-role-head h3 svg { color: var(--a-muted); font-size: 14px; }
+.b-role-mods { flex: 1; }
+.b-role-actions { display: flex; gap: 8px; align-items: center; }
+.a-btn.danger:hover:not(:disabled) { color: #dc2626; border-color: #dc2626; }
+.a-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.b-role-name { max-width: 420px; }
+.b-section-title { margin: 26px 0 4px; font-size: 1.05rem; }
+.b-perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+.b-perm { border: 1px solid var(--a-border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.b-perm.is-on { border-color: color-mix(in srgb, var(--a-accent) 55%, white); background: color-mix(in srgb, var(--a-accent) 4%, white); }
+.b-perm-head { display: flex; gap: 8px; align-items: center; cursor: pointer; color: var(--a-head); }
+.b-perm-item { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; cursor: pointer; padding-left: 4px; }
+.b-perm-item b { text-transform: capitalize; color: var(--a-head); font-weight: 500; }
+.b-perm input, .b-perm-head input { accent-color: var(--a-accent); margin-top: 3px; }
+
+/* Activity log */
+.b-clickable { cursor: pointer; }
+.b-detail-row td { background: #fafafa; }
+.b-changes { border-collapse: collapse; font-size: 13px; margin-bottom: 6px; max-width: 100%; }
+.b-changes th, .b-changes td { border: 1px solid var(--a-border); padding: 5px 9px; text-align: left; vertical-align: top; word-break: break-word; }
+.b-changes th { background: #f3f4f6; font-weight: 500; }
+.b-act-created { background: #dcfce7; color: #166534; }
+.b-act-updated { background: #dbeafe; color: #1e40af; }
+.b-act-deleted { background: #fee2e2; color: #991b1b; }
+.b-act-login { background: #f3f4f6; color: #4b5563; }
+.b-act-password_changed { background: #fef3c7; color: #92400e; }
+.a-toolbar input[type=date] { border: 1px solid var(--a-border); border-radius: 6px; padding: 7px 10px; font-family: inherit; }
+
+/* Business settings */
+.b-number-preview { font-family: ui-monospace, Consolas, monospace; font-size: 1.15rem; padding: 10px 14px; background: #f9fafb; border: 1px dashed var(--a-border); border-radius: 8px; color: var(--a-head); align-self: flex-start; }
+
+@media (max-width: 640px) {
+  .b-role-grid, .b-perm-grid { grid-template-columns: 1fr; }
+  .b-head-actions { width: 100%; }
+  .b-head-actions .a-btn { flex: 1; justify-content: center; }
+}

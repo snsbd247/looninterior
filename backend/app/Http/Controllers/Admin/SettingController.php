@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Support\ActivityLogger;
 use App\Support\Notifier;
 use App\Support\Uploader;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class SettingController extends Controller
 {
     public function index()
     {
-        return response()->json(['data' => Setting::allAsArray()]);
+        return response()->json(['data' => Setting::websiteArray()]);
     }
 
     public function update(Request $request)
@@ -31,13 +32,13 @@ class SettingController extends Controller
 
         // Text values
         foreach ($request->except($fileKeys) as $key => $value) {
-            if (! is_string($key) || ! preg_match('/^[a-z0-9_]{1,100}$/', $key)) {
+            if (! is_string($key) || ! self::writable($key)) {
                 continue;
             }
 
             if (str_starts_with($key, 'remove_')) {
                 $target = substr($key, 7);
-                if ($value && ! in_array($target, $fileKeys, true)) {
+                if ($value && self::writable($target) && ! in_array($target, $fileKeys, true)) {
                     Uploader::delete($current[$target] ?? null);
                     Setting::updateOrCreate(['key' => $target], ['value' => null]);
                 }
@@ -52,7 +53,7 @@ class SettingController extends Controller
 
         // Image values
         foreach ($fileKeys as $key) {
-            if (! preg_match('/^[a-z0-9_]{1,100}$/', $key)) {
+            if (! self::writable($key)) {
                 continue;
             }
             Uploader::delete($current[$key] ?? null);
@@ -62,7 +63,16 @@ class SettingController extends Controller
             );
         }
 
-        return response()->json(['message' => 'Settings saved', 'data' => Setting::allAsArray()]);
+        ActivityLogger::record('updated', null, 'Updated website settings');
+
+        return response()->json(['message' => 'Settings saved', 'data' => Setting::websiteArray()]);
+    }
+
+    /** Website settings may not touch business (biz_*) keys: those need settings.business. */
+    private static function writable(string $key): bool
+    {
+        return preg_match('/^[a-z0-9_]{1,100}$/', $key) === 1
+            && ! str_starts_with($key, Setting::BUSINESS_PREFIX);
     }
 
     /** Send a test e-mail to the notification recipients. */

@@ -24,27 +24,50 @@ export function setToken(token) {
   } catch { /* storage unavailable */ }
 }
 
-export const adminApi = axios.create({
+/** Branch the staff panel works in: a branch id, or "all" (central view). */
+export const BRANCH_KEY = 'admin_branch'
+export function getBranch() {
+  try { return localStorage.getItem(BRANCH_KEY) } catch { return null }
+}
+export function setBranch(value) {
+  try {
+    if (value) localStorage.setItem(BRANCH_KEY, String(value))
+    else localStorage.removeItem(BRANCH_KEY)
+  } catch { /* storage unavailable */ }
+}
+
+function withAuth(instance) {
+  instance.interceptors.request.use((config) => {
+    const token = getToken()
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    const branch = getBranch()
+    if (branch) config.headers['X-Branch-Id'] = branch
+    return config
+  })
+  instance.interceptors.response.use(
+    (res) => res,
+    (error) => {
+      if (error.response?.status === 401 && !window.location.pathname.startsWith(sitePath('/admin/login'))) {
+        setToken(null)
+        window.location.href = sitePath('/admin/login')
+      }
+      return Promise.reject(error)
+    }
+  )
+  return instance
+}
+
+/** Website admin API (/api/admin). */
+export const adminApi = withAuth(axios.create({
   baseURL: sitePath('/api/admin'),
   headers: { Accept: 'application/json' },
-})
+}))
 
-adminApi.interceptors.request.use((config) => {
-  const token = getToken()
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-adminApi.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401 && !window.location.pathname.startsWith(sitePath('/admin/login'))) {
-      setToken(null)
-      window.location.href = sitePath('/admin/login')
-    }
-    return Promise.reject(error)
-  }
-)
+/** Business API (/api/business): branch-scoped, permission-checked. */
+export const businessApi = withAuth(axios.create({
+  baseURL: sitePath('/api/business'),
+  headers: { Accept: 'application/json' },
+}))
 
 /** Resolve a stored image path ("uploads/x.jpg") or full URL to a usable src. */
 export function img(path) {

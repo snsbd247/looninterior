@@ -25,3 +25,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+# mPDF temp files
+backend/storage/app/mpdf-tmp/

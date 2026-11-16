@@ -127,6 +127,25 @@ if (-not $Email -or -not $Password) {
 
     # ---- Business modules: add new checks here as each step is built ----
 
+    # Step 1: foundation (roles, branches, users, settings, activity log, PDF)
+    $me = Json (Http GET "$Base/api/admin/me" $null $auth)
+    Report (@($me.user.permissions).Count -gt 0) 'me returns permissions'
+    Report (@($me.user.branches).Count -gt 0) 'me returns branches'
+    foreach ($p in '/api/business/permissions', '/api/business/roles', '/api/business/users', '/api/business/settings', '/api/business/activity-logs') {
+      Expect "GET $p" GET $p 200 $null $auth | Out-Null
+    }
+    Expect 'list branches' GET '/api/admin/branches' 200 $null $auth | Out-Null
+    Expect 'list tax_rates' GET '/api/admin/tax_rates' 200 $null $auth | Out-Null
+    if ($me.user.can_all_branches) {
+      Expect 'central view (X-Branch-Id: all)' GET '/api/business/activity-logs' 200 $null ($auth + @{ 'X-Branch-Id' = 'all' }) | Out-Null
+    }
+    Expect 'unknown branch rejected' GET '/api/business/activity-logs' 403 $null ($auth + @{ 'X-Branch-Id' = '999999' }) | Out-Null
+    Expect 'business API requires login' GET '/api/business/users' 401 | Out-Null
+    try {
+      $pdf = Invoke-WebRequest -UseBasicParsing -Uri "$Base/api/business/pdf/sample?lang=bn" -Headers $auth
+      Report ($pdf.Headers['Content-Type'] -eq 'application/pdf') 'sample PDF (bn) renders'
+    } catch { Report $false 'sample PDF (bn) renders' $_.Exception.Message }
+
     Expect 'admin logout' POST '/api/admin/logout' 200 $null $auth | Out-Null
   }
 }

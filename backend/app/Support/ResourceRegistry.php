@@ -18,6 +18,8 @@ use App\Models\Slider;
 use App\Models\Stat;
 use App\Models\TeamMember;
 use App\Models\Testimonial;
+use App\Models\Business\Branch;
+use App\Models\Business\TaxRate;
 
 /**
  * Definition of every admin-manageable resource.
@@ -33,6 +35,8 @@ use App\Models\Testimonial;
  * order     default sorting
  * with      relations eager-loaded
  * readonly  records come from the website; admin may only edit `rules` fields
+ * permission  role permission needed (default "website.manage"), see config/permissions.php
+ * no_delete   records can only be deactivated, never deleted (business data)
  */
 class ResourceRegistry
 {
@@ -298,6 +302,40 @@ class ResourceRegistry
                 'rules' => [
                     'status' => 'required|in:new,shortlisted,rejected,hired',
                     'admin_note' => $long,
+                ],
+            ],
+
+            /* ---------------- Business setup (simple lists) ---------------- */
+
+            'branches' => [
+                'model' => Branch::class,
+                'permission' => 'branches.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name', 'code', 'phone'],
+                'order' => ['id', 'asc'],
+                'rules' => [
+                    'name' => 'required|string|max:255',
+                    'code' => 'required|alpha_num|max:10|unique:branches,code,{id}',
+                    'phone' => 'nullable|string|max:50',
+                    'email' => 'nullable|email|max:255',
+                    'address' => 'nullable|string|max:1000',
+                    'is_active' => 'boolean',
+                ],
+            ],
+
+            'tax_rates' => [
+                'model' => TaxRate::class,
+                'permission' => 'settings.business',
+                'no_delete' => true,
+                'booleans' => ['is_active', 'is_default'],
+                'search' => ['name'],
+                'order' => ['id', 'asc'],
+                'rules' => [
+                    'name' => 'required|string|max:100',
+                    'rate' => 'required|numeric|min:0|max:100',
+                    'is_default' => 'boolean',
+                    'is_active' => 'boolean',
                 ],
             ],
         ];

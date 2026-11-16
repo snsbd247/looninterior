@@ -4,9 +4,9 @@ import { FiArrowLeft, FiSave, FiDownload, FiPhone, FiMail } from 'react-icons/fi
 import { FaWhatsapp } from 'react-icons/fa'
 import { adminApi, errorMessage, fieldErrors, whatsappLink } from '../../lib/api'
 import Loader from '../../components/Loader'
-import { RESOURCES, getPath } from '../resources'
+import { RESOURCES, getPath, resourcePerm } from '../resources'
 import { FieldControl, ImageInput, GalleryInput, humanize } from '../Fields'
-import { useAdmin } from '../AdminApp'
+import { useAdmin, NoAccess } from '../AdminApp'
 
 function defaults(fields) {
   const v = {}
@@ -217,8 +217,10 @@ function Form({ resource, cfg, id }) {
 
 export default function ResourceForm() {
   const { resource, id } = useParams()
+  const { can } = useAdmin()
   const cfg = RESOURCES[resource]
   if (!cfg) return <Navigate to="/admin" replace />
+  if (!can(resourcePerm(cfg))) return <NoAccess />
   if (cfg.readonly && !id) return <Navigate to={`/admin/r/${resource}`} replace />
   return <Form key={`${resource}-${id || 'new'}`} resource={resource} cfg={cfg} id={id} />
 }

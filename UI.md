@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১: ভিত্তি তৈরি সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -52,7 +52,7 @@
 | Build | Vite 5 | আউটপুট সরাসরি `backend/public/build` এ |
 | HTTP | axios | `api` (পাবলিক) আর `adminApi` (টোকেনসহ) |
 | UI | নিজস্ব CSS (CSS ভেরিয়েবল), react-icons (Feather), react-quill | কোনো UI framework নেই, তাই বান্ডেল ছোট |
-| PDF 🔜 | mPDF | বাংলা যুক্তাক্ষর সমর্থন |
+| PDF ✅ | mPDF 8 + Hind Siliguri (`resources/fonts`, SIL OFL) | বাংলা যুক্তাক্ষর (OTL) যাচাই করা |
 | লোকাল | XAMPP 8.2 (Apache + MariaDB), Windows সার্ভিস | `localhost/loon` |
 
 ---
@@ -67,19 +67,26 @@ labib/
 │   │   ├── Http/Controllers/
 │   │   │   ├── Api/                  PublicController, FormController
 │   │   │   ├── Admin/                Auth, Dashboard, Resource (জেনেরিক CRUD), Setting
-│   │   │   └── Business/ 🔜          Branch, User, Lead, Customer, Quotation, WorkProject,
-│   │   │                             Invoice, Payment, Account, Transaction, Store, Item,
-│   │   │                             Purchase, StockMovement, Ticket, Report …
-│   │   ├── Models/                   ওয়েবসাইটের মডেল (BaseModel → active()/ordered())
-│   │   │   └── Business/ 🔜          Business এর মডেল
-│   │   ├── Services/ 🔜              DocumentNumber, Ledger, Stock, Pdf, AmountInWords
-│   │   ├── Support/                  ResourceRegistry, Uploader, SpamGuard, Notifier, Seo
-│   │   ├── Http/Middleware/ 🔜       Permission, BranchContext
+│   │   │   └── Business/             ✅ UserController, RoleController, BusinessSettingController,
+│   │   │                             ActivityLogController
+│   │   │                             🔜 Lead, Customer, Quotation, WorkProject, Invoice, Payment,
+│   │   │                             Account, Transaction, Store, Item, Purchase, Stock, Ticket, Report …
+│   │   ├── Models/                   ওয়েবসাইটের মডেল (BaseModel → active()/ordered() + LogsActivity)
+│   │   │   ├── Business/             ✅ Branch, Role, TaxRate, ActivityLog (🔜 বাকি মডেল)
+│   │   │   └── Concerns/             ✅ LogsActivity, BelongsToBranch (trait)
+│   │   ├── Services/                 ✅ DocumentNumber, Pdf, CompanyProfile, AmountInWords, Money
+│   │   │                             🔜 Ledger, Stock
+│   │   ├── Support/                  ResourceRegistry, Uploader, SpamGuard, Notifier, Seo,
+│   │   │                             ✅ BranchContext, ActivityLogger, BusinessFoundation
+│   │   ├── Http/Middleware/          ✅ EnsureUserIsActive (active), RequirePermission (perm),
+│   │   │                             ResolveBranch (branch)
 │   │   └── Providers/                AppServiceProvider (rate limiters)
-│   ├── config/                       site.php, logging.php (mail চ্যানেল)
+│   ├── config/                       site.php, logging.php (mail চ্যানেল), ✅ permissions.php
+│   ├── lang/en|bn/doc.php            ✅ PDF লেবেল (ইংরেজি/বাংলা)
 │   ├── database/migrations, seeders/
+│   ├── resources/fonts/              ✅ HindSiliguri-*.ttf + OFL.txt
 │   ├── resources/views/emails/       ইমেইল টেমপ্লেট (Blade)
-│   │   └── pdf/ 🔜                   কোটেশন/ইনভয়েস/রিসিট/PO (en, bn)
+│   │   └── pdf/document.blade.php    ✅ সব ডকুমেন্টের এক টেমপ্লেট (en, bn)
 │   ├── routes/                       web.php, api.php, console.php
 │   ├── storage/app/cvs/              CV (পাবলিক না)
 │   └── public/                       index.php, .htaccess, build/, uploads/, brand/
@@ -101,12 +108,15 @@ labib/
         │   ├── pages/                Login, Forgot/ResetPassword, Dashboard,
         │   │                         ResourceList/Form, Settings, Profile
         │   └── admin.css
-        └── business/ 🔜              Business মডিউল (আলাদা lazy chunk)
-            ├── components/           DataTable, LineItems, MoneyInput, StatusBadge,
-            │                         Kanban, BranchSwitcher, Can, PrintButton …
-            ├── hooks/                usePermission, useBranch, useList
-            └── pages/                crm/, quotations/, projects/, billing/,
-                                      accounts/, inventory/, tickets/, reports/, users/
+        └── business/                 Business মডিউল (আলাদা lazy chunk, /admin/biz/*)
+            ├── BusinessRoutes.jsx    ✅ রাউট + প্রতিটা পেজে পারমিশন গার্ড
+            ├── business.css          ✅ b-* ক্লাস (admin.css এর টোকেন ব্যবহার করে)
+            ├── components/           ✅ Pagination
+            │                         🔜 DataTable, LineItems, MoneyInput, StatusBadge, Kanban …
+            └── pages/                ✅ users/ (Users, UserForm, Roles, RoleForm),
+                                      settings/BusinessSettings, activity/ActivityLog
+                                      🔜 crm/, quotations/, projects/, billing/, accounts/,
+                                      inventory/, tickets/, reports/
 ```
 
 ---
@@ -120,9 +130,11 @@ labib/
 | `/api/site`, `/api/home`, `/api/{services,projects,posts,careers,pages,faqs,testimonials}` | পাবলিক ডেটা |
 | `POST /api/inquiries`, `POST /api/careers/{slug}/apply` | ফর্ম (`throttle:forms`, SpamGuard) |
 | `POST /api/admin/{login,forgot-password,reset-password}` | টোকেন ছাড়া (আলাদা rate limiter) |
-| `/api/admin/*` | `auth:sanctum` |
-| `/api/admin/{resource}[/{id}]` | জেনেরিক CRUD |
-| `/api/business/*` 🔜 | `auth:sanctum` + `branch` + `perm:*` |
+| `/api/admin/{me,profile,logout}` | `auth:sanctum` + `active` (সব স্টাফ) |
+| `/api/admin/{dashboard,settings,…}` | + `perm:website.manage` |
+| `/api/admin/{resource}[/{id}]` | জেনেরিক CRUD, পারমিশন রেজিস্ট্রির `permission` কী থেকে (ডিফল্ট `website.manage`)। এর মধ্যে `branches` আর `tax_rates`ও আছে |
+| `/api/business/*` ✅ | `auth:sanctum` + `active` + `branch` + `perm:*` |
+| ↳ ধাপ ১ | `permissions`, `roles[/{id}]`, `users[/{id}]`, `settings`, `pdf/sample?lang=`, `activity-logs` |
 | `/sitemap.xml`, `/robots.txt` | SEO |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
 | বাকি সব | React index.html + SEO meta |
@@ -165,8 +177,10 @@ ResourceList.jsx / ResourceForm.jsx        ← একই দুইটা পে�
 | CV | `storage/app/cvs` এ থাকে, শুধু লগইন করা অ্যাডমিন API দিয়ে ডাউনলোড করতে পারে |
 | গোপন সেটিং | `Setting::PRIVATE_KEYS` (যেমন `notify_email`) পাবলিক `/api/site` এ যায় না |
 | এরর | `APP_DEBUG=false`, এরর ট্রেস ব্রাউজারে দেখায় না |
-| পারমিশন 🔜 | প্রতিটা Business API রুটে `perm:` middleware। শুধু মেনু লুকানো যথেষ্ট না |
-| শাখা 🔜 | সার্ভারেই শাখা ফিল্টার হয় (§৫.২)। ক্লায়েন্টের পাঠানো শাখা আইডি বিশ্বাস করা হয় না, ইউজারের অনুমোদিত শাখার সাথে মিলিয়ে দেখা হয় |
+| পারমিশন ✅ | প্রতিটা API রুটে `perm:` middleware (`perm:a\|b` মানে যেকোনো একটা থাকলেই চলবে)। জেনেরিক CRUD এ রেজিস্ট্রির `permission` কী। শুধু মেনু লুকানো যথেষ্ট না |
+| শাখা ✅ | `ResolveBranch` middleware `X-Branch-Id` হেডার যাচাই করে: অনুমোদিত শাখা না হলে 403। "all" শুধু `branches.all` পারমিশনে। `BelongsToBranch` trait সার্ভারেই ফিল্টার করে |
+| নিষ্ক্রিয় ইউজার ✅ | `active` middleware: পুরনো টোকেন থাকলেও 401 দেয় আর টোকেন মুছে দেয়। লগইনও বন্ধ |
+| সেটিংস আলাদা ✅ | `biz_*` কী শুধু Business Settings API দিয়ে লেখা আর পড়া যায়। ওয়েবসাইট সেটিংস আর পাবলিক API তে আসে না |
 
 ### ৪.৫ ইমেইল ✅
 
@@ -196,24 +210,50 @@ React চালু হওয়ার পর `useTitle()` ব্রাউজা�
 - **স্টোরেজ:** `settings` টেবিল, key-value। পুরো ওয়েবসাইটের টেক্সট, ছবি, কন্টাক্ট আর SEO এখানে থাকে।
 - **কোন ফিল্ড কোন ট্যাবে:** ঠিক হয় `frontend/src/admin/settingsSchema.js` থেকে।
 - **নতুন কী:** নতুন কী যোগ করতে backend বদলাতে হয় না, শুধু schema তে ফিল্ড যোগ করলেই চলে।
-- **Business সেটিং 🔜:** কোম্পানির তথ্য, ব্যাংক, স্বাক্ষর, শর্তাবলী EN/BN একই টেবিলে থাকবে, তবে `biz_` prefix সহ আর private হিসেবে। ট্যাক্স রেট আর নম্বর সিরিজ থাকবে আলাদা টেবিলে।
+- **Business সেটিং ✅:**
+  - কোম্পানির তথ্য, ব্যাংক, স্বাক্ষর, শর্তাবলী, ফুটার (EN + `_bn`) আর নম্বরের ফরম্যাট একই টেবিলে থাকে, `biz_` prefix সহ।
+  - এগুলো `Setting::businessArray()` দিয়ে পড়া হয়। `websiteArray()` আর `publicArray()` এগুলো বাদ দেয়।
+  - ট্যাক্স রেট আর নম্বর সিরিজ আলাদা টেবিলে।
+  - `CompanyProfile::get($lang)` আগে `biz_*` মান নেয়, না থাকলে ওয়েবসাইটের সেটিং।
 
-### ৪.৮ Business মডিউলের কাঠামো 🔜
+### ৪.৮ Business মডিউলের কাঠামো (ভিত্তি ✅, বাকি অংশ 🔜)
 
 ```
 Request
   → auth:sanctum
-  → BranchContext middleware   X-Branch-Id হেডার পড়ে, ইউজারের অনুমোদিত শাখার সাথে মেলায়।
-                               "all" শুধু Admin এর জন্য।
-  → perm:invoices.create       রোলের পারমিশন চেক
+  → active                     নিষ্ক্রিয় ইউজার → 401 (টোকেন মুছে যায়)
+  → branch (ResolveBranch)     X-Branch-Id হেডার পড়ে, ইউজারের অনুমোদিত শাখার সাথে মেলায়
+                               → BranchContext::set(current|null=all, allowed[])
+                               "all" শুধু branches.all পারমিশনে। হেডার না থাকলে প্রথম শাখা
+  → perm:billing.manage        রোলের পারমিশন চেক (config/permissions.php)
   → Controller (পাতলা)         ভ্যালিডেশন → Service কল → JSON
   → Service (ব্যবসার নিয়ম)      DB::transaction এর ভেতরে:
-        DocumentNumber::next('INV', $branch)     row lock দিয়ে নম্বর
-        Ledger::post(...)                        আয়/ব্যয়/ট্রান্সফার এন্ট্রি
-        Stock::move(...)                         স্টকের চলাচল + গড় মূল্য
-        ActivityLog::record(...)                 আগের/পরের মান
-  → Model (BelongsToBranch trait: শাখা অনুযায়ী global scope)
+        DocumentNumber::next('INV', $branch)     ✅ atomic upsert দিয়ে নম্বর (ডুপ্লিকেট/ফাঁক নেই)
+        Ledger::post(...)                        🔜 আয়/ব্যয়/ট্রান্সফার এন্ট্রি
+        Stock::move(...)                         🔜 স্টকের চলাচল + গড় মূল্য
+        (LogsActivity trait নিজে থেকে লেখে)       ✅ আগের/পরের মান
+  → Model (BelongsToBranch trait ✅: শাখা অনুযায়ী global scope; নতুন রেকর্ডে শাখা বসায়,
+           "all" মোডে শাখা না দিলে বা অননুমোদিত শাখা দিলে ভ্যালিডেশন এরর)
 ```
+
+**রোল ও পারমিশন ✅:**
+- **ক্যাটালগ:** `config/permissions.php` এ আছে: `modules` এর ভেতরে `module.action` আর তার লেবেল, এর সাথে ৫টা `default_roles`।
+- **রোলে সংরক্ষণ:** `roles.permissions` একটা JSON তালিকা। Admin = `["*"]` (`is_system`, বদলানো যায় না)।
+- **নতুন মডিউল:** ক্যাটালগে পারমিশন যোগ করে রুটে `perm:` দিলেই হয়। রোলের চেকবক্সে নিজে থেকে চলে আসে।
+- **রোল চেক:** `User::hasPermission()` আর `permissionList()`।
+- **ফ্রন্টএন্ডে পাঠানো:** `/api/admin/me` পাঠায় `permissions[]`, `branches[]` আর `can_all_branches`।
+
+**Activity Log ✅:**
+- **কোথায় লেখা হয়:** `LogsActivity` trait। এটা BaseModel (সব ওয়েবসাইট কনটেন্ট), User, Role, Branch আর TaxRate এ আছে।
+- **কখন লেখা হয়:** শুধু লগইন করা ইউজারের কাজ। ওয়েবসাইটের ভিজিটরের ফর্ম জমা লেখা হয় না।
+- **কী বাদ যায়:** password আর remember_token কখনো লেখা হয় না। লম্বা HTML ৩০০ অক্ষরে ছোট করা হয়।
+- **শাখা:** লগে শাখা বসে শুধু শাখাভিত্তিক রেকর্ডে (যাতে `branch_id` আছে)। কোম্পানি-ব্যাপী পরিবর্তন সব শাখার লগে দেখায়।
+- **হাতে লেখা:** লগইন, পাসওয়ার্ড বদল, ইউজারের শাখা বদল আর সেটিংস সেভ `ActivityLogger::record()` দিয়ে লেখা হয়।
+
+**প্রথম চালুতে ডেটা (`BusinessFoundation::ensure()`) ✅:**
+- **কাজ:** ৫টা রোল, "Head Office" (HO) শাখা আর VAT 15% তৈরি করে। রোল নেই এমন ইউজারকে Admin বানিয়ে HO তে যুক্ত করে।
+- **কোথা থেকে চলে:** একটা migration থেকে (তাই cPanel `/install` এও চলে) আর DatabaseSeeder থেকে।
+- **নিরাপদ:** বারবার চালালেও Admin এর বদলানো জিনিস নষ্ট করে না।
 
 **টাকা আর স্টকের নিয়ম:**
 - **অঙ্কের ধরন:** সব টাকার অঙ্ক `decimal(14,2)`। হিসাব সবসময় সার্ভারে হয়, ব্রাউজারের পাঠানো মোট কখনো বিশ্বাস করা হয় না।
@@ -250,12 +290,12 @@ Request
 
 | গ্রুপ | টেবিল | মূল ফিল্ড / সম্পর্ক |
 |---|---|---|
-| **ভিত্তি** | `branches` | name, code (DHK), address, phone, is_active |
-| | `roles`, `permissions`, `permission_role` | রোল (Admin, Accounts, Store, Sales & Marketing, Support), `module.action` পারমিশন |
-| | `users` (+ role_id, is_active, phone), `branch_user` | ইউজার ↔ একাধিক শাখা |
-| | `activity_logs` | user, branch, subject (polymorphic), action, before/after (JSON), ip |
-| | `tax_rates` | name, rate %, is_default |
-| | `document_sequences` | branch, type (QT/INV/RCV/PO/GRN/TKT), year, last_number |
+| **ভিত্তি ✅** | `branches` | name, code (unique, বড় হাতের অক্ষরে; যেমন HO, DHK), phone, email, address, is_active। মোছা যায় না |
+| | `roles` | name, slug, **permissions (JSON তালিকা)**, is_system। আলাদা permissions টেবিল নেই, ক্যাটালগ থাকে `config/permissions.php` এ |
+| | `users` (+ `role_id`, `phone`, `is_active`, `last_login_at`), `branch_user` | ইউজার ↔ একাধিক শাখা। ইউজার মোছা যায় না |
+| | `activity_logs` | user_id, branch_id, action (created/updated/deleted/login/password_changed), subject_type, subject_id, description, changes (JSON before/after), ip, created_at |
+| | `tax_rates` | name, rate (decimal 6,3), is_default (একটাই), is_active। মোছা যায় না |
+| | `document_sequences` | branch_id, type (QT/INV/RCV/PO/GRN/TKT), year, last_number, unique(branch, type, year) |
 | **CRM** | `leads` (শাখাভিত্তিক) | name, phone, email, source, stage, assigned_to, inquiry_id, customer_id, expected_value |
 | | `lead_activities` | lead, type (call/meeting/visit/note), note, follow_up_at, done_at |
 | | `customers` (শাখাভিত্তিক) | name, phone, email, address, lead_id |
@@ -304,8 +344,13 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
                 └── * → RequireAuth → <Layout/>
                        ├── /admin                       Dashboard
                        ├── /admin/r/:resource[/new|/:id] জেনেরিক CRUD
-                       ├── /admin/settings, /profile
-                       └── /admin/biz/* 🔜              <BusinessApp/> (আলাদা lazy chunk)
+                       ├── /admin/settings (website.manage), /profile
+                       └── /admin/biz/* ✅              <BusinessRoutes/> (আলাদা lazy chunk)
+                              ├── users, users/new, users/:id        (users.manage)
+                              ├── roles, roles/new, roles/:id        (roles.manage)
+                              ├── settings                           (settings.business)
+                              └── activity                           (activity.view)
+                       (Branches আর Tax Rates চলে জেনেরিক /admin/r/branches আর /admin/r/tax_rates দিয়ে)
   /*        → <PublicSite/>  → SiteProvider → Header + Routes + Footer + FloatingContact
 ```
 
@@ -319,10 +364,14 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 - **`SiteContext`:**
   - `/api/site` একবারই লোড হয়: settings, মেনুর services/categories, footer pages, `form_token`।
   - ব্র্যান্ড কালার (`--primary`) আর favicon সেট করে।
-- **Business 🔜:**
-  - `useList(endpoint, filters)`: পেজিনেশন, সার্চ আর ফিল্টারসহ তালিকা।
-  - `BranchContext`: বর্তমান শাখা `localStorage` এ মনে রাখে, `adminApi` প্রতিটা রিকোয়েস্টে `X-Branch-Id` হেডার পাঠায়।
-  - `usePermission()` আর `<Can perm="invoices.create">`: ইউজারের পারমিশন অনুযায়ী মেনু, বাটন আর রাউট দেখানো বা লুকানো।
+- **Business ✅:**
+  - **API instance:** `businessApi` (`/api/business`), আর `adminApi`। দুটোই টোকেন আর `X-Branch-Id` হেডার পাঠায়।
+  - **শাখা মনে রাখা:** বর্তমান শাখা `localStorage.admin_branch` এ থাকে। `/me` লোড হলে মিলিয়ে দেখা হয়: অনুমোদিত না হলে প্রথম শাখা নেওয়া হয়।
+  - **শাখা বদলালে:** `.a-content` এর `key={branch}` বদলায়, ফলে পেজের ডেটা নতুন শাখার জন্য আবার লোড হয়।
+  - **পারমিশন চেক:** `useAdmin().can('perm')` (`'a|b'` = যেকোনো একটা), `<Can perm>`, `<NoAccess/>`।
+  - **কোথায় চেক হয়:** সাইডবার, ResourceList/Form আর Business রাউট সব জায়গায় পারমিশন চেক হয়। জেনেরিক রিসোর্সের পারমিশন আসে `resourcePerm(cfg)` থেকে।
+  - **Dashboard:** `website.manage` না থাকলে স্বাগত কার্ড দেখায়। রোলভিত্তিক Dashboard আসবে ধাপ ৮ এ।
+  - 🔜 `useList(endpoint, filters)`: পেজিনেশন, সার্চ আর ফিল্টারসহ তালিকা।
 
 ### ৬.৩ ডিজাইন সিস্টেম: পাবলিক সাইট ✅ (`styles/site.css`)
 
@@ -400,7 +449,9 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 
 | প্যাটার্ন | কোথায় | আচরণ |
 |---|---|---|
-| **BranchSwitcher** | টপবার | Admin সব শাখা আর "সব শাখা (সেন্ট্রাল)" দেখে। অন্যরা শুধু নিজের শাখা। শাখা বদলালে পেজের ডেটা নতুন করে লোড হয় |
+| **BranchSwitcher** ✅ | টপবার | Admin সব শাখা আর "সব শাখা (সেন্ট্রাল)" দেখে। একটাই শাখা থাকলে শুধু নাম দেখায়। শাখা বদলালে পেজের ডেটা নতুন করে লোড হয়। মোবাইলে টপবারের বাকি জায়গা জুড়ে থাকে |
+| **Permission matrix** ✅ | রোল এডিট | মডিউল অনুযায়ী কার্ড। মডিউলের চেকবক্সে সব একসাথে টিক হয়, আংশিক হলে indeterminate দেখায় |
+| **EN/BN টুইন ফিল্ড** ✅ | Business Settings | `bn: true` দিলে একই ফিল্ডের "(English)" আর "(বাংলা)" দুই সংস্করণ পাশাপাশি দেখায় |
 | **DataTable** | সব তালিকা | সার্চ, ফিল্টার (তারিখ, স্ট্যাটাস, শাখা), পেজিনেশন, কলাম সর্ট, Excel এক্সপোর্ট। মোবাইলে কার্ড ভিউ |
 | **StatusBadge** | সব জায়গায় | স্ট্যাটাস অনুযায়ী রং, যেমন Draft ধূসর, Sent নীল, Approved/Paid সবুজ, Partial হলুদ, Overdue/Cancelled লাল |
 | **Kanban** | CRM পাইপলাইন | ধাপের কলাম। কার্ড টেনে ধাপ বদলানো যায়। মোবাইলে কলামগুলো আনুভূমিক স্ক্রল |
@@ -409,21 +460,32 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **DocumentView** | কোটেশন/ইনভয়েস/রিসিট/PO | ডকুমেন্টের প্রিভিউ, পাশে অ্যাকশন: Edit, Send, **Print/PDF (EN \| বাংলা)**, WhatsApp, Cancel |
 | **Timeline** | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
-| **Can** | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
+| **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
 | **রোলভিত্তিক Dashboard** | `/admin` | রোল অনুযায়ী আলাদা কার্ড আর তালিকা (plan.md ধাপ ৮) |
 
-### ৬.৬ প্রিন্ট ও PDF 🔜
+### ৬.৬ প্রিন্ট ও PDF (ইঞ্জিন ✅)
 
 ```
 DocumentView → [Print/PDF EN] [Print/PDF বাংলা]
-     → GET /api/business/invoices/{id}/pdf?lang=bn
-     → Pdf service → resources/views/pdf/invoice.blade.php (lang অনুযায়ী লেবেল)
-     → mPDF (Hind Siliguri / Noto Sans Bengali ফন্ট, OTL চালু) → application/pdf
+     → GET /api/business/<doc>/{id}/pdf?lang=bn           (ধাপ ১: /api/business/pdf/sample?lang=)
+     → Pdf::render('pdf.document', ['company' => CompanyProfile::get($lang), 'doc' => [...]], $lang)
+     → mPDF (Hind Siliguri, useOTL) → application/pdf
 ```
 
-- **ভাষা:** লেবেলগুলো `lang/en/doc.php` আর `lang/bn/doc.php` থেকে আসবে। আইটেমের বিবরণ যেমন লেখা হয়েছে তেমনই থাকবে।
-- **কথায় অঙ্ক:** `AmountInWords::en()` লাখ/কোটি পদ্ধতিতে, `AmountInWords::bn()` বাংলায়।
-- **ইমেইল:** একই PDF ইমেইলের সংযুক্তি হিসেবেও যাবে।
+- **টেমপ্লেট:** একটাই জেনেরিক টেমপ্লেট `pdf/document.blade.php` সব ডকুমেন্ট চালায়। এতে থাকে:
+  - হেডার (লোগো, কোম্পানি, BIN/TIN), ডকুমেন্টের শিরোনাম, নম্বর আর তারিখ, meta তথ্য।
+  - প্রাপক বা পক্ষের ব্লক।
+  - সেকশনভিত্তিক আইটেম টেবিল, তারপর উপমোট, ছাড়, ট্যাক্স আর সর্বমোট (paid/due ঐচ্ছিক)।
+  - কথায় অঙ্ক, নোট, শর্তাবলী, ব্যাংক তথ্য।
+  - স্বাক্ষর আর সিল, ফুটারে পৃষ্ঠা নম্বর, ঐচ্ছিক watermark।
+- **নতুন ডকুমেন্ট:** নতুন ডকুমেন্টের জন্য শুধু `$doc` array বানালেই হবে। ফিল্ডের তালিকা টেমপ্লেটের উপরের মন্তব্যে আছে।
+- **ভাষা:**
+  - লেবেল আসে `lang/en/doc.php` আর `lang/bn/doc.php` থেকে। আইটেমের বিবরণ যেমন লেখা হয়েছে তেমনই থাকে।
+  - বাংলায় অঙ্ক বাংলা অঙ্কে (১২৩) দেখাবে কিনা তা ঠিক হয় `biz_bn_digits` সেটিং থেকে।
+- **টাকা:** `Money::format()` বাংলাদেশি কমা-ফরম্যাট দেয় (১২,৩৪,৫৬৭.৫০)। কথায় অঙ্কের জন্য `AmountInWords::en()` আর `bn()`, লাখ/কোটি পদ্ধতিতে, পয়সাসহ।
+- **ছবি:** লোগো, স্বাক্ষর আর সিল লোকাল ফাইল পাথ হিসেবে দিতে হয় (`Pdf::imagePath`)। বাইরের URL নেওয়া হয় না।
+- **অস্থায়ী ফাইল:** mPDF এর temp ফোল্ডার `storage/app/mpdf-tmp`।
+- 🔜 **ইমেইল:** একই PDF ইমেইলের সংযুক্তি হিসেবেও যাবে।
 
 ---
 

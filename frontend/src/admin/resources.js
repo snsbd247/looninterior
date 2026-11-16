@@ -1,6 +1,6 @@
 import {
   FiImage, FiLayers, FiFolder, FiGrid, FiMessageCircle, FiBriefcase, FiUsers, FiBarChart2,
-  FiList, FiAward, FiHelpCircle, FiEdit, FiFileText, FiUserPlus, FiInbox,
+  FiList, FiAward, FiHelpCircle, FiEdit, FiFileText, FiUserPlus, FiInbox, FiMapPin, FiPercent,
 } from 'react-icons/fi'
 import { ICON_KEYS } from '../lib/icons'
 
@@ -9,6 +9,8 @@ import { ICON_KEYS } from '../lib/icons'
  * text | textarea | rich | number | switch | select | date | image | gallery | icon | color
  * `half: true` places a field in a two-column row.
  * Keys must match backend app/Support/ResourceRegistry.php
+ * `perm`     role permission needed (default "website.manage", same as the backend registry)
+ * `noDelete` records can only be deactivated (business data)
  */
 
 const sort = { name: 'sort_order', label: 'Display Order', type: 'number', half: true, default: 0, help: 'Lower numbers show first' }
@@ -225,9 +227,38 @@ export const RESOURCES = {
       { name: 'admin_note', label: 'Internal Note', type: 'textarea' },
     ],
   },
+
+  /* ---------------- Business setup (simple lists) ---------------- */
+
+  branches: {
+    label: 'Branches', singular: 'Branch', icon: FiMapPin, group: 'Administration', perm: 'branches.manage', noDelete: true,
+    columns: [{ key: 'name', label: 'Name' }, { key: 'code', label: 'Code' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'name', label: 'Branch Name', required: true, half: true },
+      { name: 'code', label: 'Short Code', required: true, half: true, help: 'Letters/numbers, max 10. Used in document numbers, e.g. DHK → DHK-INV-2026-0001' },
+      { name: 'phone', label: 'Phone', half: true },
+      { name: 'email', label: 'Email', half: true },
+      { name: 'address', label: 'Address', type: 'textarea' },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+    ],
+  },
+
+  tax_rates: {
+    label: 'Tax Rates', singular: 'Tax Rate', icon: FiPercent, group: 'Administration', perm: 'settings.business', noDelete: true,
+    columns: [{ key: 'name', label: 'Name' }, { key: 'rate', label: 'Rate %' }, { key: 'is_default', label: 'Default', type: 'bool' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'name', label: 'Name', required: true, half: true, help: 'e.g. VAT, AIT' },
+      { name: 'rate', label: 'Rate (%)', type: 'number', required: true, half: true, help: 'e.g. 15 or 7.5' },
+      { name: 'is_default', label: 'Default for new invoices / quotations', type: 'switch', half: true },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+    ],
+  },
 }
 
-export const GROUPS = ['Leads', 'Home Page', 'Content', 'Careers']
+export const GROUPS = ['Leads', 'Home Page', 'Content', 'Careers', 'Administration']
+
+/** Permission needed for a resource (website content by default). */
+export const resourcePerm = (cfg) => cfg?.perm || 'website.manage'
 
 export function getPath(obj, path) {
   return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj)

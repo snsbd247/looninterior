@@ -3,9 +3,9 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiEye, FiCheck, FiX } from 'react-icons/fi'
 import { adminApi, errorMessage, formatDate, img } from '../../lib/api'
 import Loader from '../../components/Loader'
-import { RESOURCES, getPath } from '../resources'
+import { RESOURCES, getPath, resourcePerm } from '../resources'
 import { humanize } from '../Fields'
-import { useAdmin } from '../AdminApp'
+import { useAdmin, NoAccess } from '../AdminApp'
 
 function Cell({ col, row }) {
   const v = col.get ? col.get(row) : getPath(row, col.key)
@@ -107,7 +107,7 @@ function List({ resource, cfg }) {
                       <Link to={`/admin/r/${resource}/${row.id}`} className="a-icon-btn" title={cfg.readonly ? 'View' : 'Edit'}>
                         {cfg.readonly ? <FiEye /> : <FiEdit2 />}
                       </Link>
-                      <button className="a-icon-btn danger" onClick={() => remove(row)} title="Delete"><FiTrash2 /></button>
+                      {!cfg.noDelete && <button className="a-icon-btn danger" onClick={() => remove(row)} title="Delete"><FiTrash2 /></button>}
                     </td>
                   </tr>
                 )) : (
@@ -135,7 +135,9 @@ function List({ resource, cfg }) {
 
 export default function ResourceList() {
   const { resource } = useParams()
+  const { can } = useAdmin()
   const cfg = RESOURCES[resource]
   if (!cfg) return <Navigate to="/admin" replace />
+  if (!can(resourcePerm(cfg))) return <NoAccess />
   return <List key={resource} resource={resource} cfg={cfg} />
 }

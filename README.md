@@ -108,6 +108,26 @@ labib/
 - আইকন পিকার আছে।
 - লম্বা লেখার জন্য রিচ টেক্সট এডিটর (Quill) আছে।
 
+### Business প্যানেল: ধাপ ১ (ভিত্তি) ✅
+
+অ্যাডমিনের সাইডবারে **Administration** গ্রুপে আছে। পুরো প্ল্যান [plan.md](plan.md) তে।
+
+- **Users:**
+  - স্টাফ যোগ করা যায়, যত খুশি। প্রত্যেককে রোল আর এক বা একাধিক শাখা দেওয়া হয়।
+  - ইউজার মোছা যায় না, শুধু "Inactive" করা যায়। Inactive করলে সাথে সাথে লগআউট হয়ে যায়।
+- **Roles & Permissions:**
+  - শুরুতে ৫টা রোল: Admin, Accounts, Store, Sales & Marketing, Support।
+  - চেকবক্সে টিক দিয়ে প্রতিটা রোলের পারমিশন বদলানো যায়। Admin রোল লক করা।
+- **Branches:**
+  - একাধিক শাখা, প্রতিটার একটা কোড, যেমন DHK। শুরুতে "Head Office" (HO)।
+  - উপরের মেনু থেকে শাখা বদলানো যায়। Admin "All branches (central)" বেছে সব শাখা একসাথে দেখতে পারে।
+- **Tax Rates:** যেমন VAT 15%। একটা থাকে default।
+- **Business Settings:**
+  - কোম্পানির নাম আর ঠিকানা (English + বাংলা), BIN/TIN, ব্যাংক তথ্য, শর্তাবলী, স্বাক্ষর আর সিল, ডকুমেন্ট নম্বরের ফরম্যাট।
+  - **নমুনা PDF (English / বাংলা)** বাটন দিয়ে দেখে নেওয়া যায় ডকুমেন্টে সব কেমন আসছে।
+- **Activity Log:** কে কখন কী তৈরি, বদল বা মুছেছে, আগের আর পরের মানসহ। লগইনও থাকে।
+- **রোল অনুযায়ী মেনু:** প্রতিটা স্টাফ শুধু তার রোলের মেনু দেখে। সার্ভারও (API) অনুমতি ছাড়া কিছু করতে দেয় না।
+
 ---
 
 ## কোডের গঠন
@@ -291,7 +311,7 @@ composer install --no-dev --optimize-autoloader
 
 ### ধাপ ২: PHP ভার্সন
 - cPanel → **Select PHP Version / MultiPHP Manager** থেকে **PHP 8.2 বা 8.3** বেছে নিন।
-- এই এক্সটেনশনগুলো চালু রাখুন: `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, fileinfo, bcmath, gd, zip`।
+- এই এক্সটেনশনগুলো চালু রাখুন: `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, fileinfo, bcmath, gd, zip`। (`gd` আর `mbstring` PDF তৈরির জন্যও দরকার।)
 - বড় ছবি আপলোডের জন্য `upload_max_filesize = 10M` আর `post_max_size = 64M` দিন।
 
 ### ধাপ ৩: ফাইল আপলোড
@@ -364,8 +384,10 @@ php artisan config:cache && php artisan route:cache
 2. ব্রাউজারে একবার যান: `https://yourdomain.com/install/myS3cretKey2026`।
 3. কাজ শেষ হলে `.env` থেকে `INSTALL_KEY` এর মান **অবশ্যই মুছে দিন**।
 
+> **আপডেট ডেপ্লয় করলে** (নতুন মডিউল এলে): নতুন ফাইল আপলোড করে আবার `php artisan migrate --force` চালান। Terminal না থাকলে `/install/{key}` লিংকে একবার যান। এতে শুধু নতুন টেবিল যোগ হয়, পুরনো ডেটা থাকে। Business মডিউলের রোল, Head Office শাখা আর VAT নিজে থেকে তৈরি হয়, আর পুরনো অ্যাডমিন Admin রোল পায়।
+
 ### ধাপ ৭: পারমিশন
-- `storage/` আর `bootstrap/cache/` writable রাখুন (সাধারণত 755)।
+- `storage/` আর `bootstrap/cache/` writable রাখুন (সাধারণত 755)। PDF এর অস্থায়ী ফাইল `storage/app/mpdf-tmp` এ যায়।
 - `public/uploads` (বা `public_html/uploads`) writable রাখুন।
 
 কাজ শেষ। `https://yourdomain.com` এ সাইট আর `https://yourdomain.com/admin` এ অ্যাডমিন প্যানেল।
@@ -478,6 +500,24 @@ php artisan config:cache && php artisan route:cache
 - ফর্ম থেকে আসা ডেটা:
   - `inquiries`
   - `job_applications`
+- Business সেটআপ (আলাদা পারমিশন লাগে, মোছা যায় না):
+  - `branches` (`branches.manage`)
+  - `tax_rates` (`settings.business`)
+
+ওয়েবসাইট কনটেন্টের সব Admin API তে `website.manage` পারমিশন লাগে।
+
+### Business API (Bearer token + পারমিশন)
+
+প্রতিটা রিকোয়েস্টে ঐচ্ছিক হেডার `X-Branch-Id: <id>` বা `X-Branch-Id: all` দেওয়া যায়। না দিলে ইউজারের প্রথম শাখা ধরা হয়।
+
+| Endpoint | পারমিশন | কাজ |
+|---|---|---|
+| `GET /api/business/permissions` | roles.manage বা users.manage | পারমিশনের ক্যাটালগ |
+| `GET/POST /api/business/roles`, `GET/POST/DELETE /api/business/roles/{id}` | roles.manage (তালিকা: users.manage ও) | রোল |
+| `GET/POST /api/business/users`, `GET/POST /api/business/users/{id}` | users.manage | স্টাফ ইউজার |
+| `GET/POST /api/business/settings` | settings.business | Business Settings |
+| `GET /api/business/pdf/sample?lang=en\|bn` | settings.business | নমুনা PDF |
+| `GET /api/business/activity-logs` | activity.view | Activity Log (ফিল্টার: action, subject_type, from, to, q) |
 
 ---
 
@@ -495,3 +535,6 @@ php artisan config:cache && php artisan route:cache
 | অ্যাডমিন পাসওয়ার্ড ভুলে গেছি | লগইন পেজে "Forgot password?" চাপুন, অথবা `php artisan admin:password <email>` চালান |
 | অন্য ডিভাইস থেকে খোলে না | Firewall রুল চালান ([উপরে দেখুন](#অন্য-ডিভাইস-থেকে-খোলা)) |
 | XAMPP চালু হয়নি | `services.msc` এ Apache2.4 আর mysql সার্ভিস Start করুন |
+| স্টাফ লগইন করে কোনো মেনু দেখছে না / "No access" দেখায় | Roles & Permissions এ তার রোলে পারমিশন দিন। Users এ তাকে অন্তত একটা সক্রিয় শাখা দিন |
+| "Your account is not assigned to any active branch" | Users এ ইউজারকে একটা সক্রিয় শাখা দিন |
+| PDF এ লোগো আসছে না | Business Settings → Company → "Logo on documents" এ PNG/JPG লোগো আপলোড করুন |

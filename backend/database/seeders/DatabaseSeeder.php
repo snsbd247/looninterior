@@ -39,6 +39,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Administrator', 'password' => config('site.admin_password')]
         );
 
+        // Business foundation: roles, Head Office branch, admin role for the user above.
+        \App\Support\BusinessFoundation::ensure();
+
         $img = [
             'living' => 'photo-1618221195710-dd6b41faaea6',
             'living2' => 'photo-1600210492486-724fe5c67fb0',
