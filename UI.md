@@ -247,7 +247,7 @@ React চালু হওয়ার পর `useTitle()` ব্রাউজা�
   - ট্যাক্স রেট আর নম্বর সিরিজ আলাদা টেবিলে।
   - `CompanyProfile::get($lang)` আগে `biz_*` মান নেয়, না থাকলে ওয়েবসাইটের সেটিং।
 
-### ৪.৮ Business মডিউলের কাঠামো (ভিত্তি ✅, বাকি অংশ 🔜)
+### ৪.৮ Business মডিউলের কাঠামো ✅
 
 ```
 Request
@@ -315,7 +315,7 @@ Request
 | `careers` → `job_applications` | জব পোস্ট, আবেদন (cv_path, status, admin_note) |
 | `inquiries` | কোট/কন্টাক্ট রিকোয়েস্ট (type, status, admin_note, ip) |
 
-### ৫.২ Business (✅ তৈরি / 🔜 পরিকল্পিত)
+### ৫.২ Business ✅
 
 > **নামের সংঘাত এড়াতে:**
 > - ওয়েবসাইটের `clients` (লোগো) আর `projects` (পোর্টফোলিও) টেবিল আগের মতোই থাকবে।
