@@ -21,6 +21,11 @@ class ProjectTask extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function project()
+    {
+        return $this->belongsTo(WorkProject::class, 'work_project_id');
+    }
+
     public function milestone()
     {
         return $this->belongsTo(ProjectMilestone::class);

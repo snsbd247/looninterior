@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
   FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck, FiLifeBuoy,
+  FiChevronDown, FiFolder, FiInbox, FiLayout, FiEdit3,
 } from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -88,6 +89,59 @@ export function NoAccess() {
       <p className="a-muted">Your role does not have permission to open this page. Ask the Admin if you need it.</p>
       <Link to="/admin" className="a-btn a-btn-light">Go to Dashboard</Link>
     </div>
+  )
+}
+
+/* Icon of each top-level menu (submenu parents). */
+const GROUP_ICONS = {
+  CRM: FiTarget, 'Sales & Projects': FiTool, Billing: FiFile, Accounts: FiCreditCard, Inventory: FiBox,
+  Service: FiLifeBuoy, Reports: FiPieChart, 'Website Inbox': FiInbox, 'Home Page': FiLayout, Content: FiEdit3,
+  Careers: FiBriefcase, Administration: FiShield, System: FiSettings,
+}
+const OPEN_KEY = 'admin_menu_open'
+
+/**
+ * Sidebar as an accordion: each group is a parent item that expands its submenu.
+ * The group that contains the current page opens automatically; open groups are remembered.
+ */
+function SideMenu({ groups, pathname }) {
+  const isActive = (to) => pathname === to || pathname.startsWith(to + '/')
+  const [open, setOpen] = useState(() => { try { return JSON.parse(localStorage.getItem(OPEN_KEY)) || {} } catch { return {} } })
+  const activeGroup = groups.find((g) => g.links.some((l) => isActive(l.to)))?.name
+
+  useEffect(() => {
+    if (activeGroup && !open[activeGroup]) setOpen((o) => ({ ...o, [activeGroup]: true }))
+  }, [activeGroup]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { try { localStorage.setItem(OPEN_KEY, JSON.stringify(open)) } catch { /* ignore */ } }, [open])
+
+  return (
+    <nav className="a-nav">
+      <NavLink to="/admin" end className="a-nav-item"><FiHome /> <span>Dashboard</span></NavLink>
+      {groups.map((g) => {
+        const Ic = GROUP_ICONS[g.name] || FiFolder
+        const isOpen = !!open[g.name]
+        const badge = g.links.reduce((s, l) => s + (l.badge || 0), 0)
+        return (
+          <div key={g.name} className={`a-sub ${isOpen ? 'is-open' : ''} ${g.name === activeGroup ? 'has-active' : ''}`}>
+            <button type="button" className="a-nav-item a-sub-toggle" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [g.name]: !isOpen }))}>
+              <Ic /> <span>{g.name}</span>
+              {!isOpen && badge > 0 && <span className="a-badge">{badge}</span>}
+              <FiChevronDown className="a-sub-caret" />
+            </button>
+            {isOpen && (
+              <div className="a-sub-items">
+                {g.links.map((l) => (
+                  <NavLink key={l.to} to={l.to} className={() => (isActive(l.to) ? 'active' : '')}>
+                    <span>{l.label}</span>
+                    {l.badge > 0 && <span className="a-badge">{l.badge}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -178,32 +232,16 @@ function Layout() {
       <div className={`admin ${menu ? 'menu-open' : ''}`}>
         <aside className="a-sidebar">
           <Link to="/admin" className="a-brand">Admin Panel</Link>
-          <nav>
-            <NavLink to="/admin" end><FiHome /> Dashboard</NavLink>
-            {GROUPS.map((g) => {
-              const links = groupLinks(g)
-              if (!links.length) return null
-              return (
-                <div key={g} className="a-group">
-                  <span className="a-group-title">{g}</span>
-                  {links.map((l) => {
-                    const Ic = l.icon
-                    return (
-                      <NavLink key={l.to} to={l.to}>
-                        <Ic /> {l.label}
-                        {l.badge > 0 && <span className="a-badge">{l.badge}</span>}
-                      </NavLink>
-                    )
-                  })}
-                </div>
-              )
-            })}
-            <div className="a-group">
-              <span className="a-group-title">System</span>
-              {can('website.manage') && <NavLink to="/admin/settings"><FiSettings /> Site Settings</NavLink>}
-              <NavLink to="/admin/profile"><FiUser /> My Profile</NavLink>
-            </div>
-          </nav>
+          <SideMenu
+            pathname={location.pathname}
+            groups={[
+              ...GROUPS.map((g) => ({ name: g, links: groupLinks(g) })),
+              { name: 'System', links: [
+                ...(can('website.manage') ? [{ to: '/admin/settings', label: 'Site Settings', icon: FiSettings }] : []),
+                { to: '/admin/profile', label: 'My Profile', icon: FiUser },
+              ] },
+            ].filter((g) => g.links.length)}
+          />
         </aside>
         <div className="a-backdrop" onClick={() => setMenu(false)} />
 

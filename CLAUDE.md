@@ -48,6 +48,11 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - New business tables with a `branch_id` use the `BelongsToBranch` trait. New models use `LogsActivity`.
 - New permissions go in `config/permissions.php`. Every new route needs `perm:`.
 
+## UI rules (owner decisions, 17 Nov 2026)
+
+- All text on the website and the admin panel is **English**. Bangla appears only inside business document PDFs ("PDF (Bangla)" option, `lang/bn/doc.php`).
+- The admin sidebar is an **accordion submenu** (`SideMenu` in `AdminApp.jsx`). New sections go into an existing group (`GROUPS` / `EXTRA_LINKS`), or a new group with an icon in `GROUP_ICONS`.
+
 ## Commands (local Windows / XAMPP)
 
 ```powershell

@@ -204,6 +204,24 @@ labib/
   - ক্লায়েন্ট নিজে অনুরোধ পাঠাতে পারে। ফোন নম্বর মিলিয়ে তার প্রজেক্ট খুঁজে টিকেট তৈরি হয়।
   - ক্লায়েন্ট ইমেইলে টিকেট নম্বর পায়।
 
+### Business প্যানেল: ধাপ ৮ (Dashboard) ✅
+
+- **Dashboard (`/admin`):** প্রতিটা স্টাফ শুধু তার রোলের অংশ দেখে:
+  - **Sales:** লিড আর ফলো-আপ, কোটেশন।
+  - **Accounts:** আদায়, বকেয়া, ক্যাশ ও ব্যাংক, ৬ মাসের চার্ট।
+  - **Store:** কম স্টক।
+  - **Support:** টিকেট।
+  - প্রজেক্টের অগ্রগতি আর নিজের টাস্ক।
+- **সেন্ট্রাল ভিউ:** Admin উপরের মেনু থেকে "All branches (central)" বাছলে সব শাখার এই মাসের তুলনা দেখে।
+- **ট্যাব:** ওয়েবসাইটের পুরনো Dashboard আছে "Website" ট্যাবে।
+
+### অ্যাডমিন প্যানেলের মেনু আর ভাষা
+
+- **সাইডবার:** submenu স্টাইলে। CRM, Billing, Inventory… তে ক্লিক করলে নিচের মেনু খোলে। যে পেজ খোলা, তার মেনু নিজে থেকে খোলা থাকে।
+- **ভাষা:**
+  - পুরো ওয়েবসাইট আর অ্যাডমিন প্যানেল **ইংরেজিতে**।
+  - বাংলা শুধু ডকুমেন্টের **PDF (Bangla)** অপশনে (কোটেশন, ইনভয়েস, মানি রিসিট, PO)।
+
 ---
 
 ## কোডের গঠন
@@ -618,6 +636,7 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `GET tickets`, `tickets/{id}`, `tickets/report` | tickets.view | সার্ভিস টিকেট |
 | `POST tickets`, `tickets/{id}`, `tickets/{id}/comments` | tickets.manage | টিকেট খোলা, assign, স্ট্যাটাস, কমেন্ট |
 | `POST /api/service-requests` | পাবলিক (form_token) | ওয়েবসাইটের Service Request |
+| `GET /api/business/dashboard` | যেকোনো স্টাফ (অংশগুলো পারমিশন অনুযায়ী) | রোলভিত্তিক Dashboard |
 | `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
 | `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
 | `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |

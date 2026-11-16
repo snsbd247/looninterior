@@ -27,7 +27,7 @@ export async function openPdf(path, lang, toast, download = false) {
 }
 
 /**
- * PDF (EN/বাংলা), e-mail and WhatsApp buttons for a document.
+ * PDF (English/Bangla), e-mail and WhatsApp buttons for a document.
  *  base: "/quotations/5" (pdf at base/pdf, email at base/email)
  */
 export default function DocActions({ base, email, phone, shareUrl, shareText, canEmail = true, onEmailed }) {
@@ -51,7 +51,7 @@ export default function DocActions({ base, email, phone, shareUrl, shareText, ca
     <>
       <div className="b-doc-actions">
         <button type="button" className="a-btn a-btn-light" onClick={() => openPdf(`${base}/pdf`, 'en', toast)}><FiFileText /> PDF</button>
-        <button type="button" className="a-btn a-btn-light" onClick={() => openPdf(`${base}/pdf`, 'bn', toast)}><FiFileText /> বাংলা PDF</button>
+        <button type="button" className="a-btn a-btn-light" onClick={() => openPdf(`${base}/pdf`, 'bn', toast)}><FiFileText /> PDF (Bangla)</button>
         <button type="button" className="a-btn a-btn-light" onClick={() => openPdf(`${base}/pdf`, 'en', toast, true)} title="Download"><FiDownload /></button>
         {canEmail && <button type="button" className="a-btn a-btn-light" onClick={() => setMail({ to: email || '', lang: 'en', message: '' })}><FiMail /> Email</button>}
         {wa && phone && <a className="a-btn a-btn-light" href={wa} target="_blank" rel="noreferrer"><FaWhatsapp /> WhatsApp</a>}
@@ -63,7 +63,7 @@ export default function DocActions({ base, email, phone, shareUrl, shareText, ca
         </>}>
           <Field label="To"><input type="email" value={mail.to} onChange={(e) => setMail({ ...mail, to: e.target.value })} /></Field>
           <Field label="PDF language">
-            <select value={mail.lang} onChange={(e) => setMail({ ...mail, lang: e.target.value })}><option value="en">English</option><option value="bn">বাংলা</option></select>
+            <select value={mail.lang} onChange={(e) => setMail({ ...mail, lang: e.target.value })}><option value="en">English</option><option value="bn">Bangla</option></select>
           </Field>
           <Field label="Message (optional)"><textarea rows={4} value={mail.message} onChange={(e) => setMail({ ...mail, message: e.target.value })} placeholder="Dear Sir, please find the attached document…" /></Field>
         </Modal>

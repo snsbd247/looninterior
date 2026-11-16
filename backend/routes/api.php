@@ -123,6 +123,9 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
 
+    // Step 8: role-based dashboard (each block is permission-checked inside)
+    Route::get('dashboard', [\App\Http\Controllers\Business\DashboardController::class, 'index']);
+
     // Lookups for business forms (any staff)
     Route::get('lookup/staff', [LookupController::class, 'staff']);
     Route::get('lookup/tax-rates', [LookupController::class, 'taxRates']);

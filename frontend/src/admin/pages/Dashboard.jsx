@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FiInbox, FiGrid, FiLayers, FiUserPlus, FiEdit, FiMessageCircle, FiUsers, FiBell } from 'react-icons/fi'
 import { adminApi, formatDate } from '../../lib/api'
@@ -19,9 +19,33 @@ function Welcome() {
   )
 }
 
+const BusinessDashboard = lazy(() => import('../../business/pages/dashboard/BusinessDashboard'))
+const BUSINESS_PERMS = 'crm.view|quotations.view|projects.view|billing.view|accounts.view|inventory.view|tickets.view'
+const TAB_KEY = 'admin_dash_tab'
+
+/** Business overview (role-based) and/or the website overview, as tabs when both are allowed. */
 export default function Dashboard() {
   const { can } = useAdmin()
-  return can('website.manage') ? <WebsiteDashboard /> : <Welcome />
+  const biz = can(BUSINESS_PERMS)
+  const web = can('website.manage')
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem(TAB_KEY) || 'business' } catch { return 'business' } })
+  const pick = (t) => { setTab(t); try { localStorage.setItem(TAB_KEY, t) } catch { /* ignore */ } }
+  if (!biz && !web) return <Welcome />
+  const show = biz && web ? tab : biz ? 'business' : 'website'
+  return (
+    <>
+      <div className="a-page-head">
+        <h1>Dashboard</h1>
+        {biz && web && (
+          <div className="a-dash-tabs">
+            <button type="button" className={show === 'business' ? 'is-on' : ''} onClick={() => pick('business')}>Business</button>
+            <button type="button" className={show === 'website' ? 'is-on' : ''} onClick={() => pick('website')}>Website</button>
+          </div>
+        )}
+      </div>
+      {show === 'business' ? <Suspense fallback={<Loader />}><BusinessDashboard /></Suspense> : <WebsiteDashboard />}
+    </>
+  )
 }
 
 function WebsiteDashboard() {
@@ -47,7 +71,7 @@ function WebsiteDashboard() {
 
   return (
     <>
-      <div className="a-page-head"><h1>Dashboard</h1></div>
+
       <div className="a-cards">
         {cards.map(([label, value, Ic, to, variant]) => (
           <Link to={to} key={label} className={`a-card ${variant || ''}`}>

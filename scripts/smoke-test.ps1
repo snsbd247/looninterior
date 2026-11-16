@@ -151,7 +151,7 @@ if (-not $Email -or -not $Password) {
                    '/api/business/reports/projects', '/api/business/reports/branches',
                    '/api/business/stock', '/api/business/stock-entries', '/api/business/purchase-orders', '/api/business/purchases',
                    '/api/business/suppliers', '/api/business/lookup/stores', '/api/business/lookup/items',
-                   '/api/business/tickets', '/api/business/tickets/report') {
+                   '/api/business/tickets', '/api/business/tickets/report', '/api/business/dashboard') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 

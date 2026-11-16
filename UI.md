@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৭ সম্পূর্ণ)
+> **শেষ আপডেট:** ১৭ নভেম্বর ২০২৬ (Business ধাপ ১–৮ সম্পূর্ণ, submenu সাইডবার, ইংরেজি UI)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -129,7 +129,7 @@ labib/
                                       settings/BusinessSettings, activity/ActivityLog
                                       inventory/ (Stock, ItemLedger, StockEntries+Form, Stores), purchases/ (PurchaseOrders, Purchases, Suppliers+PayModal),
                                       tickets/ (TicketList, TicketForm, TicketDetail)
-                                      🔜 dashboard/
+                                      dashboard/ (BusinessDashboard)
 ```
 
 ---
@@ -154,6 +154,7 @@ labib/
 | ↳ ধাপ ৫ অ্যাকাউন্টস | `accounts[/{id}?from&to]` (লেজার), `transactions`, `transactions/transfer`, `transactions/{id}/cancel|attachment`, `reports/{cashbook,summary,profit-loss,projects,branches}` (সব রিপোর্টে `?format=csv`), `lookup/accounts`, `lookup/categories` (accounts.view/.manage) |
 | ↳ ধাপ ৬ ইনভেন্টরি | `stock[?store_id&low&format=csv]`, `stock/items/{id}`, `stock-entries[/{id}]`, `stock-entries/{id}/cancel`, `stores[/{id}]`, `purchase-orders[/{id}]`, `…/status|pdf|email`, `purchases[/{id}]`, `purchases/{id}/cancel`, `suppliers[/{id}]`, `suppliers/{id}/pay`, `supplier-payments/{id}/cancel`, `lookup/stores|items` (inventory.view/.manage, suppliers.pay); Items/Categories/Suppliers তৈরি-এডিট জেনেরিক CRUD দিয়ে |
 | ↳ ধাপ ৭ টিকেটিং | `tickets[?status=active|…&priority&assigned_to=me]`, `tickets/report`, `tickets/{id}`, `POST tickets`, `tickets/{id}` (assign/status/visit/priority/project), `tickets/{id}/comments` (ছবিসহ) (tickets.view/.manage); পাবলিক: `POST /api/service-requests` (throttle:forms + SpamGuard) → `TicketIntake` |
+| ↳ ধাপ ৮ Dashboard | `GET /api/business/dashboard` (যেকোনো স্টাফ; ভেতরে প্রতিটা অংশ পারমিশন দেখে দেয়: crm, quotations, billing, accounts, projects, inventory, tickets; সেন্ট্রাল ভিউতে `branches`) |
 | ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
@@ -397,7 +398,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
   - **শাখা বদলালে:** `.a-content` এর `key={branch}` বদলায়, ফলে পেজের ডেটা নতুন শাখার জন্য আবার লোড হয়।
   - **পারমিশন চেক:** `useAdmin().can('perm')` (`'a|b'` = যেকোনো একটা), `<Can perm>`, `<NoAccess/>`।
   - **কোথায় চেক হয়:** সাইডবার, ResourceList/Form আর Business রাউট সব জায়গায় পারমিশন চেক হয়। জেনেরিক রিসোর্সের পারমিশন আসে `resourcePerm(cfg)` থেকে।
-  - **Dashboard:** `website.manage` না থাকলে স্বাগত কার্ড দেখায়। রোলভিত্তিক Dashboard আসবে ধাপ ৮ এ।
+  - **Dashboard ✅:** কোনো business view পারমিশন থাকলে `BusinessDashboard` (lazy) দেখায়। `website.manage` ও থাকলে "Business / Website" ট্যাব। কোনোটাই না থাকলে স্বাগত কার্ড।
   - ✅ `useList(endpoint, filters)`: পেজিনেশন, সার্চ আর ফিল্টারসহ তালিকা। `useLookup(name)` dropdown এর জন্য, মেমরিতে cache রাখে। `downloadCsv()` আর `openPdf()` লগইন টোকেনসহ ফাইল খোলে।
 
 ### ৬.৩ ডিজাইন সিস্টেম: পাবলিক সাইট ✅ (`styles/site.css`)
@@ -451,14 +452,23 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 │ সাইডবার   │ টপবার:  [☰] [শাখা ▾]     View Site · নাম · Logout │
 │ (ডার্ক)    ├───────────────────────────────────────────────┤
 │ Dashboard│ .a-page-head   শিরোনাম + প্রধান অ্যাকশন বাটন     │
-│ Website  │ .a-panel       ফিল্টার / টেবিল / ফর্ম            │
-│  …       │   .a-table-wrap  (মোবাইলে আনুভূমিক স্ক্রল)        │
-│ CRM…      │   .a-form-grid   (half/full ফিল্ড)               │
-│  CRM     │ .a-form-actions                               │
-│  …       │                                   টোস্ট (নিচে) │
-│ System   │                                               │
+│ CRM     ▾│ .a-panel       ফিল্টার / টেবিল / ফর্ম            │
+│  ├ Leads │   .a-table-wrap  (মোবাইলে আনুভূমিক স্ক্রল)        │
+│  ├ Follow│   .a-form-grid   (half/full ফিল্ড)               │
+│  └ Cust. │ .a-form-actions                               │
+│ Billing ▸│                                   টোস্ট (নিচে) │
+│ …  System│                                               │
 └──────────┴───────────────────────────────────────────────┘
 ```
+
+**সাইডবার: submenu (accordion) ✅** (`SideMenu` in `AdminApp.jsx`, ১৭ নভেম্বর ২০২৬ এর সিদ্ধান্ত):
+- **গঠন:** প্রতিটা গ্রুপ (`GROUPS` in `resources.js`, সাথে "System") একটা মূল মেনু, আইকনসহ (`GROUP_ICONS`)। ক্লিক করলে submenu খোলে বা বন্ধ হয়।
+- **কী থাকে:** submenu তে থাকে জেনেরিক রিসোর্স (`group`) আর `EXTRA_LINKS[group]` এর লিংক। পারমিশন না থাকলে লিংক লুকানো, আর একটাও লিংক না থাকলে পুরো মেনুটাই লুকানো। `hidden: true` রিসোর্স সাইডবারে আসে না।
+- **খোলা/বন্ধ:** বর্তমান পেজের মেনু নিজে থেকে খোলে। খোলা মেনুগুলো `localStorage.admin_menu_open` এ মনে থাকে। মেনু বন্ধ থাকলেও নতুন কিছুর ব্যাজ (যেমন নতুন কোট রিকোয়েস্ট) মূল মেনুতে দেখায়।
+- **ক্লাস:** `.a-nav`, `.a-nav-item`, `.a-sub` (`.is-open`, `.has-active`), `.a-sub-toggle`, `.a-sub-caret`, `.a-sub-items`।
+- **নতুন মেনু যোগ:** নতুন মূল মেনু লাগলে `GROUPS` আর `GROUP_ICONS` এ যোগ করতে হবে।
+
+**ভাষা:** অ্যাডমিন আর ওয়েবসাইটের সব লেখা ইংরেজি। বাংলা শুধু ডকুমেন্ট PDF এর ভেতরে (`lang/bn/doc.php`, "PDF (Bangla)" বোতাম)।
 
 **মূল ক্লাস:**
 - **লেআউট:** `.a-panel`, `.a-panel-head`, `.a-page-head`, `.a-tabs`, `.a-cards`/`.a-card` (Dashboard এর সংখ্যা), `.a-grid-2`।
@@ -488,7 +498,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **Timeline** ✅ (লিড) | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
 | **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
-| **রোলভিত্তিক Dashboard** | `/admin` | রোল অনুযায়ী আলাদা কার্ড আর তালিকা (plan.md ধাপ ৮) |
+| **রোলভিত্তিক Dashboard** ✅ | `/admin` | `business/pages/dashboard/BusinessDashboard.jsx`: `Card` + `Kpis` (ক্লিক করলে সংশ্লিষ্ট পেজে যায়) + `TrendBars` (৬ মাস বিল বনাম আদায়)। শুধু পারমিশন আছে এমন অংশ। "All branches" ভিউতে শাখার তুলনার টেবিল |
 
 ### ৬.৬ প্রিন্ট ও PDF (ইঞ্জিন ✅)
 

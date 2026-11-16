@@ -158,7 +158,7 @@ export default function BusinessSettings() {
         <h1>Business Settings</h1>
         <div className="b-head-actions">
           <button type="button" className="a-btn a-btn-light" onClick={() => openPdf('en')} disabled={!!pdfLoading}><FiFileText /> {pdfLoading === 'en' ? 'Loading…' : 'Sample PDF (English)'}</button>
-          <button type="button" className="a-btn a-btn-light" onClick={() => openPdf('bn')} disabled={!!pdfLoading}><FiFileText /> {pdfLoading === 'bn' ? 'লোড হচ্ছে…' : 'নমুনা PDF (বাংলা)'}</button>
+          <button type="button" className="a-btn a-btn-light" onClick={() => openPdf('bn')} disabled={!!pdfLoading}><FiFileText /> {pdfLoading === 'bn' ? 'Loading…' : 'Sample PDF (Bangla)'}</button>
         </div>
       </div>
       <p className="a-muted b-sub b-intro">
@@ -191,7 +191,7 @@ export default function BusinessSettings() {
               )
             }
             const blocks = [{ name: f.name, label: f.bn ? `${f.label} (English)` : f.label }]
-            if (f.bn) blocks.push({ name: `${f.name}_bn`, label: `${f.label} (বাংলা)` })
+            if (f.bn) blocks.push({ name: `${f.name}_bn`, label: `${f.label} (Bangla)` })
             return blocks.map((b) => (
               <label key={b.name} className={`a-field ${f.half || f.bn ? '' : 'full'}`}>
                 <span>{b.label}</span>
