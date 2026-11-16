@@ -1,6 +1,9 @@
 import { createContext, lazy, Suspense, useContext, useEffect, useState, useCallback } from 'react'
 import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
-import { FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity } from 'react-icons/fi'
+import {
+  FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
+  FiTarget, FiClock, FiUserCheck,
+} from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
 import { RESOURCES, GROUPS, resourcePerm } from './resources'
@@ -21,6 +24,11 @@ export const useAdmin = () => useContext(AdminContext)
 
 /* Custom (non-generic) pages shown in a sidebar group, each behind a permission. */
 const EXTRA_LINKS = {
+  CRM: [
+    { to: '/admin/biz/leads', label: 'Leads', icon: FiTarget, perm: 'crm.view' },
+    { to: '/admin/biz/follow-ups', label: 'Follow-ups', icon: FiClock, perm: 'crm.view' },
+    { to: '/admin/biz/customers', label: 'Customers', icon: FiUserCheck, perm: 'crm.view' },
+  ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },
     { to: '/admin/biz/roles', label: 'Roles & Permissions', icon: FiShield, perm: 'roles.manage' },

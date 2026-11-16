@@ -6,6 +6,13 @@ import Roles from './pages/users/Roles'
 import RoleForm from './pages/users/RoleForm'
 import BusinessSettings from './pages/settings/BusinessSettings'
 import ActivityLog from './pages/activity/ActivityLog'
+import Leads from './pages/crm/Leads'
+import LeadForm from './pages/crm/LeadForm'
+import LeadDetail from './pages/crm/LeadDetail'
+import FollowUps from './pages/crm/FollowUps'
+import Customers from './pages/crm/Customers'
+import CustomerForm from './pages/crm/CustomerForm'
+import CustomerDetail from './pages/crm/CustomerDetail'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -14,17 +21,33 @@ function Guard({ perm, children }) {
   return can(perm) ? children : <NoAccess />
 }
 
+/* [path, permission, element] */
+const ROUTES = [
+  // Step 1: foundation
+  ['users', 'users.manage', <Users />],
+  ['users/new', 'users.manage', <UserForm />],
+  ['users/:id', 'users.manage', <UserForm />],
+  ['roles', 'roles.manage', <Roles />],
+  ['roles/new', 'roles.manage', <RoleForm />],
+  ['roles/:id', 'roles.manage', <RoleForm />],
+  ['settings', 'settings.business', <BusinessSettings />],
+  ['activity', 'activity.view', <ActivityLog />],
+  // Step 2: CRM
+  ['leads', 'crm.view', <Leads />],
+  ['leads/new', 'crm.manage', <LeadForm />],
+  ['leads/:id', 'crm.view', <LeadDetail />],
+  ['leads/:id/edit', 'crm.manage', <LeadForm />],
+  ['follow-ups', 'crm.view', <FollowUps />],
+  ['customers', 'crm.view', <Customers />],
+  ['customers/new', 'crm.manage', <CustomerForm />],
+  ['customers/:id', 'crm.view', <CustomerDetail />],
+  ['customers/:id/edit', 'crm.manage', <CustomerForm />],
+]
+
 export default function BusinessRoutes() {
   return (
     <Routes>
-      <Route path="users" element={<Guard perm="users.manage"><Users /></Guard>} />
-      <Route path="users/new" element={<Guard perm="users.manage"><UserForm /></Guard>} />
-      <Route path="users/:id" element={<Guard perm="users.manage"><UserForm /></Guard>} />
-      <Route path="roles" element={<Guard perm="roles.manage"><Roles /></Guard>} />
-      <Route path="roles/new" element={<Guard perm="roles.manage"><RoleForm /></Guard>} />
-      <Route path="roles/:id" element={<Guard perm="roles.manage"><RoleForm /></Guard>} />
-      <Route path="settings" element={<Guard perm="settings.business"><BusinessSettings /></Guard>} />
-      <Route path="activity" element={<Guard perm="activity.view"><ActivityLog /></Guard>} />
+      {ROUTES.map(([path, perm, el]) => <Route key={path} path={path} element={<Guard perm={perm}>{el}</Guard>} />)}
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>
   )

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Career;
 use App\Models\Inquiry;
 use App\Models\JobApplication;
+use App\Services\LeadIntake;
 use App\Support\Notifier;
 use App\Support\SpamGuard;
 use Illuminate\Http\Request;
@@ -40,6 +41,7 @@ class FormController extends Controller
         $data['ip'] = $request->ip();
 
         $inquiry = Inquiry::create($data);
+        LeadIntake::fromInquiry($inquiry);
         Notifier::inquiry($inquiry);
 
         return $thanks;

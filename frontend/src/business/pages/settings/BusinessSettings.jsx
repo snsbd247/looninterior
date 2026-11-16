@@ -46,13 +46,28 @@ const TABS = [
       { name: 'bn_digits', label: 'Use Bangla digits (১২৩) in Bangla documents', type: 'select', half: true, options: [{ value: '1', label: 'Yes' }, { value: '0', label: 'No (123)' }] },
     ],
   },
+  {
+    key: 'crm', label: 'CRM',
+    fields: [
+      { name: 'lead_branch_id', label: 'Branch for website leads', type: 'branch', half: true, help: 'Quote requests from the website become leads in this branch. Empty = first active branch.' },
+    ],
+  },
 ]
 
 const IMAGE_KEYS = TABS.flatMap((t) => t.fields).filter((f) => f.type === 'image').map((f) => f.name)
 const TEXT_KEYS = TABS.flatMap((t) => t.fields).filter((f) => f.type !== 'image').flatMap((f) => (f.bn ? [f.name, `${f.name}_bn`] : [f.name]))
 
 function Input({ f, name, value, onChange, error }) {
+  const { user } = useAdmin()
   const common = { value: value ?? '', onChange: (e) => onChange(e.target.value), placeholder: f.placeholder || '' }
+  if (f.type === 'branch') {
+    return (
+      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+        <option value="">— First active branch —</option>
+        {(user.branches || []).map((b) => <option key={b.id} value={String(b.id)}>{b.name} ({b.code})</option>)}
+      </select>
+    )
+  }
   if (f.type === 'textarea') return <textarea rows={f.rows || 3} {...common} />
   if (f.type === 'number') return <input type="number" {...common} />
   if (f.type === 'select') {

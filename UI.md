@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১: ভিত্তি তৈরি সম্পূর্ণ)
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১ ও ২ সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -111,11 +111,13 @@ labib/
         └── business/                 Business মডিউল (আলাদা lazy chunk, /admin/biz/*)
             ├── BusinessRoutes.jsx    ✅ রাউট + প্রতিটা পেজে পারমিশন গার্ড
             ├── business.css          ✅ b-* ক্লাস (admin.css এর টোকেন ব্যবহার করে)
-            ├── components/           ✅ Pagination
+            ├── lib.js                ✅ money() (BD কমা), label(), dateTime(), useList(), useLookup(), phoneHref(), waHref()
+            ├── components/           ✅ Pagination, ui.jsx (Status, Money, Modal, Field, BranchPicker, InfoGrid, Stat, Empty)
             │                         🔜 DataTable, LineItems, MoneyInput, StatusBadge, Kanban …
-            └── pages/                ✅ users/ (Users, UserForm, Roles, RoleForm),
+            └── pages/                ✅ users/ (Users, UserForm, Roles, RoleForm), crm/ (Leads+Board, LeadForm,
+                                      LeadDetail, FollowUps, Customers, CustomerForm, CustomerDetail),
                                       settings/BusinessSettings, activity/ActivityLog
-                                      🔜 crm/, quotations/, projects/, billing/, accounts/,
+                                      🔜 quotations/, projects/, billing/, accounts/,
                                       inventory/, tickets/, reports/
 ```
 
@@ -135,6 +137,8 @@ labib/
 | `/api/admin/{resource}[/{id}]` | জেনেরিক CRUD, পারমিশন রেজিস্ট্রির `permission` কী থেকে (ডিফল্ট `website.manage`)। এর মধ্যে `branches` আর `tax_rates`ও আছে |
 | `/api/business/*` ✅ | `auth:sanctum` + `active` + `branch` + `perm:*` |
 | ↳ ধাপ ১ | `permissions`, `roles[/{id}]`, `users[/{id}]`, `settings`, `pdf/sample?lang=`, `activity-logs` |
+| ↳ lookup | `lookup/staff`, `lookup/tax-rates`, `lookup/branches` (যেকোনো স্টাফ) |
+| ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
 | বাকি সব | React index.html + SEO meta |
@@ -250,6 +254,10 @@ Request
 - **শাখা:** লগে শাখা বসে শুধু শাখাভিত্তিক রেকর্ডে (যাতে `branch_id` আছে)। কোম্পানি-ব্যাপী পরিবর্তন সব শাখার লগে দেখায়।
 - **হাতে লেখা:** লগইন, পাসওয়ার্ড বদল, ইউজারের শাখা বদল আর সেটিংস সেভ `ActivityLogger::record()` দিয়ে লেখা হয়।
 
+**রুট-বাইন্ডিং নিরাপত্তা ✅:** `bootstrap/app.php` এ middleware priority এমনভাবে সাজানো যে `ResolveBranch` আর `EnsureUserIsActive` চলে authentication এর ঠিক পরে, আর `SubstituteBindings` (route model binding) এর আগে। ফলে `/leads/{lead}` এর মতো URL এ অন্য শাখার রেকর্ড পাওয়া যায় না (404)। টেস্টে এটা ধরা পড়েছিল।
+
+**সময় ✅:** `config/app.php` এ `APP_TIMEZONE=Asia/Dhaka`। DB তে স্থানীয় সময় থাকে, JSON এ যায় UTC (`…Z`), আর ব্রাউজার স্থানীয় সময়ে দেখায়।
+
 **প্রথম চালুতে ডেটা (`BusinessFoundation::ensure()`) ✅:**
 - **কাজ:** ৫টা রোল, "Head Office" (HO) শাখা আর VAT 15% তৈরি করে। রোল নেই এমন ইউজারকে Admin বানিয়ে HO তে যুক্ত করে।
 - **কোথা থেকে চলে:** একটা migration থেকে (তাই cPanel `/install` এও চলে) আর DatabaseSeeder থেকে।
@@ -296,9 +304,9 @@ Request
 | | `activity_logs` | user_id, branch_id, action (created/updated/deleted/login/password_changed), subject_type, subject_id, description, changes (JSON before/after), ip, created_at |
 | | `tax_rates` | name, rate (decimal 6,3), is_default (একটাই), is_active। মোছা যায় না |
 | | `document_sequences` | branch_id, type (QT/INV/RCV/PO/GRN/TKT), year, last_number, unique(branch, type, year) |
-| **CRM** | `leads` (শাখাভিত্তিক) | name, phone, email, source, stage, assigned_to, inquiry_id, customer_id, expected_value |
-| | `lead_activities` | lead, type (call/meeting/visit/note), note, follow_up_at, done_at |
-| | `customers` (শাখাভিত্তিক) | name, phone, email, address, lead_id |
+| **CRM ✅** | `leads` (শাখাভিত্তিক) | name, phone, email, address, source, stage, service, property_type, area_size, budget, expected_value, requirements, assigned_to, inquiry_id, customer_id, next_follow_up_at (সবচেয়ে কাছের খোলা ফলো-আপ, ক্যাশ), lost_reason, won_at, created_by |
+| | `lead_activities` | lead_id, user_id, type (call/meeting/visit/note/follow_up/stage), note, follow_up_at, done_at |
+| | `customers` (শাখাভিত্তিক) | name, phone, email, address, company, notes, created_by (লিড → customer_id দিয়ে যুক্ত) |
 | **কোটেশন** | `quotations` (শাখাভিত্তিক) | number, customer, revision, parent_id, status, subtotal, discount, tax_rate, tax, total, valid_until, terms_en/bn |
 | | `quotation_sections` → `quotation_items` | ঘর → আইটেম (description, unit, qty, rate, amount) |
 | **প্রজেক্ট** | `work_projects` (শাখাভিত্তিক) | code, customer, quotation, title, site_address, contract_value, start/end, manager_id, status, progress, portfolio_project_id |
@@ -453,12 +461,12 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **Permission matrix** ✅ | রোল এডিট | মডিউল অনুযায়ী কার্ড। মডিউলের চেকবক্সে সব একসাথে টিক হয়, আংশিক হলে indeterminate দেখায় |
 | **EN/BN টুইন ফিল্ড** ✅ | Business Settings | `bn: true` দিলে একই ফিল্ডের "(English)" আর "(বাংলা)" দুই সংস্করণ পাশাপাশি দেখায় |
 | **DataTable** | সব তালিকা | সার্চ, ফিল্টার (তারিখ, স্ট্যাটাস, শাখা), পেজিনেশন, কলাম সর্ট, Excel এক্সপোর্ট। মোবাইলে কার্ড ভিউ |
-| **StatusBadge** | সব জায়গায় | স্ট্যাটাস অনুযায়ী রং, যেমন Draft ধূসর, Sent নীল, Approved/Paid সবুজ, Partial হলুদ, Overdue/Cancelled লাল |
-| **Kanban** | CRM পাইপলাইন | ধাপের কলাম। কার্ড টেনে ধাপ বদলানো যায়। মোবাইলে কলামগুলো আনুভূমিক স্ক্রল |
+| **Status** ✅ (`ui.jsx`) | সব জায়গায় | স্ট্যাটাস অনুযায়ী রং, যেমন Draft ধূসর, Sent নীল, Approved/Paid সবুজ, Partial হলুদ, Overdue/Cancelled লাল |
+| **Kanban** ✅ | CRM পাইপলাইন | ধাপের কলাম (HTML5 drag & drop)। মোবাইলে কলামগুলো আনুভূমিক স্ক্রল আর কার্ডে "move to" dropdown |
 | **LineItemsEditor** | কোটেশন, ইনভয়েস, PO | সেকশন/ঘর → আইটেমের সারি (বিবরণ, একক, পরিমাণ, দর, মোট)। সারি যোগ/মুছা/সাজানো। নিচে subtotal → discount → tax → total (ব্রাউজারে শুধু দেখানোর জন্য হিসাব, আসল হিসাব সার্ভারে) |
 | **MoneyInput / Money** | টাকার ফিল্ড | `৳ 1,20,000.00` বাংলাদেশি কমা-ফরম্যাট, ডান দিকে সাজানো |
 | **DocumentView** | কোটেশন/ইনভয়েস/রিসিট/PO | ডকুমেন্টের প্রিভিউ, পাশে অ্যাকশন: Edit, Send, **Print/PDF (EN \| বাংলা)**, WhatsApp, Cancel |
-| **Timeline** | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
+| **Timeline** ✅ (লিড) | লিড, টিকেট, প্রজেক্ট | যোগাযোগের ইতিহাস আর কমেন্ট, তারিখ অনুযায়ী সাজানো |
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
 | **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
 | **রোলভিত্তিক Dashboard** | `/admin` | রোল অনুযায়ী আলাদা কার্ড আর তালিকা (plan.md ধাপ ৮) |

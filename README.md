@@ -128,6 +128,23 @@ labib/
 - **Activity Log:** কে কখন কী তৈরি, বদল বা মুছেছে, আগের আর পরের মানসহ। লগইনও থাকে।
 - **রোল অনুযায়ী মেনু:** প্রতিটা স্টাফ শুধু তার রোলের মেনু দেখে। সার্ভারও (API) অনুমতি ছাড়া কিছু করতে দেয় না।
 
+### Business প্যানেল: ধাপ ২ (CRM) ✅
+
+সাইডবারের **CRM** গ্রুপে আছে।
+
+- **Leads:**
+  - ওয়েবসাইটের প্রতিটা কোট রিকোয়েস্ট নিজে থেকেই লিড হয়ে যায়। একই ফোন নম্বর হলে আগের লিডের টাইমলাইনে যোগ হয়।
+  - হাতেও লিড যোগ করা যায় (ফোন, Facebook, রেফারেন্স…)।
+  - তালিকা আর **Pipeline (Kanban)** ভিউ। কার্ড টেনে ধাপ বদলানো যায়।
+- **লিডের পেজ:**
+  - ধাপের বার থেকে এক ক্লিকে ধাপ বদলানো যায়।
+  - Call, Meeting, Site Visit আর Note টাইমলাইনে লেখা যায়, সাথে পরের ফলো-আপের সময়।
+  - Call আর WhatsApp বাটন।
+- **Follow-ups:** আজকের আর মিস হওয়া ফলো-আপের তালিকা। এক ক্লিকে Done করা যায়।
+- **Customers:**
+  - লিড Won হলে নিজে থেকে তৈরি হয়।
+  - প্রোফাইলে সব লিড দেখা যায়। পরের ধাপে কোটেশন, প্রজেক্ট, ইনভয়েস আর পেমেন্টও এখানে আসবে।
+
 ---
 
 ## কোডের গঠন
@@ -340,6 +357,7 @@ APP_NAME="Loon Interior"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://yourdomain.com
+APP_TIMEZONE=Asia/Dhaka
 APP_KEY=base64:...........        # লোকালে `php artisan key:generate --show` চালিয়ে কপি করুন
 DB_HOST=localhost
 DB_DATABASE=cpaneluser_dbname
@@ -518,6 +536,10 @@ php artisan config:cache && php artisan route:cache
 | `GET/POST /api/business/settings` | settings.business | Business Settings |
 | `GET /api/business/pdf/sample?lang=en\|bn` | settings.business | নমুনা PDF |
 | `GET /api/business/activity-logs` | activity.view | Activity Log (ফিল্টার: action, subject_type, from, to, q) |
+| `GET /api/business/lookup/{staff,tax-rates,branches}` | যেকোনো স্টাফ | ফর্মের dropdown |
+| `GET /api/business/leads[?view=board]`, `GET leads/{id}`, `GET follow-ups` | crm.view | লিড, পাইপলাইন, ফলো-আপ |
+| `POST leads`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle` | crm.manage | লিড তৈরি/এডিট, ধাপ বদল, টাইমলাইন, ক্লায়েন্ট বানানো |
+| `GET/POST /api/business/customers[/{id}]` | crm.view / crm.manage | ক্লায়েন্ট |
 
 ---
 

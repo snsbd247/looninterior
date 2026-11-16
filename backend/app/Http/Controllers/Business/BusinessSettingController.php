@@ -40,6 +40,7 @@ class BusinessSettingController extends Controller
         'number_format' => ['nullable', 'string', 'max:60', 'regex:/\{SEQ\}/'],
         'number_padding' => 'nullable|integer|min:1|max:10',
         'bn_digits' => 'nullable|in:0,1',
+        'lead_branch_id' => 'nullable|integer|exists:branches,id',
     ];
 
     private const IMAGES = ['logo', 'signature', 'seal'];

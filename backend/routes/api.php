@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Business\ActivityLogController;
 use App\Http\Controllers\Business\BusinessSettingController;
+use App\Http\Controllers\Business\CustomerController;
+use App\Http\Controllers\Business\LeadController;
+use App\Http\Controllers\Business\LookupController;
 use App\Http\Controllers\Business\RoleController;
 use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
@@ -107,4 +110,28 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
     });
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
+
+    // Lookups for business forms (any staff)
+    Route::get('lookup/staff', [LookupController::class, 'staff']);
+    Route::get('lookup/tax-rates', [LookupController::class, 'taxRates']);
+    Route::get('lookup/branches', [LookupController::class, 'branches']);
+
+    // Step 2: CRM
+    Route::middleware('perm:crm.view')->group(function () {
+        Route::get('leads', [LeadController::class, 'index']);
+        Route::get('leads/{lead}', [LeadController::class, 'show'])->whereNumber('lead');
+        Route::get('follow-ups', [LeadController::class, 'followUps']);
+        Route::get('customers', [CustomerController::class, 'index']);
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer');
+    });
+    Route::middleware('perm:crm.manage')->group(function () {
+        Route::post('leads', [LeadController::class, 'store']);
+        Route::post('leads/{lead}', [LeadController::class, 'update'])->whereNumber('lead');
+        Route::post('leads/{lead}/stage', [LeadController::class, 'stage'])->whereNumber('lead');
+        Route::post('leads/{lead}/activities', [LeadController::class, 'addActivity'])->whereNumber('lead');
+        Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])->whereNumber('lead');
+        Route::post('lead-activities/{activity}/toggle', [LeadController::class, 'completeActivity'])->whereNumber('activity');
+        Route::post('customers', [CustomerController::class, 'store']);
+        Route::post('customers/{customer}', [CustomerController::class, 'update'])->whereNumber('customer');
+    });
 });

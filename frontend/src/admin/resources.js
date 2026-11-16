@@ -210,7 +210,7 @@ export const RESOURCES = {
   },
 
   inquiries: {
-    label: 'Quote Requests', singular: 'Inquiry', icon: FiInbox, group: 'Leads', readonly: true,
+    label: 'Quote Requests', singular: 'Inquiry', icon: FiInbox, group: 'Website Inbox', readonly: true,
     filter: { name: 'status', label: 'All status', options: ['new', 'contacted', 'converted', 'closed'] },
     columns: [
       { key: 'name', label: 'Name' }, { key: 'phone', label: 'Phone' }, { key: 'type', label: 'Type' },
@@ -255,7 +255,8 @@ export const RESOURCES = {
   },
 }
 
-export const GROUPS = ['Leads', 'Home Page', 'Content', 'Careers', 'Administration']
+/* Sidebar order. Business groups first; a group shows only if the user can open something in it. */
+export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
 
 /** Permission needed for a resource (website content by default). */
 export const resourcePerm = (cfg) => cfg?.perm || 'website.manage'
