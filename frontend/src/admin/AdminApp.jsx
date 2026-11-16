@@ -2,7 +2,7 @@ import { createContext, lazy, Suspense, useContext, useEffect, useState, useCall
 import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   FiHome, FiSettings, FiUser, FiLogOut, FiExternalLink, FiMenu, FiUsers, FiShield, FiBriefcase, FiActivity,
-  FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart,
+  FiTarget, FiClock, FiUserCheck, FiFileText, FiTool, FiFile, FiDollarSign, FiAlertCircle, FiCreditCard, FiRepeat, FiPieChart, FiBox, FiShuffle, FiClipboard, FiPackage, FiTruck,
 } from 'react-icons/fi'
 import { adminApi, getBranch, getToken, setBranch, setToken, sitePath } from '../lib/api'
 import Loader from '../components/Loader'
@@ -42,6 +42,14 @@ const EXTRA_LINKS = {
     { to: '/admin/biz/accounts', label: 'Cash & Bank', icon: FiCreditCard, perm: 'accounts.view' },
     { to: '/admin/biz/transactions', label: 'Income & Expenses', icon: FiRepeat, perm: 'accounts.view' },
     { to: '/admin/biz/reports', label: 'Reports', icon: FiPieChart, perm: 'accounts.view' },
+  ],
+  Inventory: [
+    { to: '/admin/biz/stock', label: 'Stock', icon: FiBox, perm: 'inventory.view' },
+    { to: '/admin/biz/stock-entries', label: 'Issue / Transfer', icon: FiShuffle, perm: 'inventory.view' },
+    { to: '/admin/biz/purchase-orders', label: 'Purchase Orders', icon: FiClipboard, perm: 'inventory.view' },
+    { to: '/admin/biz/purchases', label: 'Purchases (GRN)', icon: FiPackage, perm: 'inventory.view' },
+    { to: '/admin/biz/suppliers', label: 'Suppliers', icon: FiTruck, perm: 'inventory.view|suppliers.pay' },
+    { to: '/admin/biz/stores', label: 'Stores', icon: FiHome, perm: 'inventory.view' },
   ],
   Administration: [
     { to: '/admin/biz/users', label: 'Users', icon: FiUsers, perm: 'users.manage' },
@@ -156,7 +164,7 @@ function Layout() {
   if (!user) return <Loader full />
 
   const groupLinks = (g) => [
-    ...Object.entries(RESOURCES).filter(([, r]) => r.group === g && can(resourcePerm(r))).map(([key, r]) => ({
+    ...Object.entries(RESOURCES).filter(([, r]) => r.group === g && !r.hidden && can(resourcePerm(r))).map(([key, r]) => ({
       to: `/admin/r/${key}`, label: r.label, icon: r.icon, badge: badges[key],
     })),
     ...(EXTRA_LINKS[g] || []).filter((l) => can(l.perm)),

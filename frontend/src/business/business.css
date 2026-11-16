@@ -315,3 +315,24 @@
 }
 
 .a-table th.r, .a-table td.r { text-align: right; }
+
+/* ===================== Inventory & purchase (step 6) ===================== */
+.b-type-chips { margin-bottom: 6px; }
+.b-irows { display: flex; flex-direction: column; gap: 6px; }
+.b-irow { display: grid; grid-template-columns: minmax(0, 1fr) 130px 34px; gap: 8px; align-items: start; padding: 6px 0; border-bottom: 1px dashed var(--a-border); }
+.b-irow.has-rate { grid-template-columns: minmax(0, 1fr) 110px 120px 120px 34px; }
+.b-irow select, .b-irow input { width: 100%; border: 1px solid var(--a-border); border-radius: 6px; padding: 8px 9px; font-family: inherit; font-size: 14px; background: #fff; }
+.b-irow .c-item { display: flex; flex-direction: column; gap: 4px; }
+.b-irow label > span { display: block; font-size: 11.5px; color: var(--a-muted); margin-bottom: 2px; }
+.b-irow input[type=number] { text-align: right; }
+.b-irow .c-amt { padding-top: 26px; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+.b-irow .a-icon-btn { margin-top: 20px; }
+.b-irow .has-error { border-color: #dc2626; }
+.b-paynow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0; padding: 12px; border: 1px dashed var(--a-border); border-radius: 8px; }
+.b-paynow select { border: 1px solid var(--a-border); border-radius: 6px; padding: 7px 9px; font-family: inherit; }
+.b-low-row td { background: #fff7ed; }
+@media (max-width: 640px) {
+  .b-irow, .b-irow.has-rate { grid-template-columns: 1fr 1fr 34px; }
+  .b-irow .c-item { grid-column: 1 / -1; }
+  .b-irow .c-amt { padding-top: 4px; grid-column: 1 / 3; text-align: left; }
+}

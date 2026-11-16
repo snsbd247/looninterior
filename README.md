@@ -176,6 +176,23 @@ labib/
   - Admin পায় মেয়াদোত্তীর্ণ ইনভয়েসের তালিকা।
   - এর জন্য cPanel Cron দরকার ([ধাপ ৭ক](#ধাপ-৭ক-cron-job)।)
 
+### Business প্যানেল: ধাপ ৬ (ইনভেন্টরি) ✅
+
+সাইডবারের **Inventory** গ্রুপে আছে।
+
+- **Items / Item Categories / Stores:**
+  - মালামালের তালিকা (একক, low-stock সীমা)।
+  - প্রতিটা শাখায় এক বা একাধিক স্টোর। নতুন শাখায় "Main Store" নিজে থেকে তৈরি হয়।
+- **Purchase Orders:** সাপ্লায়ারকে PO (PDF/ইমেইল)। মাল এলে "Receive Goods" দিয়ে GRN।
+- **Purchases (GRN):**
+  - স্টোরে মাল ঢোকানো: স্টক আর গড় ক্রয়মূল্য আপডেট হয়।
+  - অথবা "Direct to project": মাল সোজা প্রজেক্টের খরচে যায়।
+  - নগদে কিনলে "Paid now" দিয়ে সাথে সাথে পেমেন্ট দেওয়া যায়।
+- **Issue / Transfer:** প্রজেক্টে মাল ইস্যু, সাইট থেকে ফেরত, স্টোর থেকে স্টোরে ট্রান্সফার, অ্যাডজাস্টমেন্ট। স্টকের বেশি বের করা যায় না।
+- **Stock:** কোন স্টোরে কত আছে, গড় মূল্য, মোট মূল্য, কম স্টকের সতর্কতা, প্রতিটা মালামালের ইতিহাস। CSV ডাউনলোড।
+- **Suppliers:** কার কাছে কত দেনা, স্টেটমেন্ট, পেমেন্ট (Accounts রোলের `suppliers.pay` পারমিশন লাগে)।
+- **প্রজেক্টের খরচ:** ইস্যু করা মাল আর সরাসরি ক্রয় নিজে থেকে প্রজেক্টের "Cost so far" এ যোগ হয়।
+
 ---
 
 ## কোডের গঠন
@@ -584,6 +601,9 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `POST invoices`, `invoices/{id}`, `…/issue`, `…/receive`, `…/credit-note`, `…/cancel`, `…/email`, `payments/{id}/cancel` | billing.manage | ইনভয়েস তৈরি, পেমেন্ট নেওয়া, বাতিল |
 | `GET accounts[/{id}]`, `transactions`, `reports/{cashbook,summary,profit-loss,projects,branches}` (`?format=csv`) | accounts.view | অ্যাকাউন্ট, লেজার, রিপোর্ট |
 | `POST accounts[/{id}]`, `transactions`, `transactions/transfer`, `transactions/{id}/cancel` | accounts.manage | আয়/ব্যয়, ট্রান্সফার |
+| `GET stock`, `stock/items/{id}`, `stock-entries`, `purchase-orders`, `purchases`, `suppliers` | inventory.view | স্টক, ইতিহাস, ক্রয় |
+| `POST stores`, `stock-entries`, `purchase-orders`, `purchases`, `…/cancel` | inventory.manage | স্টোর, ইস্যু/ট্রান্সফার, PO, GRN |
+| `POST suppliers/{id}/pay`, `supplier-payments/{id}/cancel` | suppliers.pay | সাপ্লায়ার পেমেন্ট |
 | `GET quotations[/{id}]`, `GET quotations/{id}/pdf?lang=en\|bn` | quotations.view | কোটেশন তালিকা, বিস্তারিত, PDF |
 | `POST quotations`, `quotations/{id}`, `…/status`, `…/revise`, `…/email` | quotations.manage | তৈরি, এডিট (ড্রাফট), স্ট্যাটাস, রিভিশন, ইমেইল |
 | `GET /api/public/quotations/{id}/pdf?…&signature=` | (signed লিংক) | WhatsApp এ শেয়ার করা PDF |

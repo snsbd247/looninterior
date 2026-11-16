@@ -28,6 +28,13 @@ import Accounts from './pages/accounts/Accounts'
 import AccountLedger from './pages/accounts/AccountLedger'
 import Transactions from './pages/accounts/Transactions'
 import Reports from './pages/accounts/Reports'
+import Stock from './pages/inventory/Stock'
+import ItemLedger from './pages/inventory/ItemLedger'
+import StockEntries, { StockEntryForm } from './pages/inventory/StockEntries'
+import Stores from './pages/inventory/Stores'
+import { PurchaseOrderList, PurchaseOrderForm, PurchaseOrderDetail } from './pages/purchases/PurchaseOrders'
+import { PurchaseList, PurchaseForm, PurchaseDetail } from './pages/purchases/Purchases'
+import { SupplierList, SupplierDetail } from './pages/purchases/Suppliers'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -78,6 +85,21 @@ const ROUTES = [
   ['accounts/:id', 'accounts.view', <AccountLedger />],
   ['transactions', 'accounts.view', <Transactions />],
   ['reports', 'accounts.view', <Reports />],
+  // Step 6: Inventory & purchase
+  ['stock', 'inventory.view', <Stock />],
+  ['stock/items/:id', 'inventory.view', <ItemLedger />],
+  ['stock-entries', 'inventory.view', <StockEntries />],
+  ['stock-entries/new', 'inventory.manage', <StockEntryForm />],
+  ['stores', 'inventory.view', <Stores />],
+  ['purchase-orders', 'inventory.view', <PurchaseOrderList />],
+  ['purchase-orders/new', 'inventory.manage', <PurchaseOrderForm />],
+  ['purchase-orders/:id', 'inventory.view', <PurchaseOrderDetail />],
+  ['purchase-orders/:id/edit', 'inventory.manage', <PurchaseOrderForm />],
+  ['purchases', 'inventory.view', <PurchaseList />],
+  ['purchases/new', 'inventory.manage', <PurchaseForm />],
+  ['purchases/:id', 'inventory.view', <PurchaseDetail />],
+  ['suppliers', 'inventory.view|suppliers.pay', <SupplierList />],
+  ['suppliers/:id', 'inventory.view|suppliers.pay', <SupplierDetail />],
 ]
 
 export default function BusinessRoutes() {

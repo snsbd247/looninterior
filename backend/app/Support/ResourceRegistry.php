@@ -324,6 +324,54 @@ class ResourceRegistry
                 ],
             ],
 
+            'item_categories' => [
+                'model' => \App\Models\Business\ItemCategory::class,
+                'permission' => 'inventory.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name'],
+                'order' => ['name', 'asc'],
+                'rules' => ['name' => 'required|string|max:100', 'is_active' => 'boolean'],
+            ],
+
+            'items' => [
+                'model' => \App\Models\Business\Item::class,
+                'permission' => 'inventory.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name', 'sku'],
+                'filters' => ['item_category_id'],
+                'with' => ['category:id,name'],
+                'order' => ['name', 'asc'],
+                'rules' => [
+                    'name' => 'required|string|max:255',
+                    'sku' => 'nullable|string|max:50|unique:items,sku,{id}',
+                    'item_category_id' => 'nullable|integer|exists:item_categories,id',
+                    'unit' => 'required|string|max:30',
+                    'min_stock' => 'nullable|numeric|min:0',
+                    'description' => 'nullable|string|max:2000',
+                    'is_active' => 'boolean',
+                ],
+            ],
+
+            'suppliers' => [
+                'model' => \App\Models\Business\Supplier::class,
+                'permission' => 'inventory.manage',
+                'no_delete' => true,
+                'booleans' => ['is_active'],
+                'search' => ['name', 'phone'],
+                'order' => ['name', 'asc'],
+                'rules' => [
+                    'name' => 'required|string|max:255',
+                    'phone' => 'nullable|string|max:50',
+                    'email' => 'nullable|email|max:255',
+                    'address' => 'nullable|string|max:1000',
+                    'opening_due' => 'nullable|numeric|min:-999999999|max:999999999999',
+                    'notes' => 'nullable|string|max:2000',
+                    'is_active' => 'boolean',
+                ],
+            ],
+
             'transaction_categories' => [
                 'model' => \App\Models\Business\TransactionCategory::class,
                 'permission' => 'accounts.manage',

@@ -1,6 +1,6 @@
 # Loon Interior: আর্কিটেকচার
 
-> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৫ সম্পূর্ণ)
+> **শেষ আপডেট:** ১৬ নভেম্বর ২০২৬ (Business ধাপ ১–৬ সম্পূর্ণ)
 > **প্ল্যান:** [plan.md](plan.md) | **ইনস্টল/ডেপ্লয়:** [README.md](README.md)
 >
 > **চিহ্ন:** ✅ = তৈরি হয়ে গেছে, 🔜 = Business মডিউলে (পর্যায় D) তৈরি হবে।
@@ -81,7 +81,7 @@ labib/
 │   │   │                             LeadIntake, DocumentTotals (সার্ভারে মোট হিসাব), Documents ($doc বানানো + ইমেইল),
 │   │   │                             Ledger (post/transfer/cancel/cancelFor), Billing (receive/cancelPayment/creditNote/cancelInvoice)
 │   │   ├── Console/Commands/         ✅ BusinessReminders (business:reminders, প্রতিদিন ০৯:০০, routes/console.php)
-│   │   │                             🔜 Stock
+│   │   │                             Stock (receive/out/in/reverse/unreceive, row lock), Purchasing (purchase, entry, supplier pay)
 │   │   ├── Support/                  ResourceRegistry, Uploader, SpamGuard, Notifier, Seo,
 │   │   │                             ✅ BranchContext, ActivityLogger, BusinessFoundation
 │   │   ├── Http/Middleware/          ✅ EnsureUserIsActive (active), RequirePermission (perm),
@@ -127,7 +127,8 @@ labib/
                                       billing/ (Invoices, InvoiceForm, InvoiceDetail+Receive/Credit/Cancel modals, Payments, Receivables),
                                       accounts/ (Accounts, AccountLedger, Transactions+EntryModal+TransferModal, Reports+Bars),
                                       settings/BusinessSettings, activity/ActivityLog
-                                      🔜 inventory/, tickets/, dashboard/
+                                      inventory/ (Stock, ItemLedger, StockEntries+Form, Stores), purchases/ (PurchaseOrders, Purchases, Suppliers+PayModal),
+                                      🔜 tickets/, dashboard/
 ```
 
 ---
@@ -150,6 +151,7 @@ labib/
 | ↳ ধাপ ৪ প্রজেক্ট | `projects[?all=1]`, `projects/{id}` (+finance, invoices, expenses), `…/milestones`, `…/tasks[/{t}]`, `…/files[/{f}]`, `…/schedule`, `…/publish` (projects.view/.manage; publish এ website.manage ও লাগবে) |
 | ↳ ধাপ ৪ বিলিং | `invoices[?status=unpaid|overdue|…]`, `invoices/prefill?schedule_id|quotation_id|project_id`, `invoices/{id}`, `…/issue`, `…/receive`, `…/credit-note`, `…/cancel`, `…/pdf`, `…/email`, `payments[/{id}]`, `payments/{id}/cancel|pdf|email`, `receivables[?format=csv]` (billing.view/.manage) |
 | ↳ ধাপ ৫ অ্যাকাউন্টস | `accounts[/{id}?from&to]` (লেজার), `transactions`, `transactions/transfer`, `transactions/{id}/cancel|attachment`, `reports/{cashbook,summary,profit-loss,projects,branches}` (সব রিপোর্টে `?format=csv`), `lookup/accounts`, `lookup/categories` (accounts.view/.manage) |
+| ↳ ধাপ ৬ ইনভেন্টরি | `stock[?store_id&low&format=csv]`, `stock/items/{id}`, `stock-entries[/{id}]`, `stock-entries/{id}/cancel`, `stores[/{id}]`, `purchase-orders[/{id}]`, `…/status|pdf|email`, `purchases[/{id}]`, `purchases/{id}/cancel`, `suppliers[/{id}]`, `suppliers/{id}/pay`, `supplier-payments/{id}/cancel`, `lookup/stores|items` (inventory.view/.manage, suppliers.pay); Items/Categories/Suppliers তৈরি-এডিট জেনেরিক CRUD দিয়ে |
 | ↳ ধাপ ৩ কোটেশন | `quotations`, `quotations/{id}`, `…/pdf?lang=&download=`, `…/status`, `…/revise`, `…/email` (quotations.view / .manage); পাবলিক: `GET /api/public/quotations/{id}/pdf?lang=&expires=&signature=` (signed) |
 | ↳ ধাপ ২ CRM | `leads[?view=board]`, `leads/{id}`, `leads/{id}/stage`, `leads/{id}/activities`, `leads/{id}/convert`, `lead-activities/{id}/toggle`, `follow-ups`, `customers[/{id}]` (crm.view / crm.manage) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
@@ -247,7 +249,7 @@ Request
   → Service (ব্যবসার নিয়ম)      DB::transaction এর ভেতরে:
         DocumentNumber::next('INV', $branch)     ✅ atomic upsert দিয়ে নম্বর (ডুপ্লিকেট/ফাঁক নেই)
         Ledger::post(...)                        ✅ আয়/ব্যয়/ট্রান্সফার এন্ট্রি (Billing::receive এর ভেতরে)
-        Stock::move(...)                         🔜 স্টকের চলাচল + গড় মূল্য
+        Stock::receive/out/in(...)               ✅ স্টকের চলাচল + গড় মূল্য (Purchasing এর ভেতরে)
         (LogsActivity trait নিজে থেকে লেখে)       ✅ আগের/পরের মান
   → Model (BelongsToBranch trait ✅: শাখা অনুযায়ী global scope; নতুন রেকর্ডে শাখা বসায়,
            "all" মোডে শাখা না দিলে বা অননুমোদিত শাখা দিলে ভ্যালিডেশন এরর)
@@ -331,13 +333,15 @@ Request
 | **অ্যাকাউন্টস ✅** | `accounts` (শাখাভিত্তিক) | name, type (cash/bank/mobile), bank_name, account_number, opening_balance, is_active। ব্যালেন্স = opening + Σ(income+transfer_in) − Σ(expense+transfer_out), শুধু active এন্ট্রি |
 | | `transaction_categories` | type, name, slug (system: customer_payment, supplier_payment, other_income, other_expense), is_system, is_active। জেনেরিক CRUD এ সম্পাদনা করা যায় |
 | | `transactions` (শাখাভিত্তিক) | date, type (income/expense/transfer_in/transfer_out), account_id, category_id, amount (সবসময় ধনাত্মক), work_project_id, party_* (morph), source_* (morph: Payment/SupplierPayment…), description, reference, attachment (storage/app/receipts), transfer_group (uuid), status (active/cancelled), cancel_reason, created_by |
-| **ইনভেন্টরি** | `stores` (শাখাভিত্তিক) | name, address |
-| | `item_categories`, `units`, `items` | মালামাল (sku, unit, min_stock, avg_cost) |
-| | `suppliers` | name, phone, address, opening_due |
-| | `purchase_orders` → `purchase_order_items` | PO (supplier, store, status) |
-| | `purchases` (GRN/সরাসরি) → `purchase_items` | type (grn/direct), store বা work_project, supplier, total, paid |
-| | `stock_movements` | item, store, qty (+/−), unit_cost, type (in/issue/return/transfer/adjust), work_project, source (polymorphic), date |
-| | `stock_balances` | item, store, qty, value (ক্যাশ) |
+| **ইনভেন্টরি ✅** | `stores` (শাখাভিত্তিক) | name, address, is_active। প্রতি শাখায় "Main Store" নিজে থেকে |
+| | `item_categories`, `items` (কোম্পানি-ব্যাপী, জেনেরিক CRUD) | item: sku (unique), name, item_category_id, unit, min_stock, avg_cost (decimal 14,4, weighted average), is_active। আলাদা units টেবিল নেই, একক ফ্রি টেক্সট |
+| | `suppliers` (কোম্পানি-ব্যাপী, জেনেরিক CRUD) | name, phone, email, address, opening_due, notes। দেনা = opening_due + Σ purchases.total (received) − Σ supplier_payments (paid), বর্তমান শাখা-স্কোপে |
+| | `purchase_orders` → `purchase_order_items` (শাখাভিত্তিক) | number (PO), supplier_id, store_id, date, expected_date, status (draft/sent/partial/received/cancelled), total; item: item_id, qty, rate, amount, received_qty |
+| | `purchases` → `purchase_items` (শাখাভিত্তিক) | number (GRN/DP), type (grn/direct), supplier_id (null = নগদ বাজার), purchase_order_id, store_id বা work_project_id, supplier_ref, date, total, paid, status (received/cancelled) |
+| | `stock_entries` → `stock_entry_items` (শাখাভিত্তিক) | number (ISS/RTN/TRF/ADJ), type (issue/return/transfer/adjust), store_id, to_store_id, work_project_id, date, notes, status; item: item_id, qty, unit_cost, amount |
+| | `stock_movements` (শাখাভিত্তিক, লেজার) | store_id, item_id, type (in/issue/return/transfer_in/transfer_out/adjust/reverse), qty (+/−), unit_cost, value (±), work_project_id, source (morph: Purchase/StockEntry), date। কখনো বদলানো বা মোছা হয় না |
+| | `stock_balances` | store_id + item_id (unique), qty। ক্যাশ, প্রতিটা movement এর সাথে একই transaction এ row lock দিয়ে আপডেট হয় |
+| | `supplier_payments` (শাখাভিত্তিক) | number (SP), supplier_id, purchase_id, account_id, method, amount, reference, date, status (paid/cancelled) → Ledger এ "supplier_payment" খরচ (প্রজেক্ট ছাড়া) |
 | **টিকেটিং** | `tickets` (শাখাভিত্তিক) | number, customer, work_project, subject, priority, status, assigned_to, visit_at, warranty_until, resolved_at |
 | | `ticket_comments` | ticket, user/customer, body, attachments |
 

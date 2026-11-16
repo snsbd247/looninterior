@@ -12,8 +12,11 @@ class Branch extends BaseModel
 
     protected static function booted(): void
     {
-        // Every new branch starts with a Cash account.
-        static::created(fn (Branch $b) => BusinessFoundation::ensureCashAccount($b));
+        // Every new branch starts with a Cash account and a Main Store.
+        static::created(function (Branch $b) {
+            BusinessFoundation::ensureCashAccount($b);
+            BusinessFoundation::ensureStore($b);
+        });
     }
 
     public function setCodeAttribute($value): void

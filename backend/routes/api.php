@@ -18,6 +18,9 @@ use App\Http\Controllers\Business\PaymentController;
 use App\Http\Controllers\Business\ReportController;
 use App\Http\Controllers\Business\TransactionController;
 use App\Http\Controllers\Business\WorkProjectController;
+use App\Http\Controllers\Business\InventoryController;
+use App\Http\Controllers\Business\PurchaseController;
+use App\Http\Controllers\Business\SupplierController;
 use App\Http\Controllers\Business\RoleController;
 use App\Http\Controllers\Business\UserController;
 use App\Support\ResourceRegistry;
@@ -212,6 +215,41 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::get('reports/projects', [ReportController::class, 'projects']);
         Route::get('reports/branches', [ReportController::class, 'branches']);
     });
+    // Step 6: Inventory & purchase
+    Route::get('lookup/stores', [InventoryController::class, 'stores'])->middleware('perm:inventory.view|projects.view');
+    Route::get('lookup/items', [InventoryController::class, 'items'])->middleware('perm:inventory.view');
+    Route::middleware('perm:inventory.view')->group(function () {
+        Route::get('stock', [InventoryController::class, 'stock']);
+        Route::get('stock/items/{item}', [InventoryController::class, 'itemLedger'])->whereNumber('item');
+        Route::get('stock-entries', [InventoryController::class, 'entries']);
+        Route::get('stock-entries/{entry}', [InventoryController::class, 'showEntry'])->whereNumber('entry');
+        Route::get('purchase-orders', [PurchaseController::class, 'orders']);
+        Route::get('purchase-orders/{order}', [PurchaseController::class, 'showOrder'])->whereNumber('order');
+        Route::get('purchase-orders/{order}/pdf', [PurchaseController::class, 'orderPdf'])->whereNumber('order');
+        Route::get('purchases', [PurchaseController::class, 'index']);
+        Route::get('purchases/{purchase}', [PurchaseController::class, 'show'])->whereNumber('purchase');
+    });
+    Route::middleware('perm:inventory.view|suppliers.pay')->group(function () {
+        Route::get('suppliers', [SupplierController::class, 'index']);
+        Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])->whereNumber('supplier');
+    });
+    Route::middleware('perm:inventory.manage')->group(function () {
+        Route::post('stores', [InventoryController::class, 'saveStore']);
+        Route::post('stores/{store}', [InventoryController::class, 'saveStore'])->whereNumber('store');
+        Route::post('stock-entries', [InventoryController::class, 'storeEntry']);
+        Route::post('stock-entries/{entry}/cancel', [InventoryController::class, 'cancelEntry'])->whereNumber('entry');
+        Route::post('purchase-orders', [PurchaseController::class, 'storeOrder']);
+        Route::post('purchase-orders/{order}', [PurchaseController::class, 'storeOrder'])->whereNumber('order');
+        Route::post('purchase-orders/{order}/status', [PurchaseController::class, 'orderStatus'])->whereNumber('order');
+        Route::post('purchase-orders/{order}/email', [PurchaseController::class, 'emailOrder'])->whereNumber('order')->middleware('throttle:test-mail');
+        Route::post('purchases', [PurchaseController::class, 'store']);
+        Route::post('purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])->whereNumber('purchase');
+    });
+    Route::middleware('perm:suppliers.pay')->group(function () {
+        Route::post('suppliers/{supplier}/pay', [SupplierController::class, 'pay'])->whereNumber('supplier');
+        Route::post('supplier-payments/{payment}/cancel', [SupplierController::class, 'cancelPayment'])->whereNumber('payment');
+    });
+
     Route::middleware('perm:accounts.manage')->group(function () {
         Route::post('accounts', [AccountController::class, 'store']);
         Route::post('accounts/{account}', [AccountController::class, 'update'])->whereNumber('account');

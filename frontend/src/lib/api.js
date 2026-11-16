@@ -41,7 +41,8 @@ function withAuth(instance) {
     const token = getToken()
     if (token) config.headers.Authorization = `Bearer ${token}`
     const branch = getBranch()
-    if (branch) config.headers['X-Branch-Id'] = branch
+    // A request may ask for another view explicitly (e.g. "all" to list every store for a transfer).
+    if (branch && !config.headers['X-Branch-Id']) config.headers['X-Branch-Id'] = branch
     return config
   })
   instance.interceptors.response.use(

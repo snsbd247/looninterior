@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Business\Account;
 use App\Models\Business\Branch;
+use App\Models\Business\Store;
 use App\Models\Business\TransactionCategory;
 use App\Models\Business\Role;
 use App\Models\Business\TaxRate;
@@ -77,6 +78,15 @@ class BusinessFoundation
         }
 
         Branch::all()->each(fn (Branch $b) => self::ensureCashAccount($b));
+        Branch::all()->each(fn (Branch $b) => self::ensureStore($b));
+    }
+
+    /** Every branch starts with a "Main Store". */
+    public static function ensureStore(Branch $branch): void
+    {
+        if (Schema::hasTable('stores') && ! Store::withoutGlobalScopes()->where('branch_id', $branch->id)->exists()) {
+            Store::withoutGlobalScopes()->create(['branch_id' => $branch->id, 'name' => 'Main Store']);
+        }
     }
 
     public static function ensureCashAccount(Branch $branch): void

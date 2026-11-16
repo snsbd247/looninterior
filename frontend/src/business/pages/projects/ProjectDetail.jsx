@@ -223,7 +223,7 @@ function Billing({ project, invoices, canManage, onSaved }) {
 function Costs({ project, expenses }) {
   return (
     <div className="a-panel">
-      <div className="a-panel-head"><h3>Expenses linked to this project</h3><Can perm="accounts.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/transactions?new=expense&project=${project.id}`}><FiPlus /> Expense</Link></Can></div>
+      <div className="a-panel-head"><h3>Expenses linked to this project</h3><Can perm="accounts.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/transactions?new=expense&project=${project.id}`}><FiPlus /> Expense</Link></Can><Can perm="inventory.manage"><Link className="a-btn a-btn-light" to={`/admin/biz/stock-entries/new?type=issue&project=${project.id}`}><FiPlus /> Issue material</Link><Link className="a-btn a-btn-light" to={`/admin/biz/purchases/new?type=direct&project=${project.id}`}><FiPlus /> Direct purchase</Link></Can></div>
       <div className="a-table-wrap">
         <table className="a-table">
           <thead><tr><th>Date</th><th>Category</th><th>Description</th><th className="r">Amount</th></tr></thead>

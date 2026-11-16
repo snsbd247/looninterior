@@ -243,6 +243,41 @@ export const RESOURCES = {
     ],
   },
 
+  items: {
+    label: 'Items', singular: 'Item', icon: FiLayers, group: 'Inventory', perm: 'inventory.manage', noDelete: true,
+    filter: { name: 'item_category_id', label: 'All categories', source: 'item_categories', labelKey: 'name' },
+    columns: [{ key: 'name', label: 'Item' }, { key: 'sku', label: 'SKU' }, { key: 'category.name', label: 'Category' }, { key: 'unit', label: 'Unit' }, { key: 'min_stock', label: 'Min stock' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'name', label: 'Item name', required: true, half: true },
+      { name: 'sku', label: 'SKU / Code', half: true, help: 'Optional, must be unique' },
+      { name: 'item_category_id', label: 'Category', type: 'select', source: 'item_categories', labelKey: 'name', half: true },
+      { name: 'unit', label: 'Unit', required: true, half: true, default: 'pcs', help: 'pcs, sheet, sqft, rft, kg, ltr, box, roll…' },
+      { name: 'min_stock', label: 'Low-stock alert at', type: 'number', half: true, default: 0 },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+      { name: 'description', label: 'Description', type: 'textarea' },
+    ],
+  },
+
+  item_categories: {
+    label: 'Item Categories', singular: 'Category', icon: FiFolder, group: 'Inventory', perm: 'inventory.manage', noDelete: true,
+    columns: [{ key: 'name', label: 'Name' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [{ name: 'name', label: 'Name', required: true, half: true }, { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true }],
+  },
+
+  suppliers: {
+    label: 'Supplier List', singular: 'Supplier', icon: FiBriefcase, group: 'Inventory', perm: 'inventory.manage', noDelete: true, hidden: true,
+    columns: [{ key: 'name', label: 'Name' }, { key: 'phone', label: 'Phone' }, { key: 'is_active', label: 'Active', type: 'bool' }],
+    fields: [
+      { name: 'name', label: 'Supplier name', required: true, half: true },
+      { name: 'phone', label: 'Phone', half: true },
+      { name: 'email', label: 'Email', half: true },
+      { name: 'opening_due', label: 'Opening due (৳)', type: 'number', half: true, default: 0, help: 'What you already owe this supplier when you start' },
+      { name: 'address', label: 'Address', type: 'textarea' },
+      { name: 'notes', label: 'Notes', type: 'textarea' },
+      { name: 'is_active', label: 'Active', type: 'switch', default: true, half: true },
+    ],
+  },
+
   transaction_categories: {
     label: 'Income/Expense Heads', singular: 'Category', icon: FiList, group: 'Accounts', perm: 'accounts.manage', noDelete: true,
     filter: { name: 'type', label: 'All types', options: ['income', 'expense'] },
