@@ -157,7 +157,7 @@ if (-not $Email -or -not $Password) {
                    '/api/business/tickets', '/api/business/tickets/report', '/api/business/dashboard',
                    '/api/business/calendar', '/api/business/employees', '/api/business/attendance', '/api/business/attendance/month',
                    '/api/business/leaves', '/api/business/payrolls', '/api/business/labour', '/api/business/contractors',
-                   '/api/business/campaigns') {
+                   '/api/business/campaigns', '/api/business/webmail') {
       Expect "GET $p" GET $p 200 $null $auth | Out-Null
     }
 
@@ -171,6 +171,7 @@ if (-not $Email -or -not $Password) {
     Expect 'unsubscribe needs signature' GET '/api/public/unsubscribe/customer/1' 403 | Out-Null
     Expect 'portal login validates' POST '/api/portal/login' 422 @{ login = 'nobody@example.com'; password = 'x' } | Out-Null
     Expect 'GET /portal page' GET '/portal' 200 | Out-Null
+    Expect 'webmail session needs set-up (422, not 500)' POST '/api/business/webmail/session' 422 $null $auth | Out-Null
 
     Expect 'admin logout' POST '/api/admin/logout' 200 $null $auth | Out-Null
   }

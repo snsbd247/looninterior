@@ -54,7 +54,28 @@ class BusinessSettingController extends Controller
         'sms_on_ticket' => 'nullable|in:0,1',
         'sms_payment_text' => 'nullable|string|max:500',
         'sms_ticket_text' => 'nullable|string|max:500',
+        // One-click Webmail (App\Services\Webmail). The token is never sent back to the browser (masked).
+        'webmail_enabled' => 'nullable|in:0,1',
+        'webmail_host' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9.-]+$/i'],
+        'webmail_cpanel_user' => ['nullable', 'string', 'max:64', 'regex:/^[a-z0-9_.-]+$/i'],
+        'webmail_token' => 'nullable|string|max:255',
+        'webmail_domain' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9.-]+$/i'],
     ];
+
+    /** Secret keys: shown masked; sending the mask back keeps the stored value. */
+    private const SECRET = ['biz_webmail_token'];
+
+    private function masked(): array
+    {
+        $data = Setting::businessArray();
+        foreach (self::SECRET as $k) {
+            if (! empty($data[$k])) {
+                $data[$k] = \App\Services\Webmail::MASK;
+            }
+        }
+
+        return $data;
+    }
 
     /** SMS balance (Greenweb). */
     public function smsBalance()
@@ -81,7 +102,7 @@ class BusinessSettingController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => Setting::businessArray(),
+            'data' => $this->masked(),
             'number_preview' => $this->numberPreview(),
         ]);
     }
@@ -97,6 +118,8 @@ class BusinessSettingController extends Controller
         }
         $data = $request->validate($rules, [
             'biz_number_format.regex' => 'The number format must contain {SEQ}.',
+            'biz_webmail_host.regex' => 'Enter only the server name, e.g. looninterior.com (no https://, no port).',
+            'biz_webmail_domain.regex' => 'Enter only the domain, e.g. looninterior.com.',
         ]);
 
         $current = Setting::businessArray();
@@ -108,6 +131,9 @@ class BusinessSettingController extends Controller
                 continue;
             }
             $value = $data[$k] ?? null;
+            if (in_array($k, self::SECRET, true) && $value === \App\Services\Webmail::MASK) {
+                continue; // unchanged secret
+            }
             if ((string) ($current[$k] ?? '') !== (string) ($value ?? '')) {
                 $changed[] = $k;
             }
@@ -133,7 +159,7 @@ class BusinessSettingController extends Controller
 
         return response()->json([
             'message' => 'Business settings saved',
-            'data' => Setting::businessArray(),
+            'data' => $this->masked(),
             'number_preview' => $this->numberPreview(),
         ]);
     }

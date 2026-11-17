@@ -5,7 +5,7 @@ import { adminApi, businessApi, errorMessage, fieldErrors } from '../../../lib/a
 import Loader from '../../../components/Loader'
 import { useAdmin } from '../../../admin/AdminApp'
 
-const EMPTY = { name: '', email: '', phone: '', role_id: '', branch_ids: [], is_active: true, password: '', password_confirmation: '' }
+const EMPTY = { name: '', email: '', phone: '', mailbox: '', role_id: '', branch_ids: [], is_active: true, password: '', password_confirmation: '' }
 
 export default function UserForm() {
   const { id } = useParams()
@@ -29,7 +29,7 @@ export default function UserForm() {
       businessApi.get(`/users/${id}`).then((r) => {
         const u = r.data.data
         setForm({
-          name: u.name, email: u.email, phone: u.phone || '', role_id: u.role_id || '',
+          name: u.name, email: u.email, phone: u.phone || '', mailbox: u.mailbox || '', role_id: u.role_id || '',
           branch_ids: (u.branches || []).map((b) => b.id), is_active: u.is_active !== false,
           password: '', password_confirmation: '',
         })
@@ -75,6 +75,7 @@ export default function UserForm() {
           <label className="a-field half"><span>Full Name *</span><input value={form.name} onChange={set('name')} />{err('name')}</label>
           <label className="a-field half"><span>Email (login) *</span><input type="email" value={form.email} onChange={set('email')} />{err('email')}</label>
           <label className="a-field half"><span>Phone</span><input value={form.phone} onChange={set('phone')} />{err('phone')}</label>
+          <label className="a-field half"><span>Mailbox (Webmail)</span><input type="email" value={form.mailbox} onChange={set('mailbox')} placeholder="name@looninterior.com" /><small className="a-help">The user's company e-mail account for Mail → Webmail. Empty = the login e-mail, if it is on the company domain.</small>{err('mailbox')}</label>
           <label className="a-field half">
             <span>Role *</span>
             <select value={form.role_id} onChange={set('role_id')} disabled={self}>

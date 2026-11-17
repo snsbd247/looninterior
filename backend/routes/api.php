@@ -127,6 +127,11 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::get('sms/balance', 'smsBalance')->middleware('throttle:test-mail');
     });
 
+    Route::middleware('perm:webmail.use')->controller(\App\Http\Controllers\Business\WebmailController::class)->group(function () {
+        Route::get('webmail', 'show');
+        Route::post('webmail/session', 'session')->middleware('throttle:webmail');
+    });
+
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('perm:activity.view');
 
     // Step 8: role-based dashboard (each block is permission-checked inside)

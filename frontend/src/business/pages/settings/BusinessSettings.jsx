@@ -53,6 +53,16 @@ const TABS = [
     ],
   },
   {
+    key: 'webmail', label: 'Webmail',
+    fields: [
+      { name: 'webmail_enabled', label: 'One-click Webmail', type: 'select', half: true, default: '0', options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }], help: 'Staff open their own mailbox from Mail → Webmail without typing the mail password.' },
+      { name: 'webmail_domain', label: 'E-mail domain', half: true, placeholder: 'looninterior.com', help: 'Users whose login e-mail ends with this domain get that mailbox automatically. Others: set "Mailbox" in Users.' },
+      { name: 'webmail_host', label: 'cPanel server name', half: true, placeholder: 'looninterior.com', help: 'Without https:// and port. cPanel is called on port 2083, Webmail opens on 2096.' },
+      { name: 'webmail_cpanel_user', label: 'cPanel username', half: true, placeholder: 'cpanel username' },
+      { name: 'webmail_token', label: 'cPanel API token', type: 'secret', placeholder: 'cPanel → Security → Manage API Tokens → Create', help: 'Stored on the server only and shown as ******** afterwards. Leave ******** to keep it; clear the field to remove it. The mailboxes must belong to this cPanel account.' },
+    ],
+  },
+  {
     key: 'sms', label: 'SMS',
     fields: [
       { name: 'sms_enabled', label: 'Automatic SMS (payment, service ticket)', type: 'select', half: true, default: '0', options: [{ value: '1', label: 'On' }, { value: '0', label: 'Off' }], help: 'Off = no automatic SMS. Marketing campaigns are sent from Marketing → Campaigns.' },
@@ -106,6 +116,7 @@ function Input({ f, name, value, onChange, error }) {
       </select>
     )
   }
+  if (f.type === 'secret') return <input type="password" autoComplete="new-password" name={name} {...common} />
   if (f.type === 'textarea') return <textarea rows={f.rows || 3} {...common} />
   if (f.type === 'number') return <input type="number" {...common} />
   if (f.type === 'select') {

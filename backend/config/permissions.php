@@ -78,6 +78,9 @@ return [
             'view' => 'See campaigns and their delivery reports',
             'send' => 'Create and send bulk SMS / e-mail campaigns (SMS costs money)',
         ]],
+        'webmail' => ['label' => 'Webmail', 'actions' => [
+            'use' => 'Open their own company mailbox (Webmail) from the admin panel',
+        ]],
     ],
 
     /* Default roles (created once; afterwards the Admin can edit them in the panel). */
@@ -86,18 +89,18 @@ return [
         'accounts' => ['name' => 'Accounts', 'permissions' => [
             'crm.view', 'quotations.view', 'projects.view', 'billing.view', 'billing.manage',
             'accounts.view', 'accounts.manage', 'inventory.view', 'suppliers.pay',
-            'hr.view', 'hr.pay', 'labour.view', 'labour.pay',
+            'hr.view', 'hr.pay', 'labour.view', 'labour.pay', 'webmail.use',
         ]],
         'store' => ['name' => 'Store', 'permissions' => [
-            'projects.view', 'inventory.view', 'inventory.manage',
+            'projects.view', 'inventory.view', 'inventory.manage', 'webmail.use',
         ]],
         'sales' => ['name' => 'Sales & Marketing', 'permissions' => [
             'website.manage', 'crm.view', 'crm.manage', 'quotations.view', 'quotations.manage',
             'projects.view', 'projects.manage', 'billing.view', 'tickets.view',
-            'labour.view', 'labour.manage', 'portal.manage', 'marketing.view', 'marketing.send',
+            'labour.view', 'labour.manage', 'portal.manage', 'marketing.view', 'marketing.send', 'webmail.use',
         ]],
         'support' => ['name' => 'Support', 'permissions' => [
-            'crm.view', 'projects.view', 'tickets.view', 'tickets.manage',
+            'crm.view', 'projects.view', 'tickets.view', 'tickets.manage', 'webmail.use',
         ]],
     ],
 ];

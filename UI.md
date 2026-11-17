@@ -165,6 +165,7 @@ labib/
 | ↳ পর্যায় F SMS | `POST sms/test` (settings.business); সেটিং `biz_sms_*` |
 | ↳ পর্যায় G Delete | `DELETE users|leads|lead-activities|customers|quotations|projects|projects/{p}/milestones/{m}|accounts|stores|purchase-orders|employees|leaves|payrolls|tickets/{id}` (`DeleteController`, সংশ্লিষ্ট `.manage` পারমিশন); জেনেরিক CRUD এ রেজিস্ট্রির `safe_delete` রিসোর্স। ব্যবহৃত হলে 422 আর কারণ |
 | ↳ পর্যায় G মার্কেটিং | `campaigns[/{id}?status&page]` (marketing.view), `campaigns/preview`, `POST campaigns[/{id}]`, `DELETE campaigns/{id}` (ড্রাফট), `…/start`, `…/batch`, `…/retry`, `…/stop` (marketing.send); `GET sms/balance` (settings.business); পাবলিক: `GET /api/public/unsubscribe/{lead|customer}/{id}` (signed) |
+| ↳ Webmail | `GET webmail` (নিজের mailbox আর সেটআপ হয়েছে কিনা), `POST webmail/session` (throttle:webmail) → `{url, session}`; ব্রাউজার নতুন ট্যাবে session POST করে cPanel-এর 2096 পোর্টে (`webmail.use`)। সার্ভিস `App\Services\Webmail`, সেটিং `biz_webmail_*` (টোকেন মাস্ক করা) |
 | `/api/portal/*` ✅ | ক্লায়েন্ট পোর্টাল: `POST login` (throttle:portal-login), বাকিগুলো `auth:sanctum` + `portal`: `me`, `logout`, `password`, `projects[/{id}]`, `invoices`, `invoices/{id}/pdf`, `payments`, `payments/{id}/pdf`, `tickets[/{id}]`, `POST tickets`, `tickets/{id}/comments` |
 | `/sitemap.xml`, `/robots.txt` | SEO (robots এ `/portal` Disallow; `/portal*` পেজ noindex) |
 | `/install/{key}` | একবার চালানোর ইনস্টলার (`INSTALL_KEY` খালি থাকলে বন্ধ) |
@@ -308,7 +309,7 @@ Request
 
 | টেবিল | মূল ফিল্ড |
 |---|---|
-| `users` | name, email, password (hashed) |
+| `users` | name, email, password (hashed), mailbox (nullable: Webmail-এর মেইলবক্স; খালি হলে কোম্পানির ডোমেইনের লগইন ইমেইল) |
 | `personal_access_tokens`, `password_reset_tokens` | Sanctum, রিসেট |
 | `settings` | key, value |
 | `sliders`, `stats`, `features`, `process_steps`, `faqs` | হোমপেজের সেকশন (sort_order, is_active) |
@@ -533,6 +534,7 @@ suppliers ─→ purchase_orders ─→ purchases ─┬→ stock_movements
 | **ConfirmDialog** | বাতিল, পেমেন্ট | টাকা জড়িত কাজে নিশ্চিত করতে বলে, বাতিলের কারণ লিখতে হয় |
 | **Can** ✅ | বাটন, মেনু, রাউট | পারমিশন না থাকলে জিনিসটাই দেখায় না |
 | **DeleteButton** ✅ (`ui.jsx`, পর্যায় G) | লিস্টের সারি (`icon`) আর ডিটেইল পেজের মাথা | নিশ্চিত করতে বলে, `DELETE` পাঠায়। সার্ভার ব্যবহৃত রেকর্ড মুছতে না দিলে কারণটা toast এ দেখায়। নতুন Add/Edit পেজে এটাই ব্যবহার করুন; টাকা/স্টকের ডকুমেন্টে Delete না, Cancel |
+| **Webmail** ✅ (`pages/mail/Webmail.jsx`) | Mail | `openWebmail()` ক্লিকের ভেতরেই নতুন ট্যাব খোলে (পপআপ ব্লকার এড়াতে), তারপর ট্যাবের ভেতরে hidden ফর্ম দিয়ে cPanel-এ session POST করে |
 | **Campaign sender** ✅ (`pages/marketing/Campaigns.jsx`) | মার্কেটিং | ফর্মের পাশে লাইভ অডিয়েন্স কাউন্ট (debounced `campaigns/preview`); পাঠানোর সময় `…/batch` লুপ + প্রোগ্রেস বার, Pause/Continue/Stop/Retry |
 | **রোলভিত্তিক Dashboard** ✅ | `/admin` | `business/pages/dashboard/BusinessDashboard.jsx`: `Card` + `Kpis` (ক্লিক করলে সংশ্লিষ্ট পেজে যায়) + `TrendBars` (৬ মাস বিল বনাম আদায়)। শুধু পারমিশন আছে এমন অংশ। "All branches" ভিউতে শাখার তুলনার টেবিল |
 

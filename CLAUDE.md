@@ -74,6 +74,12 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - Marketing campaigns (`MarketingController`) send in browser-driven batches (no queue on cPanel). Always skip
   `marketing_opt_out` people and keep the signed unsubscribe link in campaign e-mails.
 
+## Webmail
+
+- One-click cPanel Webmail (`App\Services\Webmail`, `perm:webmail.use`). The cPanel API token (`biz_webmail_token`) is a
+  full-access secret: the settings API returns it masked (`********`), and a masked value sent back keeps the stored token.
+  Never return it, log it or put it in the frontend.
+
 ## Tests
 
 - API tests per module are in `scripts/tests/` (`th.ps1` helpers). Add a test file for each new module and list it in

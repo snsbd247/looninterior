@@ -40,6 +40,7 @@ import Calendar from './pages/calendar/Calendar'
 import { Employees, EmployeeDetail, Attendance, Leaves, Payrolls, PayrollDetail } from './pages/hr/Hr'
 import { LabourEntries, Contractors, ContractorDetail } from './pages/labour/Labour'
 import { CampaignList, CampaignForm, CampaignDetail } from './pages/marketing/Campaigns'
+import Webmail from './pages/mail/Webmail'
 import './business.css'
 
 /* Business module routes, mounted at /admin/biz/* (lazy chunk). Every page is permission-gated. */
@@ -121,6 +122,7 @@ const ROUTES = [
   ['contractors', 'labour.view', <Contractors />],
   ['contractors/:id', 'labour.view', <ContractorDetail />],
   // Phase G
+  ['webmail', 'webmail.use', <Webmail />],
   ['campaigns', 'marketing.view|marketing.send', <CampaignList />],
   ['campaigns/new', 'marketing.send', <CampaignForm />],
   ['campaigns/:id', 'marketing.view|marketing.send', <CampaignDetail />],

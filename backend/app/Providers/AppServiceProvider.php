@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinutes(10, 3)->by('pw-mail|'.strtolower((string) $r->input('email'))),
         ]);
         RateLimiter::for('password-reset-submit', fn (Request $r) => Limit::perMinute(10)->by('pw-reset|'.$r->ip()));
+        RateLimiter::for('webmail', fn (Request $r) => Limit::perMinute(10)->by('webmail|'.($r->user()?->id ?: $r->ip())));
         RateLimiter::for('test-mail', fn (Request $r) => Limit::perMinute(5)->by('test-mail|'.$r->ip()));
     }
 }

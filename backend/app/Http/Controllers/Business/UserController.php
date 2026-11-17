@@ -50,6 +50,7 @@ class UserController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
+                'mailbox' => isset($data['mailbox']) ? strtolower($data['mailbox']) : null,
                 'password' => $data['password'],
                 'role_id' => $data['role_id'],
                 'is_active' => $data['is_active'] ?? true,
@@ -81,6 +82,7 @@ class UserController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
+                'mailbox' => isset($data['mailbox']) ? strtolower($data['mailbox']) : null,
                 'role_id' => $data['role_id'],
                 'is_active' => $data['is_active'] ?? $user->is_active,
             ]);
@@ -113,6 +115,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'phone' => 'nullable|string|max:50',
+            'mailbox' => 'nullable|email|max:255',
             'role_id' => 'required|integer|exists:roles,id',
             'branch_ids' => 'required|array|min:1',
             'branch_ids.*' => 'integer|exists:branches,id',

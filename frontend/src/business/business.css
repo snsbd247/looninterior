@@ -450,3 +450,9 @@ a.b-kpi:hover { border-color: var(--a-accent); }
 .b-wide { width: 100%; justify-content: center; margin-top: 12px; }
 .b-full { grid-column: 1 / -1; justify-self: start; }
 .b-err { min-width: 160px; overflow-wrap: anywhere; }
+
+/* Webmail (Mail → Webmail) */
+.b-webmail { max-width: 560px; text-align: center; padding: 36px 24px; }
+.b-webmail-icon { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; background: color-mix(in srgb, var(--a-accent) 14%, transparent); color: var(--a-accent); }
+.b-webmail-box { font-size: 1.15rem; font-weight: 600; word-break: break-all; margin: 0 0 6px; }
+.b-webmail .a-btn { margin-top: 12px; }

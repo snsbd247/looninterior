@@ -254,6 +254,20 @@ labib/
   - Site Settings → **Cost Calculator** থেকে এরিয়ার সীমা, রেঞ্জ %, সময়ের হিসাব আর খরচের ভাগ বদলান।
 - এখনকার রেটগুলো **ডেমো**। লাইভ করার আগে নিজের রেট বসান।
 
+### Webmail (অ্যাডমিন থেকে এক ক্লিকে) ✅
+
+প্রত্যেক স্টাফ অ্যাডমিন → **Mail → Webmail** থেকে নিজের কোম্পানির মেইল খোলে। মেইলের পাসওয়ার্ড লাগে না।
+
+একবারের সেটআপ:
+1. **cPanel → Email Accounts:** প্রত্যেক স্টাফের মেইলবক্স তৈরি করুন (যেমন `sales@looninterior.com`)।
+2. **cPanel → Security → Manage API Tokens → Create:** একটা টোকেন তৈরি করে কপি করুন।
+3. **অ্যাডমিন → Business Settings → Webmail:**
+   - One-click Webmail = On।
+   - E-mail domain আর cPanel server name = `looninterior.com`।
+   - cPanel username আর API token বসিয়ে Save করুন। টোকেন পরে `********` দেখাবে।
+4. **অ্যাডমিন → Users → Edit:** প্রত্যেকের **Mailbox (Webmail)** ঘরে তাঁর মেইল লিখুন। লগইন ইমেইল কোম্পানির ডোমেইনে হলে ঘরটা খালি রাখা যায়।
+5. **Roles:** যাদের দরকার তাদের রোলে **Webmail → use** পারমিশন দিন (Admin-এর আগে থেকেই আছে)।
+
 ### SEO আর ট্র্যাকিং ✅
 
 - **Site Settings → SEO:** Meta Title, Meta Description, Social Share Image, **Google Tag Manager ID**, Google Analytics ID, Facebook Pixel ID, Search Console code।
@@ -696,6 +710,7 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `POST customers/{id}/portal` | portal.manage | ক্লায়েন্ট পোর্টাল চালু/বন্ধ, পাসওয়ার্ড |
 | `POST sms/test`, `GET sms/balance` | settings.business | টেস্ট SMS, Greenweb ব্যালেন্স |
 | `DELETE users\|leads\|customers\|quotations\|projects\|accounts\|stores\|purchase-orders\|employees\|leaves\|payrolls\|tickets/{id}` | সংশ্লিষ্ট .manage | Delete (ব্যবহৃত হলে 422 আর কারণ) |
+| `GET webmail`, `POST webmail/session` | webmail.use | নিজের মেইলবক্স, এক ক্লিকে cPanel Webmail |
 | `campaigns`, `campaigns/{id}` | marketing.view | ক্যাম্পেইন তালিকা ও রিপোর্ট |
 | `POST campaigns[/{id}]`, `campaigns/preview`, `…/start`, `…/batch`, `…/retry`, `…/stop`, `DELETE campaigns/{id}` | marketing.send | ক্যাম্পেইন তৈরি ও পাঠানো |
 | `GET /api/public/unsubscribe/{lead\|customer}/{id}` | (signed লিংক) | ইমেইল থেকে আনসাবস্ক্রাইব |

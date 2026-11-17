@@ -340,7 +340,7 @@ export const RESOURCES = {
 }
 
 /* Sidebar order. Business groups first; a group shows only if the user can open something in it. */
-export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'Marketing', 'HR', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
+export const GROUPS = ['CRM', 'Sales & Projects', 'Billing', 'Accounts', 'Inventory', 'Service', 'Marketing', 'Mail', 'HR', 'Reports', 'Website Inbox', 'Home Page', 'Content', 'Careers', 'Administration']
 
 /** Permission needed for a resource (website content by default). */
 export const resourcePerm = (cfg) => cfg?.perm || 'website.manage'
