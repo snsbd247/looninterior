@@ -233,6 +233,26 @@ class ResourceRegistry
                 ],
             ],
 
+            // Website cost calculator (/cost-calculator). value = Tk/sqft (type), multiplier (style, quality) or Tk (addon).
+            'calculator_options' => [
+                'model' => \App\Models\CalculatorOption::class,
+                'booleans' => ['is_active', 'is_default'],
+                'search' => ['name'],
+                'filters' => ['group'],
+                'order' => ['group', 'desc'], // type, style, quality, addon
+                'then_order' => [['sort_order', 'asc']],
+                'rules' => [
+                    'group' => 'required|in:type,style,quality,addon',
+                    'name' => 'required|string|max:100',
+                    'description' => 'nullable|string|max:255',
+                    'icon' => 'nullable|string|max:30',
+                    'value' => 'required|numeric|min:0|max:99999999',
+                    'is_default' => 'boolean',
+                    'sort_order' => $sort,
+                    'is_active' => 'boolean',
+                ],
+            ],
+
             'posts' => [
                 'model' => Post::class,
                 'files' => ['image'],

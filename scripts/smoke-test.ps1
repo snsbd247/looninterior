@@ -1,4 +1,4 @@
-<#
+﻿<#
   Loon Interior: regression smoke test.
   Checks that every existing module still works (public site, SEO, forms, admin API).
   Run it BEFORE starting and AFTER finishing every task. Read-only: it creates no data.
@@ -69,7 +69,7 @@ Write-Host "`nSmoke test: $Base`n" -ForegroundColor Cyan
 
 # ---------------------------------------------------------------- Public pages
 Write-Host '[Public pages]'
-foreach ($p in '/', '/about', '/services', '/projects', '/blog', '/careers', '/contact', '/get-quote', '/faq', '/service-request') {
+foreach ($p in '/', '/about', '/services', '/projects', '/blog', '/careers', '/contact', '/get-quote', '/faq', '/service-request', '/cost-calculator') {
   $res = Expect "page $p" GET $p 200
   if ($res.Status -eq 200 -and -not $res.Body.Contains('id="root"')) { Report $false "page $p has React root" }
 }
@@ -81,7 +81,7 @@ $site = Json (Expect 'GET /api/site' GET '/api/site' 200)
 Report ([bool]$site.settings.site_name) 'site settings present'
 Report ([bool]$site.form_token) 'form_token issued'
 Report ($null -eq $site.settings.notify_email) 'private settings not exposed'
-foreach ($p in '/api/home', '/api/about', '/api/services', '/api/projects', '/api/posts', '/api/careers', '/api/faqs', '/api/testimonials') {
+foreach ($p in '/api/home', '/api/about', '/api/services', '/api/projects', '/api/posts', '/api/careers', '/api/faqs', '/api/testimonials', '/api/calculator') {
   Expect "GET $p" GET $p 200 | Out-Null
 }
 foreach ($pair in @(@('/api/services', '/services/'), @('/api/projects', '/projects/'), @('/api/posts', '/blog/'), @('/api/careers', '/careers/'))) {

@@ -84,6 +84,20 @@ export const SETTINGS_TABS = [
     ],
   },
   {
+    key: 'calculator', label: 'Cost Calculator',
+    fields: [
+      { name: 'calc_min_area', label: 'Smallest area (sqft)', half: true, help: 'Default 200' },
+      { name: 'calc_max_area', label: 'Largest area (sqft)', half: true, help: 'Default 20000' },
+      { name: 'calc_default_area', label: 'Starting area (sqft)', half: true, help: 'Default 1200' },
+      { name: 'calc_range_low', label: 'Range below estimate (%)', half: true, help: 'Default 10 → shows estimate −10%' },
+      { name: 'calc_range_high', label: 'Range above estimate (%)', half: true, help: 'Default 15 → shows estimate +15%' },
+      { name: 'calc_days_base', label: 'Timeline: base days', half: true, help: 'Default 30' },
+      { name: 'calc_days_per_1000', label: 'Timeline: days per 1,000 sqft', half: true, help: 'Default 35' },
+      { name: 'calc_breakdown', label: 'Cost split (one per line, "Name: percent")', type: 'textarea', help: 'e.g. Materials: 45 — empty = default split' },
+      { name: 'calc_note', label: 'Note under the estimate', type: 'textarea' },
+    ],
+  },
+  {
     key: 'seo', label: 'SEO',
     fields: [
       { name: 'meta_title', label: 'Meta Title' },

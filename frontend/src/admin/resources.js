@@ -154,6 +154,21 @@ export const RESOURCES = {
     fields: [{ name: 'question', label: 'Question', required: true }, { name: 'answer', label: 'Answer', type: 'textarea', required: true }, sort, active],
   },
 
+  calculator_options: {
+    label: 'Cost Calculator', singular: 'Calculator Option', icon: FiPercent, group: 'Content',
+    filter: { name: 'group', label: 'All groups', options: ['type', 'style', 'quality', 'addon'] },
+    columns: [{ key: 'group', label: 'Group', type: 'badge' }, { key: 'name', label: 'Name' }, { key: 'value', label: 'Value' }, { key: 'sort_order', label: 'Order' }, activeCol],
+    fields: [
+      { name: 'group', label: 'Group', type: 'select', options: ['type', 'style', 'quality', 'addon'], required: true, half: true, help: 'type = project type · style = design style · quality = material quality · addon = extra service' },
+      { name: 'name', label: 'Name', required: true, half: true },
+      { name: 'value', label: 'Value', type: 'number', required: true, half: true, help: 'type: Tk per sqft (e.g. 1400) · style / quality: multiplier (1 = base, 1.35 = +35%) · addon: fixed Tk' },
+      { name: 'description', label: 'Short description', half: true },
+      iconField,
+      { name: 'is_default', label: 'Selected by default', type: 'switch', half: true },
+      sort, active,
+    ],
+  },
+
   posts: {
     label: 'Blog Posts', singular: 'Post', icon: FiEdit, group: 'Content',
     columns: [{ key: 'image', type: 'image' }, { key: 'title', label: 'Title' }, { key: 'published_at', label: 'Date', type: 'date' }, activeCol],

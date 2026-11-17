@@ -28,6 +28,7 @@ class Seo
         'get-quote' => 'Get a Free Quote',
         'faq' => 'FAQ',
         'service-request' => 'Service Request',
+        'cost-calculator' => 'Interior Cost Calculator',
     ];
 
     public static function base(): string

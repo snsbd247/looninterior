@@ -27,6 +27,7 @@ export default function Footer() {
             <li><Link to="/blog">Blog</Link></li>
             <li><Link to="/careers">Careers</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
+            <li><Link to="/cost-calculator">Cost Calculator</Link></li>
             <li><Link to="/service-request">Service Request</Link></li>
             <li><Link to="/portal">Client Portal</Link></li>
             <li><Link to="/contact">Contact</Link></li>

@@ -50,7 +50,11 @@ class ResourceController extends Controller
         }
 
         [$col, $dir] = $cfg['order'] ?? ['id', 'desc'];
-        $query->orderBy($col, $dir)->orderBy('id', 'desc');
+        $query->orderBy($col, $dir);
+        foreach ($cfg['then_order'] ?? [] as [$c, $d]) { // optional extra sort columns
+            $query->orderBy($c, $d);
+        }
+        $query->orderBy('id', 'desc');
 
         // Excel/CSV export of the filtered list (registry key "csv" => [column => header])
         if ($request->query('format') === 'csv' && ! empty($cfg['csv'])) {

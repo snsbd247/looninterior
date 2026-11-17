@@ -1,4 +1,4 @@
-<#
+﻿<#
   Loon Interior: full business API test suite (DEV / LOCAL ONLY).
 
   !!! It CREATES test data and then WIPES ALL BUSINESS DATA (leads, customers, quotations, projects,
@@ -7,7 +7,7 @@
   Usage (from the project root, local XAMPP):
     powershell -ExecutionPolicy Bypass -File scripts\tests\run-all.ps1 -ConfirmWipe
 
-  What it does: reset → step tests 1,2,3,4,6,7,8 → reset. Between scripts it waits ~60 s because the
+  What it does: reset â†’ step tests 1,2,3,4,6,7,8 â†’ reset. Between scripts it waits ~60 s because the
   admin login is rate-limited (10 per minute per IP).
 #>
 param([switch]$ConfirmWipe, [string]$Mysql = 'C:\xampp\mysql\bin\mysql.exe', [string]$Database = 'loon_interior')
@@ -25,7 +25,7 @@ if ((Get-Content $envFile) -match '^APP_URL=https?://(?!localhost|127\.0\.0\.1)'
 function Reset() { Get-Content (Join-Path $PSScriptRoot 'dev-reset-business-data.sql') -Raw | & $Mysql -u root $Database }
 $total = 0; $failed = 0
 Reset
-$steps = 'test-step1.ps1', 'test-step2.ps1', 'test-step3.ps1', 'test-step4.ps1', 'test-step6.ps1', 'test-step7.ps1', 'test-step8.ps1', 'test-hr-labour.ps1', 'test-portal.ps1', 'test-sms.ps1', 'test-delete.ps1', 'test-marketing.ps1'
+$steps = 'test-step1.ps1', 'test-step2.ps1', 'test-step3.ps1', 'test-step4.ps1', 'test-step6.ps1', 'test-step7.ps1', 'test-step8.ps1', 'test-hr-labour.ps1', 'test-portal.ps1', 'test-sms.ps1', 'test-delete.ps1', 'test-marketing.ps1', 'test-calculator.ps1'
 foreach ($i in 0..($steps.Count - 1)) {
   $s = $steps[$i]
   Write-Host "`n### $s" -ForegroundColor Cyan

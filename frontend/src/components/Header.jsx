@@ -67,6 +67,7 @@ export default function Header() {
               )}
             </div>
 
+            <NavLink to="/cost-calculator">Cost Calculator</NavLink>
             <NavLink to="/blog">Blog</NavLink>
             <NavLink to="/careers">Careers</NavLink>
             <NavLink to="/contact">Contact</NavLink>

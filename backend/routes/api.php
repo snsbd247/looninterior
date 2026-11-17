@@ -53,7 +53,11 @@ Route::middleware('throttle:forms')->group(function () {
     Route::post('inquiries', [FormController::class, 'inquiry']);
     Route::post('careers/{slug}/apply', [FormController::class, 'apply']);
     Route::post('service-requests', [FormController::class, 'serviceRequest']);
+    Route::post('calculator/quote', [\App\Http\Controllers\Api\CalculatorController::class, 'quote']);
 });
+Route::get('calculator', [\App\Http\Controllers\Api\CalculatorController::class, 'show']);
+Route::get('public/estimates/{inquiry}/pdf', [\App\Http\Controllers\Api\CalculatorController::class, 'pdf'])
+    ->whereNumber('inquiry')->middleware(['signed', 'throttle:30,1'])->name('public.estimate.pdf');
 
 /*
 |--------------------------------------------------------------------------

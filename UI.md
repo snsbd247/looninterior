@@ -142,6 +142,7 @@ labib/
 |---|---|
 | `/api/site`, `/api/home`, `/api/{services,projects,posts,careers,pages,faqs,testimonials}` | পাবলিক ডেটা |
 | `POST /api/inquiries`, `POST /api/careers/{slug}/apply` | ফর্ম (`throttle:forms`, SpamGuard) |
+| `GET /api/calculator`, `POST /api/calculator/quote`, `GET /api/public/estimates/{inquiry}/pdf` (signed) | খরচের ক্যালকুলেটর: অপশন আর সেটিং; নাম ও ফোন দিলে সার্ভার আবার হিসাব করে (`App\Support\CostEstimate`), inquiry (type `calculator`, `details` JSON) থেকে CRM লিড; estimate PDF |
 | `POST /api/admin/{login,forgot-password,reset-password}` | টোকেন ছাড়া (আলাদা rate limiter) |
 | `/api/admin/{me,profile,logout}` | `auth:sanctum` + `active` (সব স্টাফ) |
 | `/api/admin/{dashboard,settings,…}` | + `perm:website.manage` |
@@ -316,7 +317,8 @@ Request
 | `testimonials`, `clients` (লোগো), `team_members` | |
 | `posts`, `pages` | ব্লগ, ডাইনামিক পেজ |
 | `careers` → `job_applications` | জব পোস্ট, আবেদন (cv_path, status, admin_note) |
-| `inquiries` | কোট/কন্টাক্ট রিকোয়েস্ট (type, status, admin_note, ip) |
+| `inquiries` | কোট/কন্টাক্ট রিকোয়েস্ট (type, status, admin_note, ip); type `calculator` হলে `details` (JSON, nullable) এ ক্যালকুলেটরের বাছাই আর সার্ভারের হিসাব |
+| `calculator_options` | ক্যালকুলেটরের অপশন: group (type/style/quality/addon), name, description, icon, value (type = Tk/sqft, style/quality = গুণক, addon = Tk), is_default, sort_order, is_active। সেটিং: `calc_*` (এরিয়ার সীমা, রেঞ্জ %, সময়, খরচের ভাগ, নোট) |
 
 ### ৫.২ Business ✅
 

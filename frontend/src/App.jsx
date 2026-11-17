@@ -19,6 +19,7 @@ import CareerDetail from './pages/CareerDetail'
 import Contact from './pages/Contact'
 import GetQuote from './pages/GetQuote'
 import ServiceRequest from './pages/ServiceRequest'
+import CostCalculator from './pages/CostCalculator'
 import Faq from './pages/Faq'
 import CmsPage from './pages/CmsPage'
 import NotFound from './pages/NotFound'
@@ -53,6 +54,7 @@ function PublicSite() {
           <Route path="contact" element={<Contact />} />
           <Route path="get-quote" element={<GetQuote />} />
           <Route path="service-request" element={<ServiceRequest />} />
+          <Route path="cost-calculator" element={<CostCalculator />} />
           <Route path="portal/*" element={<Suspense fallback={<Loader full />}><Portal /></Suspense>} />
           <Route path="faq" element={<Faq />} />
           <Route path="page/:slug" element={<CmsPage />} />
