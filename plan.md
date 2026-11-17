@@ -389,11 +389,14 @@
 - [ ] আসল প্রজেক্টের ছবি। এখনকার ছবি Unsplash এর লিংক, সেগুলো ভেঙে যেতে পারে।
 - [ ] আসল টিম, Testimonials আর Clients, কাউন্টারের সংখ্যা, Privacy আর Terms পেজ।
 
-**হোস্টিং ও সেটআপ:**
-- [ ] ডোমেইন আর cPanel হোস্টিং কেনা, SSL (AutoSSL) চালু।
-- [ ] SMTP ইমেইল অ্যাকাউন্ট সেট করা (README → ধাপ ৫)।
-- [ ] `APP_URL` এ আসল ডোমেইন দেওয়া (https সহ)।
-- [ ] অ্যাডমিন পাসওয়ার্ড বদলানো।
+**হোস্টিং ও সেটআপ:** (১৭ নভেম্বর ২০২৬: looninterior.com এ ডেপ্লয় হয়েছে)
+- [x] ডোমেইন আর cPanel হোস্টিং (DNS ঠিক, https চলছে)। PHP 8.2।
+- [x] ফাইল: অ্যাপ `/home/looninterior/loon`, পাবলিক ফাইল `public_html` (README পদ্ধতি B), ডাটাবেজ `looninterior_web`, `/install` দিয়ে মাইগ্রেশন ও প্রথম ডেটা, এরপর `INSTALL_KEY` খালি করা।
+- [x] SMTP ইমেইল অ্যাকাউন্ট `noreply@looninterior.com` তৈরি আর `.env` এ বসানো (mail.looninterior.com:465)। Settings → Notifications থেকে "Send Test E-mail" দিয়ে যাচাই বাকি।
+- [x] `APP_URL=https://looninterior.com`।
+- [ ] অ্যাডমিন পাসওয়ার্ড বদলানো (র‍্যান্ডম পাসওয়ার্ড দেওয়া আছে; প্রথম লগইনের পর Profile থেকে বদলান)। cPanel পাসওয়ার্ডও বদলান, কারণ চ্যাটে শেয়ার হয়েছে।
+- [ ] Cron Job (README → ধাপ ৭ক): হোস্টিংয়ের bot-protection সাময়িকভাবে API আটকানোয় যোগ হয়নি।
+- [ ] হোস্টিংয়ের "One moment, please…" bot challenge: ব্রাউজারে সমস্যা নেই, তবে স্ক্রিপ্ট/লাইভ টেস্ট আটকায়। দরকার হলে হোস্টিং সাপোর্টকে বলে কমানো।
 
 **শেষ কাজ:**
 - [ ] Google Search Console এ sitemap জমা।
