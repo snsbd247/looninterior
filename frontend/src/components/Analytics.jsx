@@ -3,11 +3,11 @@ import { useLocation } from 'react-router-dom'
 import { useSite } from '../context/SiteContext'
 
 /**
- * Google Analytics 4 + Facebook Pixel for the public website (IDs from Site Settings → SEO).
+ * Google Tag Manager, Google Analytics 4 and Facebook Pixel for the public website (IDs from Site Settings → SEO).
  * Scripts load once; every route change in the single-page app is sent as a page view.
  * Admin pages never load this component.
  */
-const loaded = { ga: null, fb: null }
+const loaded = { ga: null, fb: null, gtm: null, gtmFirst: false }
 
 function loadScript(src) {
   const s = document.createElement('script')
@@ -21,6 +21,25 @@ export default function Analytics() {
   const { pathname, search } = useLocation()
   const ga = (s.ga_id || '').trim()
   const fb = (s.fb_pixel_id || '').trim()
+  const gtm = (s.gtm_id || '').trim()
+
+  useEffect(() => {
+    // Google Tag Manager (official bootstrap). Tags/triggers are managed in tagmanager.google.com.
+    if (gtm && /^GTM-[A-Z0-9]+$/i.test(gtm) && loaded.gtm !== gtm) {
+      loaded.gtm = gtm
+      if (window.__gtmLoaded === gtm) return // the server already put the snippet in the HTML (routes/web.php)
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' })
+      loadScript(`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtm)}`)
+    }
+  }, [gtm])
+
+  // Single-page app: tell Tag Manager about every route change after the first page.
+  useEffect(() => {
+    if (!loaded.gtm) return
+    if (!loaded.gtmFirst) { loaded.gtmFirst = true; return }
+    window.dataLayer.push({ event: 'page_view', page_path: pathname + search, page_title: document.title })
+  }, [pathname, search, gtm])
 
   useEffect(() => {
     if (ga && /^G-[A-Z0-9]+$/i.test(ga) && loaded.ga !== ga) {

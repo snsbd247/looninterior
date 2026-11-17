@@ -37,7 +37,8 @@ export default function QuoteForm({ type = 'quote', compact = false }) {
       setForm(EMPTY)
       setStatus({ loading: false, ok: res.data.message, error: '' })
       // Conversion events for ads (no-op when Analytics/Pixel are not configured)
-      window.gtag?.('event', 'generate_lead', { form: type })
+      if (window.gtag) window.gtag('event', 'generate_lead', { form: type })
+      else if (window.dataLayer) window.dataLayer.push({ event: 'generate_lead', form: type }) // Tag Manager only
       window.fbq?.('track', type === 'quote' ? 'Lead' : 'Contact')
     } catch (err) {
       setErrors(fieldErrors(err))

@@ -64,6 +64,15 @@ $spa = function (Request $request) {
         [$meta, $status] = Seo::forPath($request->path(), $s);
         $tags = Seo::tags($meta, $request->path(), $s);
         $html = preg_replace_callback('#<title>.*?</title>#s', fn () => $tags, $html, 1);
+
+        // Google Tag Manager (Site Settings → SEO) in the HTML itself, as Google requires, so tag checkers see it.
+        // Not on the private admin / client-portal pages.
+        $gtm = trim((string) ($s['gtm_id'] ?? ''));
+        $path = trim($request->path(), '/');
+        if (preg_match('/^GTM-[A-Z0-9]+$/i', $gtm) && ! preg_match('#^(admin|portal)(/|$)#', $path)) {
+            $html = preg_replace('#<head>#i', "<head>\n".Seo::gtmHead($gtm), $html, 1);
+            $html = preg_replace('#<body([^>]*)>#i', '<body$1>'."\n".Seo::gtmBody($gtm), $html, 1);
+        }
     } catch (\Throwable $e) {
         // Database not ready yet - serve the plain build.
     }

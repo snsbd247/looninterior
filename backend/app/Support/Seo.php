@@ -154,6 +154,27 @@ class Seo
         return implode("\n    ", $tags);
     }
 
+    /** Official Google Tag Manager snippet for <head>. $id is already validated as GTM-XXXX. */
+    public static function gtmHead(string $id): string
+    {
+        $id = e($id);
+
+        return "<!-- Google Tag Manager -->\n<script>window.__gtmLoaded='{$id}';(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n"
+            ."new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n"
+            ."j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n"
+            ."'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n"
+            ."})(window,document,'script','dataLayer','{$id}');</script>\n<!-- End Google Tag Manager -->";
+    }
+
+    /** GTM <noscript> fallback for right after <body>. */
+    public static function gtmBody(string $id): string
+    {
+        $id = e($id);
+
+        return "<!-- Google Tag Manager (noscript) -->\n<noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id={$id}\"\n"
+            ."height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>\n<!-- End Google Tag Manager (noscript) -->";
+    }
+
     /** All public URLs for sitemap.xml: [loc, lastmod|null]. */
     public static function sitemapUrls(): array
     {
