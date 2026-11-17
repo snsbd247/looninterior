@@ -67,8 +67,11 @@ Check 'Admin role cannot be edited' (Http POST "/api/business/roles/$($rid.admin
 Check 'Admin role cannot be deleted' (Http DELETE "/api/business/roles/$($rid.admin)" $null $T) 422
 Check 'role in use cannot be deleted' (Http DELETE "/api/business/roles/$($rid.sales)" $null $T) 422
 Check 'unknown permission rejected' (Http POST '/api/business/roles' @{ name = 'Bad'; permissions = @('hack.all') } $T) 422
-Check 'branch cannot be deleted' (Http DELETE "/api/admin/branches/$TB" $null $T) 405
-Check 'tax rate cannot be deleted' (Http DELETE '/api/admin/tax_rates/1' $null $T) 405
+# Phase G (owner decision): unused records can be deleted, used ones are kept with a reason (SafeDelete).
+Check 'branch with users cannot be deleted' (Http DELETE "/api/admin/branches/$HO" $null $T) 422
+$tmpTax = (Http POST '/api/admin/tax_rates' @{ name = 'T- Temp Tax'; rate = 2; is_active = $true } $T).B | ConvertFrom-Json | Select-Object -ExpandProperty data
+Check 'unused tax rate can be deleted' (Http DELETE "/api/admin/tax_rates/$($tmpTax.id)" $null $T) 200
+Check 'default VAT kept' (Http GET '/api/admin/tax_rates/1' $null $T) 200
 Check 'duplicate branch code' (Http POST '/api/admin/branches' @{ name = 'Dup'; code = 'HO' } $T) 422
 Check 'user needs a branch' (Http POST '/api/business/users' @{ name = 'NoBranch'; email = 'nobranch@example.com'; role_id = $rid.store; branch_ids = @(); password = 'TestPass#123'; password_confirmation = 'TestPass#123' } $T) 422
 
