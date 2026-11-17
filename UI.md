@@ -230,11 +230,14 @@ GET /projects/modern-apartment
         ├── ডিটেইল পেজ (services|projects|blog|careers|page)/{slug} → DB থেকে title/desc/image
         ├── admin/* → noindex,nofollow
         └── না পেলে → "Page Not Found", noindex, HTTP 404
-   → Seo::tags() → <title>, description, robots, canonical, og:*, twitter:card
+   → Seo::tags() → <title>, description, robots, canonical, og:*, twitter:card,
+                   google-site-verification, JSON-LD (LocalBusiness+WebSite হোমে, LocalBusiness কন্টাক্টে,
+                   BreadcrumbList সব পেজে, BlogPosting ব্লগে, Service সার্ভিসে)
+   → GTM: Settings এর gtm_id থাকলে <head> আর <body> এর পরে অফিসিয়াল স্নিপেট (admin/portal বাদে)
    → build/index.html এর <title> এর জায়গায় এই ট্যাগগুলো বসানো হয়
 ```
 
-React চালু হওয়ার পর `useTitle()` ব্রাউজারের টাইটেল আপডেট করে। sitemap তৈরি হয় `Seo::sitemapUrls()` থেকে।
+ডিটেইল পেজে `seo_title` থাকলে সেটাই পুরো টাইটেল, `seo_description` থাকলে সেটাই description (services, projects, posts, pages টেবিলে nullable কলাম)। React এর `Analytics.jsx` রাউট বদলালে dataLayer এ `page_view` আর ফর্ম জমা দিলে `generate_lead` পাঠায়। React চালু হওয়ার পর `useTitle()` ব্রাউজারের টাইটেল আপডেট করে। sitemap তৈরি হয় `Seo::sitemapUrls()` থেকে।
 
 ### ৪.৭ সেটিংস ✅
 

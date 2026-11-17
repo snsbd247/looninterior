@@ -89,8 +89,18 @@ class Seo
 
         if (array_key_exists($path, self::STATIC_PAGES)) {
             $title = self::STATIC_PAGES[$path];
+            $result = $title ? $page($title) : $meta;
+            // The business card for Google (Maps / local search) on the home and contact pages.
+            if ($path === '' || $path === 'contact') {
+                $result['schema'] = [self::business($s)];
+            }
+            if ($path === '') {
+                $result['schema'][] = ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => $siteName, 'url' => self::base().'/'];
+            } else {
+                $result['schema'][] = self::breadcrumbs([[$title, self::base().'/'.$path]]);
+            }
 
-            return [$title ? $page($title) : $meta, 200];
+            return [$result, 200];
         }
 
         $parts = explode('/', $path, 2);
@@ -98,19 +108,44 @@ class Seo
         $found = null;
 
         if ($slug !== '' && ! str_contains($slug, '/')) {
-            $found = match ($parts[0]) {
-                'services' => ($m = Service::active()->where('slug', $slug)->first())
-                    ? $page($m->title, $m->short_description ?: $m->description, $m->image) : null,
-                'projects' => ($m = Project::active()->where('slug', $slug)->first())
-                    ? $page($m->title, $m->short_description ?: $m->description, $m->cover_image) : null,
-                'blog' => ($m = Post::published()->where('slug', $slug)->first())
-                    ? $page($m->title, $m->excerpt ?: $m->body, $m->image, 'article') : null,
-                'careers' => ($m = Career::active()->where('slug', $slug)->first())
-                    ? $page($m->title, $m->description) : null,
-                'page' => ($m = Page::active()->where('slug', $slug)->first())
-                    ? $page($m->title, $m->content) : null,
+            // [model, default description, image, og type, section name]
+            $hit = match ($parts[0]) {
+                'services' => ($m = Service::active()->where('slug', $slug)->first()) ? [$m, $m->short_description ?: $m->description, $m->image, 'website', 'Services'] : null,
+                'projects' => ($m = Project::active()->where('slug', $slug)->first()) ? [$m, $m->short_description ?: $m->description, $m->cover_image, 'website', 'Projects'] : null,
+                'blog' => ($m = Post::published()->where('slug', $slug)->first()) ? [$m, $m->excerpt ?: $m->body, $m->image, 'article', 'Blog'] : null,
+                'careers' => ($m = Career::active()->where('slug', $slug)->first()) ? [$m, $m->description, null, 'website', 'Careers'] : null,
+                'page' => ($m = Page::active()->where('slug', $slug)->first()) ? [$m, $m->content, null, 'website', null] : null,
                 default => null,
             };
+            if ($hit) {
+                [$m, $desc, $image, $type, $section] = $hit;
+                $found = $page($m->title, $m->seo_description ?: $desc, $image, $type);
+                if (filled($m->seo_title)) {
+                    $found['title'] = $m->seo_title; // the editor's own SEO title is used as written
+                }
+                $url = self::base().'/'.$path;
+                $found['schema'] = [self::breadcrumbs(array_filter([
+                    $section ? [$section, self::base().'/'.$parts[0]] : null,
+                    [$m->title, $url],
+                ]))];
+                if ($parts[0] === 'blog') {
+                    $found['schema'][] = array_filter([
+                        '@context' => 'https://schema.org', '@type' => 'BlogPosting', 'headline' => $m->title,
+                        'description' => $found['description'], 'image' => self::abs($image), 'mainEntityOfPage' => $url,
+                        'datePublished' => optional($m->published_at ?? $m->created_at)->toAtomString(),
+                        'dateModified' => optional($m->updated_at)->toAtomString(),
+                        'author' => ['@type' => 'Organization', 'name' => $siteName],
+                        'publisher' => array_filter(['@type' => 'Organization', 'name' => $siteName, 'logo' => self::abs($s['logo'] ?? null) ? ['@type' => 'ImageObject', 'url' => self::abs($s['logo'])] : null]),
+                    ]);
+                } elseif ($parts[0] === 'services') {
+                    $found['schema'][] = array_filter([
+                        '@context' => 'https://schema.org', '@type' => 'Service', 'name' => $m->title, 'serviceType' => $m->title,
+                        'description' => $found['description'], 'image' => self::abs($image), 'url' => $url,
+                        'provider' => ['@type' => 'HomeAndConstructionBusiness', 'name' => $siteName, 'url' => self::base().'/'],
+                        'areaServed' => ['@type' => 'Country', 'name' => 'Bangladesh'],
+                    ]);
+                }
+            }
         }
 
         if ($found) {
@@ -150,8 +185,51 @@ class Seo
         if (! empty($s['favicon'])) {
             $tags[] = "<link rel=\"icon\" href=\"{$e(self::abs($s['favicon']))}\">";
         }
+        if (! empty($s['google_site_verification'])) {
+            $tags[] = "<meta name=\"google-site-verification\" content=\"{$e($s['google_site_verification'])}\">";
+        }
+        // Structured data (JSON-LD). JSON_HEX_TAG keeps "</script>" inside text from closing the tag.
+        foreach ($meta['schema'] ?? [] as $data) {
+            $tags[] = '<script type="application/ld+json">'.json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP).'</script>';
+        }
 
         return implode("\n    ", $tags);
+    }
+
+    /** schema.org BreadcrumbList: Home › [name, url]… */
+    public static function breadcrumbs(array $items): array
+    {
+        $list = [['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => self::base().'/']];
+        foreach (array_values($items) as $i => [$name, $url]) {
+            $list[] = ['@type' => 'ListItem', 'position' => $i + 2, 'name' => $name, 'item' => $url];
+        }
+
+        return ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $list];
+    }
+
+    /** The company as a local business (from Site Settings → contact, social, SEO). */
+    public static function business(array $s): array
+    {
+        $social = array_values(array_filter(array_map(fn ($k) => filled($s[$k] ?? null) && str_starts_with((string) $s[$k], 'http') ? $s[$k] : null,
+            ['facebook', 'instagram', 'youtube', 'linkedin'])));
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'HomeAndConstructionBusiness',
+            'name' => $s['site_name'] ?? config('app.name'),
+            'description' => $s['meta_description'] ?? ($s['tagline'] ?? null),
+            'url' => self::base().'/',
+            'logo' => self::abs($s['logo'] ?? null),
+            'image' => self::abs($s['og_image'] ?? ($s['logo'] ?? null)),
+            'telephone' => $s['phone'] ?? null,
+            'email' => $s['email'] ?? null,
+            'address' => filled($s['address'] ?? null)
+                ? ['@type' => 'PostalAddress', 'streetAddress' => trim(preg_replace('/\s+/', ' ', strip_tags((string) $s['address']))), 'addressCountry' => 'BD']
+                : null,
+            'areaServed' => ['@type' => 'Country', 'name' => 'Bangladesh'],
+            'priceRange' => '৳৳',
+            'sameAs' => $social ?: null,
+        ]);
     }
 
     /** Official Google Tag Manager snippet for <head>. $id is already validated as GTM-XXXX. */

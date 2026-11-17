@@ -98,6 +98,9 @@ foreach ($pair in @(@('/api/services', '/services/'), @('/api/projects', '/proje
 Write-Host '[SEO]'
 $sm = Expect 'GET /sitemap.xml' GET '/sitemap.xml' 200
 Report ($sm.Body -match '<urlset') 'sitemap has urlset'
+$hp = Expect 'GET / (SEO tags)' GET '/' 200
+Report ($hp.Body -match 'application/ld\+json' -and $hp.Body -match 'HomeAndConstructionBusiness') 'home has LocalBusiness structured data'
+Report ($hp.Body -match '<link rel="canonical"') 'home has canonical'
 $rb = Expect 'GET /robots.txt' GET '/robots.txt' 200
 Report ($rb.Body -match 'Sitemap:') 'robots has Sitemap line'
 

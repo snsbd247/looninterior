@@ -73,6 +73,8 @@ class ResourceRegistry
                 'search' => ['title'],
                 'order' => ['sort_order', 'asc'],
                 'rules' => [
+                    'seo_title' => 'nullable|string|max:70', // SEO (empty = automatic)
+                    'seo_description' => 'nullable|string|max:170',
                     'title' => 'required|string|max:255',
                     'slug' => 'nullable|string|max:255|unique:services,slug,{id}',
                     'icon' => 'nullable|string|max:50',
@@ -109,6 +111,8 @@ class ResourceRegistry
                 'with' => ['category:id,name'],
                 'order' => ['sort_order', 'asc'],
                 'rules' => [
+                    'seo_title' => 'nullable|string|max:70', // SEO (empty = automatic)
+                    'seo_description' => 'nullable|string|max:170',
                     'project_category_id' => 'nullable|exists:project_categories,id',
                     'title' => 'required|string|max:255',
                     'slug' => 'nullable|string|max:255|unique:projects,slug,{id}',
@@ -237,6 +241,8 @@ class ResourceRegistry
                 'search' => ['title'],
                 'order' => ['published_at', 'desc'],
                 'rules' => [
+                    'seo_title' => 'nullable|string|max:70', // SEO (empty = automatic)
+                    'seo_description' => 'nullable|string|max:170',
                     'title' => 'required|string|max:255',
                     'slug' => 'nullable|string|max:255|unique:posts,slug,{id}',
                     'excerpt' => 'nullable|string|max:1000',
@@ -253,6 +259,8 @@ class ResourceRegistry
                 'search' => ['title'],
                 'order' => ['title', 'asc'],
                 'rules' => [
+                    'seo_title' => 'nullable|string|max:70', // SEO (empty = automatic)
+                    'seo_description' => 'nullable|string|max:170',
                     'title' => 'required|string|max:255',
                     'slug' => 'nullable|string|max:255|unique:pages,slug,{id}',
                     'content' => $html,

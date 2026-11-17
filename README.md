@@ -244,6 +244,15 @@ labib/
   - যারা আর মেসেজ চান না: লিড বা ক্লায়েন্টের Edit পেজে "No marketing SMS / e-mail" টিক দিন। ইমেইলের নিচের Unsubscribe লিংকে ক্লিক করলেও নিজে থেকে বন্ধ হয়ে যায়।
 - **ইনভয়েস ও কোটেশন ইমেইল:** ডিটেইল পেজের **Email** বাটনে PDF (English বা Bangla) সংযুক্ত হয়ে যায়।
 
+### SEO আর ট্র্যাকিং ✅
+
+- **Site Settings → SEO:** Meta Title, Meta Description, Social Share Image, **Google Tag Manager ID**, Google Analytics ID, Facebook Pixel ID, Search Console code।
+  - GTM ব্যবহার করলে GA4 GTM এর ভেতরে সেট করুন আর এখানে Analytics ID খালি রাখুন (না হলে দুবার গোনা হবে)।
+  - GTM এ ইভেন্ট আসে: পেজ বদলালে `page_view`, Quote/Contact ফর্ম জমা দিলে `generate_lead`।
+- **প্রতিটা Service, Project, Blog Post আর Page এ "SEO Title / SEO Description"** (ঐচ্ছিক)। খালি থাকলে নিজে থেকে তৈরি হয়।
+- **Structured data নিজে থেকে যায়:** হোম আর কন্টাক্টে LocalBusiness (Site Settings এর নাম, ফোন, ইমেইল, ঠিকানা, লোগো, সোশ্যাল লিংক থেকে), সব পেজে Breadcrumb, ব্লগে Article, সার্ভিসে Service। তাই Site Settings এর তথ্য সবসময় সঠিক রাখুন।
+- যাচাই: https://search.google.com/test/rich-results এ পেজের লিংক দিন।
+
 ### অ্যাডমিন প্যানেলের মেনু আর ভাষা
 
 - **সাইডবার:** submenu স্টাইলে। CRM, Billing, Inventory… তে ক্লিক করলে নিচের মেনু খোলে। যে পেজ খোলা, তার মেনু নিজে থেকে খোলা থাকে।

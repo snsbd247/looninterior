@@ -395,11 +395,13 @@
 - [x] SMTP ইমেইল অ্যাকাউন্ট `noreply@looninterior.com` তৈরি আর `.env` এ বসানো (mail.looninterior.com:465)। Settings → Notifications থেকে "Send Test E-mail" দিয়ে যাচাই বাকি।
 - [x] `APP_URL=https://looninterior.com`।
 - [ ] অ্যাডমিন পাসওয়ার্ড বদলানো (র‍্যান্ডম পাসওয়ার্ড দেওয়া আছে; প্রথম লগইনের পর Profile থেকে বদলান)। cPanel পাসওয়ার্ডও বদলান, কারণ চ্যাটে শেয়ার হয়েছে।
-- [ ] Cron Job (README → ধাপ ৭ক): হোস্টিংয়ের bot-protection সাময়িকভাবে API আটকানোয় যোগ হয়নি।
+- [x] Cron Job (README → ধাপ ৭ক) যোগ করা হয়েছে: প্রতি মিনিটে `schedule:run`।
 - [ ] হোস্টিংয়ের "One moment, please…" bot challenge: ব্রাউজারে সমস্যা নেই, তবে স্ক্রিপ্ট/লাইভ টেস্ট আটকায়। দরকার হলে হোস্টিং সাপোর্টকে বলে কমানো।
 
 **শেষ কাজ:**
-- [ ] Google Search Console এ sitemap জমা।
+- [x] Google Search Console এ ডোমেইন verify (DNS) আর Live Test সফল; sitemap জমা দেওয়া মালিকের দিকে।
+- [x] SEO (১৭ নভেম্বর ২০২৬): Google Tag Manager (`GTM-W8RZT4G3`, সার্ভার HTML এ বসায়), structured data (LocalBusiness, WebSite, BreadcrumbList, BlogPosting, Service), সার্ভিস/প্রজেক্ট/ব্লগ/পেজে আলাদা SEO Title ও Description, Search Console verification ঘর।
+- [ ] GA4 (`G-LXQM7PXF12`) GTM এর ভেতরে Google Tag হিসেবে যোগ করা আর `generate_lead` কে conversion করা (মালিক, GTM থেকে)।
 - [ ] আসল Android আর iPhone এ টেস্ট।
 - [ ] cPanel এ নিয়মিত ব্যাকআপ চালু আছে কিনা দেখা।
 - [ ] এই পিসি থেকে LAN বা ইন্টারনেটে দেখাতে চাইলে: Firewall রুল আর রাউটারে পোর্ট ফরওয়ার্ড।

@@ -67,6 +67,8 @@ export const RESOURCES = {
       iconField,
       { name: 'is_featured', label: 'Show on home page', type: 'switch', half: true, default: true },
       sort, active,
+      { name: 'seo_title', label: 'SEO Title (optional)', half: true, help: 'Shown in Google results, max 70 characters. Empty = the title + site name' },
+      { name: 'seo_description', label: 'SEO Description (optional)', type: 'textarea', help: 'Shown under the title in Google, 120–160 characters. Empty = taken from the text' },
     ],
   },
 
@@ -102,6 +104,8 @@ export const RESOURCES = {
       { name: 'images', label: 'Gallery Images', type: 'gallery', help: 'You can select multiple images at once' },
       { name: 'is_featured', label: 'Featured on home page', type: 'switch', half: true },
       sort, active,
+      { name: 'seo_title', label: 'SEO Title (optional)', half: true, help: 'Shown in Google results, max 70 characters. Empty = the title + site name' },
+      { name: 'seo_description', label: 'SEO Description (optional)', type: 'textarea', help: 'Shown under the title in Google, 120–160 characters. Empty = taken from the text' },
     ],
   },
 
@@ -161,6 +165,8 @@ export const RESOURCES = {
       { name: 'image', label: 'Featured Image', type: 'image' },
       { name: 'published_at', label: 'Publish Date', type: 'date', half: true },
       active,
+      { name: 'seo_title', label: 'SEO Title (optional)', half: true, help: 'Shown in Google results, max 70 characters. Empty = the title + site name' },
+      { name: 'seo_description', label: 'SEO Description (optional)', type: 'textarea', help: 'Shown under the title in Google, 120–160 characters. Empty = taken from the text' },
     ],
   },
 
@@ -173,6 +179,8 @@ export const RESOURCES = {
       { name: 'content', label: 'Content', type: 'rich' },
       { name: 'show_in_footer', label: 'Show link in footer', type: 'switch', default: true, half: true },
       active,
+      { name: 'seo_title', label: 'SEO Title (optional)', half: true, help: 'Shown in Google results, max 70 characters. Empty = the title + site name' },
+      { name: 'seo_description', label: 'SEO Description (optional)', type: 'textarea', help: 'Shown under the title in Google, 120–160 characters. Empty = taken from the text' },
     ],
   },
 
