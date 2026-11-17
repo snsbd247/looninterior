@@ -111,6 +111,7 @@ Route::prefix('business')->middleware(['auth:sanctum', 'active', 'branch'])->gro
         Route::get('users/{user}', 'show')->whereNumber('user');
         Route::post('users/{user}', 'update')->whereNumber('user');
     });
+    Route::get('webmail/check', [\App\Http\Controllers\Business\WebmailController::class, 'check'])->middleware(['perm:users.manage', 'throttle:webmail']);
     Route::get('roles', [RoleController::class, 'index'])->middleware('perm:roles.manage|users.manage');
     Route::middleware('perm:roles.manage')->controller(RoleController::class)->group(function () {
         Route::post('roles', 'store');

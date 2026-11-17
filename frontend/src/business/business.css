@@ -456,3 +456,9 @@ a.b-kpi:hover { border-color: var(--a-accent); }
 .b-webmail-icon { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; background: color-mix(in srgb, var(--a-accent) 14%, transparent); color: var(--a-accent); }
 .b-webmail-box { font-size: 1.15rem; font-weight: 600; word-break: break-all; margin: 0 0 6px; }
 .b-webmail .a-btn { margin-top: 12px; }
+.b-mailbox-status { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--a-border); font-size: .92rem; word-break: break-word; }
+.b-mailbox-status.is-exists { border-color: #9fd3b0; background: #eef9f1; color: #1f6b3a; }
+.b-mailbox-status.is-available { border-color: #b7cdf0; background: #eef4fd; color: #234f8f; }
+.b-mailbox-status.is-other_domain, .b-mailbox-status.is-checking { color: var(--a-muted); }
+.b-mailbox-status.is-error { border-color: #f0b7b7; background: #fdeeee; color: #9b2c2c; }
+.b-mailbox-create { margin-top: 10px; display: grid; gap: 10px; }

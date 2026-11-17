@@ -259,7 +259,7 @@ labib/
 প্রত্যেক স্টাফ অ্যাডমিন → **Mail → Webmail** থেকে নিজের কোম্পানির মেইল খোলে। মেইলের পাসওয়ার্ড লাগে না।
 
 একবারের সেটআপ:
-1. **cPanel → Email Accounts:** প্রত্যেক স্টাফের মেইলবক্স তৈরি করুন (যেমন `sales@looninterior.com`)।
+1. মেইলবক্স: cPanel-এ যেতে হয় না। নিচে "নতুন স্টাফের মেইল" দেখুন।
 2. **cPanel → Security → Manage API Tokens → Create:** একটা টোকেন তৈরি করে কপি করুন।
 3. **অ্যাডমিন → Business Settings → Webmail:**
    - One-click Webmail = On।
@@ -267,6 +267,15 @@ labib/
    - cPanel username আর API token বসিয়ে Save করুন। টোকেন পরে `********` দেখাবে।
 4. **অ্যাডমিন → Users → Edit:** প্রত্যেকের **Mailbox (Webmail)** ঘরে তাঁর মেইল লিখুন। লগইন ইমেইল কোম্পানির ডোমেইনে হলে ঘরটা খালি রাখা যায়।
 5. **Roles:** যাদের দরকার তাদের রোলে **Webmail → use** পারমিশন দিন (Admin-এর আগে থেকেই আছে)।
+
+**নতুন স্টাফের মেইল (অ্যাডমিন → Users → Add User):**
+- Email ঘরে `নাম@looninterior.com` লিখুন। নিচে সাথে সাথে দেখাবে:
+  - **Mailbox exists:** মেইলবক্স আগেই আছে, Webmail এটাই খুলবে।
+  - **No mailbox yet:** "Create this mailbox in cPanel" টিক দেওয়া থাকে। Save করলেই মেইলবক্স তৈরি হয়।
+- মেইল পাসওয়ার্ড ঐচ্ছিক, শুধু মোবাইল বা Outlook-এ মেইল চালাতে লাগে। খালি রাখলে শক্ত এলোমেলো পাসওয়ার্ড বসে।
+- মেইলবক্সের সাইজ ঠিক হয় Business Settings → Webmail → New mailbox size থেকে (খালি থাকলে 2048 MB)।
+- স্টাফকে **বন্ধ (Active off)** করলে তার মেইলে লগইনও বন্ধ হয়, তবে মেইল আসতে থাকে। আবার চালু করলে লগইন খোলে।
+- মেইলবক্স মুছতে চাইলে cPanel → Email Accounts থেকে হাতে মুছুন। অ্যাডমিন থেকে কখনো মেইল মোছে না।
 
 ### SEO আর ট্র্যাকিং ✅
 
@@ -711,6 +720,7 @@ cd /home/USER/loon && php artisan schedule:run >> /dev/null 2>&1
 | `POST sms/test`, `GET sms/balance` | settings.business | টেস্ট SMS, Greenweb ব্যালেন্স |
 | `DELETE users\|leads\|customers\|quotations\|projects\|accounts\|stores\|purchase-orders\|employees\|leaves\|payrolls\|tickets/{id}` | সংশ্লিষ্ট .manage | Delete (ব্যবহৃত হলে 422 আর কারণ) |
 | `GET webmail`, `POST webmail/session` | webmail.use | নিজের মেইলবক্স, এক ক্লিকে cPanel Webmail |
+| `GET webmail/check?email` | users.manage | মেইলবক্স আছে কিনা (Users ফর্মে তৈরির জন্য) |
 | `campaigns`, `campaigns/{id}` | marketing.view | ক্যাম্পেইন তালিকা ও রিপোর্ট |
 | `POST campaigns[/{id}]`, `campaigns/preview`, `…/start`, `…/batch`, `…/retry`, `…/stop`, `DELETE campaigns/{id}` | marketing.send | ক্যাম্পেইন তৈরি ও পাঠানো |
 | `GET /api/public/unsubscribe/{lead\|customer}/{id}` | (signed লিংক) | ইমেইল থেকে আনসাবস্ক্রাইব |

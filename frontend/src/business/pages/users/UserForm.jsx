@@ -37,6 +37,23 @@ export default function UserForm() {
     }
   }, [id, isEdit, navigate, toast, me.branches])
 
+  // Mailbox check (cPanel): the Mailbox field, or the login e-mail. Debounced; only when the address looks complete.
+  const target = ((form?.mailbox || form?.email) || '').trim().toLowerCase()
+  const [mb, setMb] = useState(null)
+  const [createBox, setCreateBox] = useState(true)
+  const [boxPw, setBoxPw] = useState('')
+  useEffect(() => {
+    setMb(null)
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(target)) return undefined
+    const t = setTimeout(() => {
+      setMb({ status: 'checking' })
+      businessApi.get('/webmail/check', { params: { email: target } })
+        .then((r) => setMb(r.data))
+        .catch((e) => setMb({ status: 'error', message: errorMessage(e) }))
+    }, 600)
+    return () => clearTimeout(t)
+  }, [target])
+
   if (!form) return <Loader />
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
@@ -52,6 +69,10 @@ export default function UserForm() {
     setErrors({})
     try {
       const payload = { ...form }
+      if (mb?.status === 'available' && createBox) {
+        payload.create_mailbox = true
+        if (boxPw) payload.mailbox_password = boxPw
+      }
       if (isEdit && !payload.password) { delete payload.password; delete payload.password_confirmation }
       const res = await businessApi.post(isEdit ? `/users/${id}` : '/users', payload)
       toast(res.data.message)
@@ -76,6 +97,28 @@ export default function UserForm() {
           <label className="a-field half"><span>Email (login) *</span><input type="email" value={form.email} onChange={set('email')} />{err('email')}</label>
           <label className="a-field half"><span>Phone</span><input value={form.phone} onChange={set('phone')} />{err('phone')}</label>
           <label className="a-field half"><span>Mailbox (Webmail)</span><input type="email" value={form.mailbox} onChange={set('mailbox')} placeholder="name@looninterior.com" /><small className="a-help">The user's company e-mail account for Mail → Webmail. Empty = the login e-mail, if it is on the company domain.</small>{err('mailbox')}</label>
+          {mb && mb.status !== 'not_configured' && (
+            <div className="a-field full">
+              <div className={`b-mailbox-status is-${mb.status}`}>
+                <strong>{target}</strong>{' '}
+                {mb.status === 'checking' ? 'Checking mailbox…' : mb.message}
+              </div>
+              {mb.status === 'available' && (
+                <div className="b-mailbox-create">
+                  <label className="b-check is-on">
+                    <input type="checkbox" checked={createBox} onChange={(e) => setCreateBox(e.target.checked)} /> Create this mailbox in cPanel when saving
+                  </label>
+                  {createBox && (
+                    <label className="a-field">
+                      <span>Mailbox password (optional)</span>
+                      <input type="password" value={boxPw} onChange={(e) => setBoxPw(e.target.value)} autoComplete="new-password" />
+                      <small className="a-help">Only needed for phone / Outlook. Empty = a strong random password (Webmail opens without it).</small>
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <label className="a-field half">
             <span>Role *</span>
             <select value={form.role_id} onChange={set('role_id')} disabled={self}>
@@ -117,6 +160,7 @@ export default function UserForm() {
               <span className="slider" />
               <span className="switch-label">Active (can sign in)</span>
             </label>
+            <small className="a-help">Turning a user off also blocks sign-in to their company mailbox (mail is kept).</small>
             {err('is_active')}
           </div>
         </div>

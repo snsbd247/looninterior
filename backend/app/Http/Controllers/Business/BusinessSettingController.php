@@ -60,6 +60,7 @@ class BusinessSettingController extends Controller
         'webmail_cpanel_user' => ['nullable', 'string', 'max:64', 'regex:/^[a-z0-9_.-]+$/i'],
         'webmail_token' => 'nullable|string|max:255',
         'webmail_domain' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9.-]+$/i'],
+        'webmail_quota' => 'nullable|integer|min:0|max:102400',
     ];
 
     /** Secret keys: shown masked; sending the mask back keeps the stored value. */

@@ -59,6 +59,7 @@ const TABS = [
       { name: 'webmail_domain', label: 'E-mail domain', half: true, placeholder: 'looninterior.com', help: 'Users whose login e-mail ends with this domain get that mailbox automatically. Others: set "Mailbox" in Users.' },
       { name: 'webmail_host', label: 'cPanel server name', half: true, placeholder: 'looninterior.com', help: 'Without https:// and port. cPanel is called on port 2083, Webmail opens on 2096.' },
       { name: 'webmail_cpanel_user', label: 'cPanel username', half: true, placeholder: 'cpanel username' },
+      { name: 'webmail_quota', label: 'New mailbox size (MB)', type: 'number', half: true, placeholder: '2048', help: 'Used when a mailbox is created from Users. 0 = unlimited. Empty = 2048 MB.' },
       { name: 'webmail_token', label: 'cPanel API token', type: 'secret', placeholder: 'cPanel → Security → Manage API Tokens → Create', help: 'Stored on the server only and shown as ******** afterwards. Leave ******** to keep it; clear the field to remove it. The mailboxes must belong to this cPanel account.' },
     ],
   },

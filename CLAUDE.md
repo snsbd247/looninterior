@@ -79,6 +79,9 @@ Must keep running on shared cPanel hosting (no SSH, no queue worker, no Node ser
 - One-click cPanel Webmail (`App\Services\Webmail`, `perm:webmail.use`). The cPanel API token (`biz_webmail_token`) is a
   full-access secret: the settings API returns it masked (`********`), and a masked value sent back keeps the stored token.
   Never return it, log it or put it in the frontend.
+- Mailboxes are created only from the Users form (`create_mailbox`, re-checked on the server, created before the
+  user is saved) and only on the configured domain. Deactivating a user suspends mailbox login. Never delete a mailbox
+  from the app.
 
 ## Tests
 

@@ -18,6 +18,14 @@ class WebmailController extends Controller
         ]);
     }
 
+    /** Users form: does this company mailbox exist, or can it be created? (users.manage) */
+    public function check(Request $request)
+    {
+        $data = $request->validate(['email' => 'required|string|max:255']);
+
+        return response()->json(Webmail::check($data['email']));
+    }
+
     /** Creates a temporary Webmail session; the browser POSTs it to cPanel's login URL. */
     public function session(Request $request)
     {

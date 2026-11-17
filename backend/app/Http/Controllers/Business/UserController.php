@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Business;
 use App\Http\Controllers\Controller;
 use App\Models\Business\Role;
 use App\Models\User;
+use App\Services\Webmail;
 use App\Support\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request, null);
+        $created = $this->createMailbox($data);
 
         $user = DB::transaction(function () use ($data) {
             $user = User::create([
@@ -60,7 +62,7 @@ class UserController extends Controller
             return $user;
         });
 
-        return response()->json(['message' => 'User created', 'data' => $user->load(['role:id,name,slug', 'branches:id,name,code'])], 201);
+        return response()->json(['message' => 'User created'.$created, 'data' => $user->load(['role:id,name,slug', 'branches:id,name,code'])], 201);
     }
 
     public function update(Request $request, User $user)
@@ -76,6 +78,8 @@ class UserController extends Controller
             throw ValidationException::withMessages(['role_id' => 'You cannot change your own role.']);
         }
         $this->guardLastAdmin($user, $data);
+        $created = $this->createMailbox($data);
+        $wasActive = (bool) $user->is_active;
 
         DB::transaction(function () use ($user, $data) {
             $user->fill([
@@ -106,7 +110,56 @@ class UserController extends Controller
             }
         });
 
-        return response()->json(['message' => 'User updated', 'data' => $user->fresh()->load(['role:id,name,slug', 'branches:id,name,code'])]);
+        $note = $this->syncMailboxLogin($user->fresh(), $wasActive);
+
+        return response()->json(['message' => 'User updated'.$created.$note, 'data' => $user->fresh()->load(['role:id,name,slug', 'branches:id,name,code'])]);
+    }
+
+    /**
+     * "Create this mailbox": checked again on the server and created in cPanel before the user is saved,
+     * so a cPanel error (weak password, quota…) stops the save with the reason.
+     */
+    private function createMailbox(array $data): string
+    {
+        if (empty($data['create_mailbox'])) {
+            return '';
+        }
+        $box = Webmail::mailboxOf($data['mailbox'] ?? null, $data['email']);
+        $field = ! empty($data['mailbox']) ? 'mailbox' : 'email';
+        if (! $box || ! Webmail::onDomain($box)) {
+            throw ValidationException::withMessages([$field => 'Only a company e-mail address can get a mailbox.']);
+        }
+        $check = Webmail::check($box);
+        if ($check['status'] === 'exists') {
+            return '';
+        }
+        if ($check['status'] !== 'available') {
+            throw ValidationException::withMessages([$field => $check['message']]);
+        }
+        [$ok, $msg] = Webmail::create($box, $data['mailbox_password'] ?? null);
+        if (! $ok) {
+            throw ValidationException::withMessages([$field => 'cPanel could not create the mailbox: '.$msg]);
+        }
+        ActivityLogger::record('mailbox_created', null, "Created mailbox {$box}");
+
+        return " · mailbox {$box} created";
+    }
+
+    /** Deactivating a user blocks sign-in to their mailbox (mail is kept); re-activating allows it again. */
+    private function syncMailboxLogin(User $user, bool $wasActive): string
+    {
+        if ($wasActive === (bool) $user->is_active || ! Webmail::configured()) {
+            return '';
+        }
+        $box = Webmail::mailboxFor($user);
+        if (! $box || ! Webmail::onDomain($box) || Webmail::check($box)['status'] !== 'exists') {
+            return '';
+        }
+        [$ok, $msg] = Webmail::setLogin($box, (bool) $user->is_active);
+        ActivityLogger::record($user->is_active ? 'mailbox_login_allowed' : 'mailbox_login_blocked', $user,
+            ($user->is_active ? 'Allowed' : 'Blocked')." mailbox sign-in {$box}".($ok ? '' : " (failed: {$msg})"));
+
+        return $ok ? ($user->is_active ? ' · mailbox sign-in allowed' : ' · mailbox sign-in blocked') : " · mailbox sign-in could not be changed: {$msg}";
     }
 
     private function validated(Request $request, ?User $user): array
@@ -116,6 +169,8 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'phone' => 'nullable|string|max:50',
             'mailbox' => 'nullable|email|max:255',
+            'create_mailbox' => 'sometimes|boolean',
+            'mailbox_password' => 'nullable|string|min:8|max:100',
             'role_id' => 'required|integer|exists:roles,id',
             'branch_ids' => 'required|array|min:1',
             'branch_ids.*' => 'integer|exists:branches,id',
