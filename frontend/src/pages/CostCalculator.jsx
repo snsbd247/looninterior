@@ -29,14 +29,22 @@ function estimateOf(sel, opts, s) {
   const style = opts.style.find((o) => o.id === sel.style)
   const quality = opts.quality.find((o) => o.id === sel.quality)
   if (!type || !style || !quality) return null
-  const rate = Math.round(type.value * style.value * quality.value * 100) / 100
-  const work = rate * sel.area
+  const factor = style.value * quality.value
+  // Room by room (same formula as App\Support\CostEstimate): Σ room price × count × style × quality
+  const rooms = sel.mode === 'rooms'
+    ? (opts.room || []).filter((r) => (sel.rooms[r.id] || 0) > 0).map((r) => {
+      const unit = Math.round(r.value * factor * 100) / 100
+      return { ...r, qty: sel.rooms[r.id], unit, amount: unit * sel.rooms[r.id] }
+    })
+    : []
+  const work = sel.mode === 'rooms' ? rooms.reduce((t, r) => t + r.amount, 0) : Math.round(type.value * factor * 100) / 100 * sel.area
+  const rate = sel.mode === 'rooms' ? Math.round((work / sel.area) * 100) / 100 : Math.round(type.value * factor * 100) / 100
   const addons = opts.addon.filter((o) => sel.addons.includes(o.id))
   const extras = addons.reduce((t, a) => t + Number(a.value), 0)
   const estimate = work + extras
   const days = Math.ceil((s.days_base + (s.days_per_1000 * sel.area) / 1000) / 5) * 5
   return {
-    type, style, quality, rate, work, addons, extras, estimate, days,
+    type, style, quality, rate, work, addons, extras, estimate, days, rooms, roomCount: rooms.reduce((t, r) => t + r.qty, 0),
     low: Math.round((estimate * (1 - s.range_low / 100)) / 1000) * 1000,
     high: Math.round((estimate * (1 + s.range_high / 100)) / 1000) * 1000,
   }
@@ -71,6 +79,7 @@ function LeadForm({ sel, e, onDone }) {
     try {
       const r = await api.post('/calculator/quote', {
         ...form, website: hp, form_token, type_id: sel.type, style_id: sel.style, quality_id: sel.quality, area: sel.area, addon_ids: sel.addons,
+        mode: sel.mode, rooms: sel.mode === 'rooms' ? Object.entries(sel.rooms).filter(([, q]) => q > 0).map(([id, qty]) => ({ id: Number(id), qty })) : [],
       })
       if (window.gtag) window.gtag('event', 'generate_lead', { form: 'calculator', value: e.estimate, currency: 'BDT' })
       else if (window.dataLayer) window.dataLayer.push({ event: 'generate_lead', form: 'calculator', value: e.estimate, currency: 'BDT' })
@@ -106,7 +115,8 @@ export default function CostCalculator() {
   useEffect(() => {
     if (!data || sel) return
     const first = (g) => (data.options[g].find((o) => o.is_default) || data.options[g][0])?.id
-    setSel({ type: first('type'), style: first('style'), quality: first('quality'), area: Number(data.settings.default_area), addons: [] })
+    const rooms = Object.fromEntries((data.options.room || []).map((r) => [r.id, Number(r.default_qty) || 0]))
+    setSel({ mode: 'area', rooms, type: first('type'), style: first('style'), quality: first('quality'), area: Number(data.settings.default_area), addons: [] })
   }, [data, sel])
 
   const e = useMemo(() => (data && sel ? estimateOf(sel, data.options, data.settings) : null), [data, sel])
@@ -116,9 +126,11 @@ export default function CostCalculator() {
 
   const s = data.settings
   const set = (patch) => { setSel({ ...sel, ...patch }); setDone(null) }
+  const hasRooms = (data.options.room || []).length > 0
+  const setRoom = (id, q) => set({ rooms: { ...sel.rooms, [id]: Math.max(0, Math.min(20, q)) } })
   const toggleAddon = (id) => set({ addons: sel.addons.includes(id) ? sel.addons.filter((x) => x !== id) : [...sel.addons, id] })
   const area = (v) => set({ area: Math.min(s.max_area, Math.max(s.min_area, Math.round(Number(v) || s.min_area))) })
-  const wa = site.whatsapp && e ? whatsappLink(site.whatsapp, `Hello, I used the cost calculator on your website.\n${e.type.name}, ${sel.area.toLocaleString('en-IN')} sqft, ${e.style.name} style, ${e.quality.name} quality${e.addons.length ? ` + ${e.addons.map((a) => a.name).join(', ')}` : ''}.\nEstimate: ${tk(e.low)} – ${tk(e.high)}. Please contact me.`) : null
+  const wa = site.whatsapp && e ? whatsappLink(site.whatsapp, `Hello, I used the cost calculator on your website.\n${e.type.name}, ${sel.area.toLocaleString('en-IN')} sqft,${e.rooms.length ? ` rooms: ${e.rooms.map((r) => `${r.qty} ${r.name}`).join(', ')},` : ''} ${e.style.name} style, ${e.quality.name} quality${e.addons.length ? ` + ${e.addons.map((a) => a.name).join(', ')}` : ''}.\nEstimate: ${tk(e.low)} – ${tk(e.high)}. Please contact me.`) : null
 
   return (
     <>
@@ -138,8 +150,43 @@ export default function CostCalculator() {
                 <OptionCards items={data.options.type} value={sel.type} onChange={(id) => set({ type: id })} show={(o) => `from ${tk(o.value)}/sqft`} />
               </div>
 
+              {hasRooms && (
+                <div className="calc-mode" role="tablist" aria-label="How to estimate">
+                  <button type="button" role="tab" aria-selected={sel.mode === 'area'} className={sel.mode === 'area' ? 'is-on' : ''} onClick={() => set({ mode: 'area' })}>
+                    <b>By total area</b><small>Quick estimate from square feet</small>
+                  </button>
+                  <button type="button" role="tab" aria-selected={sel.mode === 'rooms'} className={sel.mode === 'rooms' ? 'is-on' : ''} onClick={() => set({ mode: 'rooms' })}>
+                    <b>Room by room</b><small>Choose the rooms you want done</small>
+                  </button>
+                </div>
+              )}
+
+              {sel.mode === 'rooms' && (
+                <div className="calc-step">
+                  <h3><span>2</span> Which rooms?</h3>
+                  <div className="calc-rooms">
+                    {data.options.room.map((r) => {
+                      const q = sel.rooms[r.id] || 0
+                      return (
+                        <div key={r.id} className={`calc-room ${q > 0 ? 'is-on' : ''}`}>
+                          {r.icon && <span className="calc-card-icon"><Icon name={r.icon} /></span>}
+                          <span className="calc-room-text"><b>{r.name}</b>{r.description && <small>{r.description}</small>}<em>{tk(r.value)} each (standard)</em></span>
+                          <span className="calc-stepper">
+                            <button type="button" aria-label={`Fewer ${r.name}`} onClick={() => setRoom(r.id, q - 1)} disabled={q <= 0}>−</button>
+                            <output aria-live="polite">{q}</output>
+                            <button type="button" aria-label={`More ${r.name}`} onClick={() => setRoom(r.id, q + 1)} disabled={q >= 20}>+</button>
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {e.roomCount === 0 && <p className="field-error">Add at least one room.</p>}
+                </div>
+              )}
+
               <div className="calc-step">
-                <h3><span>2</span> How big is it?</h3>
+                <h3><span>{sel.mode === 'rooms' ? '·' : '2'}</span> {sel.mode === 'rooms' ? 'Approximate total area' : 'How big is it?'}</h3>
+                {sel.mode === 'rooms' && <p className="calc-small">Used only to estimate how long the work takes.</p>}
                 <div className="calc-area">
                   <input type="range" min={s.min_area} max={s.max_area} step={50} value={sel.area} onChange={(ev) => area(ev.target.value)} aria-label="Area in square feet" />
                   <label className="calc-area-box"><input type="number" min={s.min_area} max={s.max_area} value={sel.area} onChange={(ev) => setSel({ ...sel, area: Number(ev.target.value) || 0 })} onBlur={(ev) => area(ev.target.value)} /> sqft</label>
@@ -178,11 +225,15 @@ export default function CostCalculator() {
                 <span className="calc-label">Estimated budget</span>
                 <div className="calc-range"><b>{tk(e.low)}</b><span>to</span><b>{tk(e.high)}</b></div>
                 <ul className="calc-lines">
-                  <li><span>{e.type.name}</span><span>{tk(e.type.value)}/sqft</span></li>
+                  {sel.mode === 'rooms' ? (
+                    <li><span>{e.roomCount} room{e.roomCount === 1 ? '' : 's'} ({e.type.name})</span><span>{tk(e.work)}</span></li>
+                  ) : (
+                    <li><span>{e.type.name}</span><span>{tk(e.type.value)}/sqft</span></li>
+                  )}
                   <li><span>Area</span><span>{sel.area.toLocaleString('en-IN')} sqft</span></li>
                   <li><span>{e.style.name} style</span><span>×{Number(e.style.value)}</span></li>
                   <li><span>{e.quality.name} quality</span><span>×{Number(e.quality.value)}</span></li>
-                  <li className="calc-strong"><span>Your rate</span><span>{tk(e.rate)}/sqft</span></li>
+                  <li className="calc-strong"><span>{sel.mode === 'rooms' ? 'Works out to' : 'Your rate'}</span><span>{tk(e.rate)}/sqft</span></li>
                   {e.addons.length > 0 && <li><span>Extras ({e.addons.length})</span><span>{tk(e.extras)}</span></li>}
                 </ul>
                 <div className="calc-time"><FiClock /> About <b>{e.days} days</b> to complete</div>

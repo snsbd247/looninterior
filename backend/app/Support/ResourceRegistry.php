@@ -242,7 +242,8 @@ class ResourceRegistry
                 'order' => ['group', 'desc'], // type, style, quality, addon
                 'then_order' => [['sort_order', 'asc']],
                 'rules' => [
-                    'group' => 'required|in:type,style,quality,addon',
+                    'group' => 'required|in:type,style,quality,addon,room',
+                    'default_qty' => 'sometimes|integer|min:0|max:20', // room: starting count
                     'name' => 'required|string|max:100',
                     'description' => 'nullable|string|max:255',
                     'icon' => 'nullable|string|max:30',

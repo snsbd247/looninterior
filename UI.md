@@ -318,7 +318,7 @@ Request
 | `posts`, `pages` | ব্লগ, ডাইনামিক পেজ |
 | `careers` → `job_applications` | জব পোস্ট, আবেদন (cv_path, status, admin_note) |
 | `inquiries` | কোট/কন্টাক্ট রিকোয়েস্ট (type, status, admin_note, ip); type `calculator` হলে `details` (JSON, nullable) এ ক্যালকুলেটরের বাছাই আর সার্ভারের হিসাব |
-| `calculator_options` | ক্যালকুলেটরের অপশন: group (type/style/quality/addon), name, description, icon, value (type = Tk/sqft, style/quality = গুণক, addon = Tk), is_default, sort_order, is_active। সেটিং: `calc_*` (এরিয়ার সীমা, রেঞ্জ %, সময়, খরচের ভাগ, নোট) |
+| `calculator_options` | ক্যালকুলেটরের অপশন: group (type/style/quality/addon/room), name, description, icon, value (type = Tk/sqft, style/quality = গুণক, addon = Tk, room = প্রতি রুমের Tk, স্ট্যান্ডার্ড), default_qty (room মোডে শুরুর সংখ্যা), is_default, sort_order, is_active। দুই মোড: area (রেট × এরিয়া) আর rooms (Σ রুম × সংখ্যা × গুণক)। সেটিং: `calc_*` (এরিয়ার সীমা, রেঞ্জ %, সময়, খরচের ভাগ, নোট) |
 
 ### ৫.২ Business ✅
 

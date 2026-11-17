@@ -87,3 +87,29 @@
   .calc-bar-name { grid-column: 1 / -1; }
   .calc-range b { font-size: 1.7rem; }
 }
+
+/* Room-by-room mode */
+.calc-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.calc-mode button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 14px 18px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; font: inherit; color: var(--text); box-shadow: var(--shadow); }
+.calc-mode button b { color: var(--heading); font-size: 15.5px; }
+.calc-mode button small { color: var(--muted); font-size: 12.5px; }
+.calc-mode button.is-on { border-color: var(--primary); background: var(--primary); }
+.calc-mode button.is-on b, .calc-mode button.is-on small { color: #fff; }
+.calc-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.calc-room { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius); transition: border-color .2s, background .2s; min-width: 0; }
+.calc-room.is-on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, white); }
+.calc-room .calc-card-icon { margin: 0; }
+.calc-room-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.calc-room-text b { color: var(--heading); font-size: 14.5px; }
+.calc-room-text small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.calc-room-text em { font-style: normal; font-size: 12.5px; color: var(--primary-dark); font-weight: 600; margin-top: 2px; }
+.calc-stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--border); border-radius: 22px; background: #fff; flex: none; }
+.calc-stepper button { width: 34px; height: 34px; border: 0; background: none; font-size: 20px; line-height: 1; color: var(--primary-dark); cursor: pointer; border-radius: 50%; }
+.calc-stepper button:disabled { color: var(--border); cursor: default; }
+.calc-stepper output { min-width: 22px; text-align: center; font-weight: 700; color: var(--heading); }
+@media (max-width: 760px) {
+  .calc-rooms { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .calc-mode button { padding: 12px; }
+}

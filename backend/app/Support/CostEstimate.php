@@ -10,8 +10,9 @@ use Illuminate\Validation\ValidationException;
  * Website cost calculator. The browser shows the same formula live; the server always recomputes it
  * (for the lead note and the PDF), so a visitor can never send their own numbers.
  *
- *   rate     = type Tk/sqft × style multiplier × quality multiplier
- *   estimate = rate × area + Σ add-ons
+ *   By area:      rate = type Tk/sqft × style × quality;  work = rate × area
+ *   Room by room: work = Σ (room Tk × count) × style × quality  (area is used only for the timeline)
+ *   estimate = work + Σ add-ons
  *   range    = estimate − low% … estimate + high%
  *   timeline = base days + days per 1,000 sqft × area / 1,000 (rounded up to 5 days)
  */
@@ -56,7 +57,7 @@ class CostEstimate
     /** Active options grouped for the page. */
     public static function options(): array
     {
-        $all = CalculatorOption::active()->ordered()->get(['id', 'group', 'name', 'description', 'icon', 'value', 'is_default']);
+        $all = CalculatorOption::active()->ordered()->get(['id', 'group', 'name', 'description', 'icon', 'value', 'is_default', 'default_qty']);
         $out = array_fill_keys(CalculatorOption::GROUPS, []);
         foreach ($all as $o) {
             $out[$o->group][] = $o;
@@ -88,14 +89,38 @@ class CostEstimate
             throw ValidationException::withMessages(['area' => "Area must be between {$s['calc_min_area']} and {$s['calc_max_area']} sqft."]);
         }
         $addons = collect(array_unique(array_map('intval', $in['addon_ids'] ?? [])))->map(fn ($id) => $pick('addon', $id))->values();
+        $factor = $style->value * $quality->value;
+        $mode = ($in['mode'] ?? 'area') === 'rooms' ? 'rooms' : 'area';
+        $rooms = [];
 
-        $rate = round($type->value * $style->value * $quality->value, 2);
-        $work = round($rate * $area, 2);
+        if ($mode === 'rooms') {
+            // Room by room: Σ (room price × count) × style × quality. The area is still used for the timeline.
+            foreach ($in['rooms'] ?? [] as $r) {
+                $qty = (int) ($r['qty'] ?? 0);
+                if ($qty < 0 || $qty > 20) {
+                    throw ValidationException::withMessages(['rooms' => 'Room count must be between 0 and 20.']);
+                }
+                if ($qty > 0) {
+                    $room = $pick('room', $r['id'] ?? 0);
+                    $unit = round($room->value * $factor, 2);
+                    $rooms[] = ['name' => $room->name, 'qty' => $qty, 'unit' => $unit, 'amount' => round($unit * $qty, 2)];
+                }
+            }
+            if (! $rooms) {
+                throw ValidationException::withMessages(['rooms' => 'Add at least one room.']);
+            }
+            $work = round(array_sum(array_column($rooms, 'amount')), 2);
+            $rate = round($work / $area, 2); // effective Tk per sqft, for information
+        } else {
+            $rate = round($type->value * $factor, 2);
+            $work = round($rate * $area, 2);
+        }
         $extras = round((float) $addons->sum('value'), 2);
         $estimate = round($work + $extras, 2);
         $days = $s['calc_days_base'] + $s['calc_days_per_1000'] * $area / 1000;
 
         return [
+            'mode' => $mode, 'rooms' => $rooms,
             'type' => $type->name, 'style' => $style->name, 'quality' => $quality->name, 'area' => $area,
             'base_rate' => (float) $type->value, 'style_factor' => (float) $style->value, 'quality_factor' => (float) $quality->value,
             'rate' => $rate, 'work' => $work,
@@ -113,11 +138,15 @@ class CostEstimate
     public static function summary(array $e): string
     {
         $tk = fn ($v) => 'Tk '.number_format($v);
-        $lines = [
+        $rooms = ($e['mode'] ?? 'area') === 'rooms'
+            ? 'Rooms: '.implode(', ', array_map(fn ($r) => "{$r['qty']} × {$r['name']}", $e['rooms'])).' → '.$tk($e['work'])
+            : null;
+        $lines = array_filter([
             "Cost calculator: {$e['type']}, ".number_format($e['area'])." sqft, {$e['style']} style, {$e['quality']} quality.",
-            'Rate '.$tk($e['rate']).'/sqft → '.$tk($e['work']).($e['addons'] ? ' + add-ons '.$tk($e['addons_total']).' ('.implode(', ', array_column($e['addons'], 'name')).')' : '').'.',
+            $rooms,
+            ($rooms ? 'Effective rate ' : 'Rate ').$tk($e['rate']).'/sqft → '.$tk($e['work']).($e['addons'] ? ' + add-ons '.$tk($e['addons_total']).' ('.implode(', ', array_column($e['addons'], 'name')).')' : '').'.',
             'Estimate '.$tk($e['estimate']).' (range '.$tk($e['low']).' – '.$tk($e['high']).'), about '.$e['days'].' days.',
-        ];
+        ]);
 
         return implode("\n", $lines);
     }

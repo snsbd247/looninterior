@@ -49,6 +49,10 @@ class CalculatorController extends Controller
             'area' => 'required|numeric',
             'addon_ids' => 'nullable|array|max:20',
             'addon_ids.*' => 'integer',
+            'mode' => 'nullable|in:area,rooms',
+            'rooms' => 'nullable|array|max:30',
+            'rooms.*.id' => 'required_with:rooms|integer',
+            'rooms.*.qty' => 'required_with:rooms|integer|min:0|max:20',
         ]);
         $e = CostEstimate::calculate($data);
 
@@ -86,13 +90,18 @@ class CalculatorController extends Controller
     {
         abort_unless($inquiry->type === 'calculator' && $inquiry->details, 404);
         $e = $inquiry->details;
-        $sections = [[
-            'name' => 'Interior work',
-            'items' => [[
-                'description' => "{$e['type']} interior – {$e['style']} style, {$e['quality']} materials",
-                'unit' => 'sqft', 'qty' => $e['area'], 'rate' => $e['rate'], 'amount' => $e['work'],
-            ]],
-        ]];
+        $sections = ($e['mode'] ?? 'area') === 'rooms'
+            ? [[
+                'name' => "Interior work by room – {$e['style']} style, {$e['quality']} materials",
+                'items' => array_map(fn ($r) => ['description' => $r['name'], 'unit' => 'room', 'qty' => $r['qty'], 'rate' => $r['unit'], 'amount' => $r['amount']], $e['rooms']),
+            ]]
+            : [[
+                'name' => 'Interior work',
+                'items' => [[
+                    'description' => "{$e['type']} interior – {$e['style']} style, {$e['quality']} materials",
+                    'unit' => 'sqft', 'qty' => $e['area'], 'rate' => $e['rate'], 'amount' => $e['work'],
+                ]],
+            ]];
         if (! empty($e['addons'])) {
             $sections[] = ['name' => 'Additional services', 'items' => array_map(fn ($a) => [
                 'description' => $a['name'], 'unit' => 'job', 'qty' => 1, 'rate' => $a['amount'], 'amount' => $a['amount'],

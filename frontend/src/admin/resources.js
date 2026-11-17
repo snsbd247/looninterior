@@ -156,12 +156,13 @@ export const RESOURCES = {
 
   calculator_options: {
     label: 'Cost Calculator', singular: 'Calculator Option', icon: FiPercent, group: 'Content',
-    filter: { name: 'group', label: 'All groups', options: ['type', 'style', 'quality', 'addon'] },
+    filter: { name: 'group', label: 'All groups', options: ['type', 'style', 'quality', 'addon', 'room'] },
     columns: [{ key: 'group', label: 'Group', type: 'badge' }, { key: 'name', label: 'Name' }, { key: 'value', label: 'Value' }, { key: 'sort_order', label: 'Order' }, activeCol],
     fields: [
-      { name: 'group', label: 'Group', type: 'select', options: ['type', 'style', 'quality', 'addon'], required: true, half: true, help: 'type = project type · style = design style · quality = material quality · addon = extra service' },
+      { name: 'group', label: 'Group', type: 'select', options: ['type', 'style', 'quality', 'addon', 'room'], required: true, half: true, help: 'type = project type · style = design style · quality = material quality · addon = extra service · room = room (room-by-room mode)' },
       { name: 'name', label: 'Name', required: true, half: true },
-      { name: 'value', label: 'Value', type: 'number', required: true, half: true, help: 'type: Tk per sqft (e.g. 1400) · style / quality: multiplier (1 = base, 1.35 = +35%) · addon: fixed Tk' },
+      { name: 'value', label: 'Value', type: 'number', required: true, half: true, help: 'type: Tk per sqft (e.g. 1400) · style / quality: multiplier (1 = base, 1.35 = +35%) · addon: fixed Tk · room: Tk per room at standard quality' },
+      { name: 'default_qty', label: 'Starting count (rooms only)', type: 'number', half: true, default: 0, help: 'How many of this room are selected when the page opens' },
       { name: 'description', label: 'Short description', half: true },
       iconField,
       { name: 'is_default', label: 'Selected by default', type: 'switch', half: true },

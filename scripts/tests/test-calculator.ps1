@@ -45,6 +45,23 @@ $r = Http POST '/api/calculator/quote' (With $body @{ name = 'T- Bot'; website =
 Assert 'honeypot: looks OK to the bot' ($r.S -eq 201)
 Assert 'honeypot: no inquiry saved' (@((Http GET '/api/admin/inquiries?q=T-%20Bot' $null $T).J.data).Count -eq $before)
 
+"== room by room"
+$rooms = @($o.room)
+Assert "room options listed ($($rooms.Count))" ($rooms.Count -ge 3)
+$r1 = $rooms[0]; $r2 = $rooms[1]
+$rb = With $body @{ name = 'T- Calc Rooms'; phone = '01700000556'; mode = 'rooms'; rooms = @(@{ id = $r1.id; qty = 1 }, @{ id = $r2.id; qty = 2 }, @{ id = $rooms[2].id; qty = 0 }); addon_ids = @() }
+$r = Http POST '/api/calculator/quote' $rb
+Check 'room quote' $r 201
+$f = [decimal]$style.value * [decimal]$qual.value
+$u1 = [math]::Round([decimal]$r1.value * $f, 2); $u2 = [math]::Round([decimal]$r2.value * $f, 2)
+$exp = $u1 + 2 * $u2
+Assert "room estimate $exp = $($r.J.estimate.estimate)" ([decimal]$r.J.estimate.estimate -eq $exp)
+Assert "2 room lines (zero-count room ignored)" (@($r.J.estimate.rooms).Count -eq 2 -and $r.J.estimate.mode -eq 'rooms')
+Assert 'room PDF' ((Invoke-WebRequest -UseBasicParsing $r.J.pdf_url).Headers['Content-Type'] -eq 'application/pdf')
+Check 'no rooms rejected' (Http POST '/api/calculator/quote' (With $rb @{ rooms = @(@{ id = $r1.id; qty = 0 }) })) 422
+Check 'too many of a room rejected' (Http POST '/api/calculator/quote' (With $rb @{ rooms = @(@{ id = $r1.id; qty = 50 }) })) 422
+Check 'non-room id rejected' (Http POST '/api/calculator/quote' (With $rb @{ rooms = @(@{ id = $type.id; qty = 1 }) })) 422
+
 "== admin options"
 $n = Http POST '/api/admin/calculator_options' @{ group = 'addon'; name = 'T- Test Extra'; value = 999; is_active = $true; sort_order = 99 } $T
 Check 'admin adds option' $n 201
